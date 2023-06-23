@@ -36,68 +36,42 @@ const MenuProps = {
   },
 }
 
-export default function RoleDisplay({
-  editing,
-  value,
-  fullWidth,
-  size = 'small',
-  ...selectProps
-}: TextDisplayProps) {
+export default function RoleDisplay({ editing, fullWidth, ...selectProps }: TextDisplayProps) {
   const theme = useTheme()
 
-  if (editing)
-    return (
-      <FormControl fullWidth>
-        <InputLabel id='role-select-label'>Status</InputLabel>
-        <Select
-          labelId='role-select-label'
-          id='role-select'
-          value={value || ''}
-          label='Status'
-          {...selectProps}
-        >
-          {Roles.map((r) => (
-            <MenuItem key={r} value={r}>
-              {r}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    )
-
   return (
-    <Box
-      component='span'
-      sx={{
-        border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-        borderRadius: 1,
-        overflow: 'hidden',
-        display: fullWidth ? 'flex' : 'inline-block',
-        alignItems: fullWidth ? 'center' : undefined,
-      }}
-    >
-      <Box
+    <FormControl fullWidth={fullWidth} variant={editing ? 'outlined' : 'standard'}>
+      <InputLabel id='role-select-label'>Status</InputLabel>
+      <Select
+        labelId='role-select-label'
+        id='role-select'
+        label='Status'
+        {...selectProps}
+        disableUnderline
+        inputProps={{
+          readOnly: !editing,
+          disabled: !editing,
+        }}
         sx={{
-          borderRight: (theme) => `1px solid ${theme.vars.palette.divider}`,
-          px: 1.5,
-          height: size === 'medium' ? 56 : 40,
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-          display: 'inline-block',
+          ...selectProps.sx,
+          '& .MuiSelect-icon': {
+            display: !selectProps.disabled && !editing ? 'none' : undefined,
+          },
+          '&.MuiInputBase-root .Mui-disabled': {
+            WebkitTextFillColor: (theme) => {
+              if (!selectProps.disabled && !editing) return theme.palette.text.primary
+
+              return theme.palette.text.disabled
+            },
+          },
         }}
       >
-        <Typography
-          variant='subtitle2'
-          fontSize='1.05rem'
-          component='span'
-          lineHeight={size === 'medium' ? '56px' : '40px'}
-        >
-          Status
-        </Typography>
-      </Box>
-      <Typography component='span' sx={{ minWidth: '182px', px: 1, display: 'inline-block' }}>
-        {value || ''}
-      </Typography>
-    </Box>
+        {Roles.map((r) => (
+          <MenuItem key={r} value={r}>
+            {r}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   )
 }

@@ -70,4 +70,5 @@ export enum ENDPOINT {
   RECURRING_EVENT = '/api/calendar/recurring-event',
   ROSTER = '/api/roster',
   MEMBER = '/api/member/',
+  LOG_NAMES = '/api/activity-log/names',
 }

@@ -7,15 +7,14 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  OutlinedInput,
   Select,
   SelectProps,
-  Typography,
+  useMediaQuery,
 } from '@mui/material'
 
 interface TextDisplayProps extends SelectProps {
   editing?: boolean
-  value?: ENTITY[]
+  values?: ENTITY[]
 }
 
 const Entities = [
@@ -46,93 +45,71 @@ function getStyles(name: ENTITY, values: readonly ENTITY[], theme: Theme) {
 
 export default function EntityDisplay({
   editing,
-  value = [],
+  values = [],
   fullWidth,
   size = 'small',
   ...selectProps
 }: TextDisplayProps) {
   const theme = useTheme()
-
-  if (editing)
-    return (
-      <FormControl fullWidth>
-        <InputLabel id='entity-select-label'>{value.length > 1 ? 'Entities' : 'Entity'}</InputLabel>
-        <Select
-          labelId='entity-select-label'
-          id='entity-select'
-          multiple
-          value={value}
-          input={
-            <OutlinedInput
-              id='select-multiple-chip'
-              label={value.length > 1 ? 'Entities' : 'Entity'}
-            />
-          }
-          renderValue={(selected) => {
-            return (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {(selected as ENTITY[]).map((value) => (
-                  <Chip key={value} label={Entities.find((e) => e.value === value)?.label} />
-                ))}
-              </Box>
-            )
-          }}
-          MenuProps={MenuProps}
-          {...selectProps}
-        >
-          {Entities.map((entity) => (
-            <MenuItem
-              key={entity.value}
-              value={entity.value}
-              style={getStyles(entity.value, value, theme)}
-            >
-              {entity.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    )
-
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
   return (
-    <Box
-      component='span'
-      sx={{
-        border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-        borderRadius: 1,
-        overflow: 'hidden',
-        display: fullWidth ? 'flex' : 'inline-block',
-        alignItems: fullWidth ? 'center' : undefined,
-      }}
-    >
-      <Box
+    <FormControl fullWidth>
+      <InputLabel id='entity-select-label' sx={{ left: editing ? undefined : -15 }}>
+        {values.length > 1 ? 'Entities' : 'Entity'}
+      </InputLabel>
+      <Select
+        labelId='entity-select-label'
+        id='entity-select'
+        multiple
+        value={values}
+        disableUnderline
+        inputProps={{
+          readOnly: !editing,
+          disabled: !editing,
+        }}
+        renderValue={(selected) => {
+          return (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              {(selected as ENTITY[]).map((value) => (
+                <Chip
+                  key={value}
+                  sx={{ bgcolor: ENTITY_COLOR[value].background, color: ENTITY_COLOR[value].text }}
+                  label={isSmall ? value : Entities.find((e) => e.value === value)?.label}
+                  size={size}
+                />
+              ))}
+            </Box>
+          )
+        }}
+        MenuProps={MenuProps}
+        {...selectProps}
+        size='small'
+        label={values.length > 1 ? 'Entities' : 'Entity'}
+        variant={editing ? 'outlined' : 'standard'}
         sx={{
-          borderRight: (theme) => `1px solid ${theme.vars.palette.divider}`,
-          px: 1.5,
-          height: size === 'medium' ? 56 : 40,
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-          display: 'inline-block',
+          ...selectProps.sx,
+          '& .MuiSelect-icon': {
+            display: !selectProps.disabled && !editing ? 'none' : undefined,
+          },
+          '&.MuiInputBase-root .Mui-disabled': {
+            WebkitTextFillColor: (theme) => {
+              if (!selectProps.disabled && !editing) return '#FFF'
+
+              return theme.palette.text.disabled
+            },
+          },
         }}
       >
-        <Typography
-          variant='subtitle2'
-          fontSize='1.05rem'
-          component='span'
-          lineHeight={size === 'medium' ? '56px' : '40px'}
-        >
-          {value.length > 1 ? 'Entities' : 'Entity'}
-        </Typography>
-      </Box>
-      <Typography component='span' sx={{ minWidth: '182px', px: 1, display: 'inline-block' }}>
-        {value.map((e) => (
-          <Chip
-            key={e}
-            label={ENTITY_LABEL[e]}
-            size={size}
-            sx={{ bgcolor: ENTITY_COLOR[e].background, color: ENTITY_COLOR[e].text, mr: 1 }}
-          />
+        {Entities.map((entity) => (
+          <MenuItem
+            key={entity.value}
+            value={entity.value}
+            style={getStyles(entity.value, values, theme)}
+          >
+            {isSmall ? entity.value : entity.label}
+          </MenuItem>
         ))}
-      </Typography>
-    </Box>
+      </Select>
+    </FormControl>
   )
 }

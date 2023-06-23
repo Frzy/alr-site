@@ -10,7 +10,7 @@ function rowToMember(r: GoogleSpreadsheetRow, index: number): Member {
 
   return {
     id: r.id,
-    activityLogNames: r.activityLogNames ? r.activityLogNames.split(',') : [],
+    activityLogLink: r.activityLogLink || undefined,
     email: r.email || undefined,
     entity: r.entity ? r.entity.split(',') : undefined,
     firstName: r.firstName,

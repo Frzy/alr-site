@@ -130,7 +130,6 @@ export default function RecurrenceCalendarDialog({
     setState((prev) => ({ ...prev, count: newValue }))
   }
   function handleUntilChange(value: Moment | null) {
-    console.log({ value: value?.format() })
     setState((prev) => ({ ...prev, until: value }))
   }
   function handleWeeklyByDayChange(value: DAY[]) {

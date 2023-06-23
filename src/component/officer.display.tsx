@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material'
 import { OFFICER_POSITION } from '@/utils/constants'
+import TextDisplay from './text.display'
 
 interface OfficerDisplayProps extends SelectProps {
   editing?: boolean
@@ -17,80 +18,71 @@ interface OfficerDisplayProps extends SelectProps {
 }
 
 const Offices = [
-  OFFICER_POSITION.DIRECTOR,
-  OFFICER_POSITION.VICE_DIRECTOR,
-  OFFICER_POSITION.JR_VICE,
-  OFFICER_POSITION.SECRETARY,
-  OFFICER_POSITION.TREASURER,
-  OFFICER_POSITION.SGT_AT_ARMS,
-  OFFICER_POSITION.ROAD_CAPTAIN,
-  OFFICER_POSITION.HISTORIAN,
-  OFFICER_POSITION.CHAPLAIN,
-  OFFICER_POSITION.PAST_DIRECTOR,
+  { value: OFFICER_POSITION.DIRECTOR, label: 'Director' },
+  { value: OFFICER_POSITION.VICE_DIRECTOR, label: 'Vice Director' },
+  { value: OFFICER_POSITION.JR_VICE, label: 'Junior Vice Director' },
+  { value: OFFICER_POSITION.SECRETARY, label: 'Secretary' },
+  { value: OFFICER_POSITION.TREASURER, label: 'Treasurer' },
+  { value: OFFICER_POSITION.SGT_AT_ARMS, label: 'Sergent at Arms' },
+  { value: OFFICER_POSITION.ROAD_CAPTAIN, label: 'Road Captain' },
+  { value: OFFICER_POSITION.HISTORIAN, label: 'Historian' },
+  { value: OFFICER_POSITION.CHAPLAIN, label: 'Chaplain' },
+  { value: OFFICER_POSITION.PAST_DIRECTOR, label: 'Past Director' },
 ]
 
 export default function OfficeDisplay({
   editing,
   value,
   fullWidth,
-  size = 'small',
+  size,
   ...selectProps
 }: OfficerDisplayProps) {
   const theme = useTheme()
+  const displayValue = React.useMemo(() => {
+    const found = Offices.find((o) => o.value === value)
 
-  if (editing)
-    return (
-      <FormControl fullWidth={fullWidth}>
-        <InputLabel id='office-select-label'>Office</InputLabel>
-        <Select
-          labelId='office-select-label'
-          id='office-select'
-          value={value || ''}
-          label='Office'
-          {...selectProps}
-        >
-          {Offices.map((o) => (
-            <MenuItem key={o} value={o}>
-              {o}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    )
+    return found ? found.label : 'No Office Held'
+  }, [value])
+  if (!editing) {
+    return <TextDisplay label='Office' value={displayValue} fullWidth={fullWidth} size={size} />
+  }
 
   return (
-    <Box
-      component='span'
-      sx={{
-        border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-        borderRadius: 1,
-        overflow: 'hidden',
-        display: fullWidth ? 'flex' : 'inline-block',
-        alignItems: fullWidth ? 'center' : undefined,
-      }}
-    >
-      <Box
+    <FormControl fullWidth={fullWidth} variant={editing ? 'outlined' : 'standard'}>
+      <InputLabel id='officier-select-label'>Office</InputLabel>
+      <Select
+        labelId='officier-select-label'
+        id='officier-select'
+        label='Office'
+        displayEmpty
+        {...selectProps}
+        value={value || ''}
+        disableUnderline
+        inputProps={{
+          readOnly: !editing,
+          disabled: !editing,
+        }}
         sx={{
-          borderRight: (theme) => `1px solid ${theme.vars.palette.divider}`,
-          px: 1.5,
-          height: size === 'medium' ? 56 : 40,
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-          display: 'inline-block',
+          ...selectProps.sx,
+          '& .MuiSelect-icon': {
+            opacity: !selectProps.disabled && !editing ? 0 : 1,
+          },
+          '& .Mui-disabled': {
+            WebkitTextFillColor: (theme) => {
+              if (!selectProps.disabled && !editing) return theme.palette.text.primary
+
+              return theme.palette.text.disabled
+            },
+          },
         }}
       >
-        <Typography
-          variant='subtitle2'
-          fontSize='1.05rem'
-          component='span'
-          lineHeight={size === 'medium' ? '56px' : '40px'}
-        >
-          Office
-        </Typography>
-      </Box>
-      <Typography component='span' sx={{ minWidth: '182px', px: 1, display: 'inline-block' }}>
-        {value || ''}
-      </Typography>
-    </Box>
+        <MenuItem value=''>No Office Held</MenuItem>
+        {Offices.map((o) => (
+          <MenuItem key={o.value} value={o.value}>
+            {o.label}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   )
 }

@@ -7,7 +7,7 @@ import { Box } from '@mui/material'
 import Header from '@/component/header'
 import Calendar from '@/component/calendar/calendar'
 
-export default function Home() {
+export default function HomePage() {
   return (
     <>
       <Head>
@@ -25,4 +25,3 @@ export default function Home() {
     </>
   )
 }
-//635 - 580

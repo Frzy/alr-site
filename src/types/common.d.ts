@@ -2,7 +2,7 @@ import { ENTITY, OFFICER_POSITION } from '@/utils/constants'
 
 export type Member = {
   id: string
-  activityLogNames: string[]
+  activityLogLink: string
   email?: string
   entity?: ENTITY[]
   firstName: string
