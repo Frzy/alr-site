@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { MEMBER_ROLE } from '@/utils/constants'
+import { MEMBER_ROLE, MEMBER_ROLES } from '@/utils/constants'
 import { Theme, useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -11,19 +11,10 @@ import {
   Typography,
 } from '@mui/material'
 
-interface TextDisplayProps extends SelectProps {
+interface TextDisplayProps extends SelectProps<MEMBER_ROLE> {
   editing?: boolean
   value?: MEMBER_ROLE
 }
-
-const Roles = [
-  MEMBER_ROLE.ABANDONED,
-  MEMBER_ROLE.CHARTER,
-  MEMBER_ROLE.DISCHARGED,
-  MEMBER_ROLE.MEMBER,
-  MEMBER_ROLE.PROSPECT,
-  MEMBER_ROLE.SUPPORTER,
-]
 
 const ITEM_HEIGHT = 48
 const ITEM_PADDING_TOP = 8
@@ -38,6 +29,7 @@ const MenuProps = {
 
 export default function RoleDisplay({ editing, fullWidth, ...selectProps }: TextDisplayProps) {
   const theme = useTheme()
+  if (!editing) selectProps.disableUnderline = true
 
   return (
     <FormControl fullWidth={fullWidth} variant={editing ? 'outlined' : 'standard'}>
@@ -47,10 +39,9 @@ export default function RoleDisplay({ editing, fullWidth, ...selectProps }: Text
         id='role-select'
         label='Status'
         {...selectProps}
-        disableUnderline
         inputProps={{
           readOnly: !editing,
-          disabled: !editing,
+          disabled: !editing || selectProps.disabled,
         }}
         sx={{
           ...selectProps.sx,
@@ -66,7 +57,7 @@ export default function RoleDisplay({ editing, fullWidth, ...selectProps }: Text
           },
         }}
       >
-        {Roles.map((r) => (
+        {MEMBER_ROLES.map((r) => (
           <MenuItem key={r} value={r}>
             {r}
           </MenuItem>

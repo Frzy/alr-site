@@ -1,6 +1,6 @@
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { findMember } from './spreadsheet'
+import { findMember } from './roster'
 import { MEMBER_ROLE } from '@/utils/constants'
 
 export const authOptions: NextAuthOptions = {

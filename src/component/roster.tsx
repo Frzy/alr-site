@@ -1,6 +1,6 @@
 import * as React from 'react'
 import useSWR, { Fetcher } from 'swr'
-import { ENDPOINT, ENTITY, ENTITY_COLOR, MEMBER_ROLE } from '@/utils/constants'
+import { ENDPOINT, MEMBER_ROLE } from '@/utils/constants'
 import { Avatar, Box, Chip, Paper, Stack, Toolbar, Tooltip, Typography } from '@mui/material'
 import RosterItem from './roster.item'
 

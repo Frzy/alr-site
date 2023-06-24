@@ -2,10 +2,17 @@ import { ICalendarEvent } from '@/component/calendar/calendar.timeline'
 
 import type { calendar_v3 } from 'googleapis'
 import moment, { Moment } from 'moment'
-import { EVENT_COLOR, EVENT_TYPE } from './constants'
+import { EVENT_TYPE_OBJECTS, EVENT_TYPE } from './constants'
 
 export function getPhoneLink(phoneNumber: string) {
   return phoneNumber.replace(/[^0-9]/gi, '')
+}
+export function getSpeadsheetPhoneNumber(phoneNumber: string) {
+  const pNumber = getPhoneLink(phoneNumber).split('')
+  pNumber.splice(3, 0, '-')
+  pNumber.splice(7, 0, '-')
+
+  return pNumber.join('')
 }
 export function stringToColor(string: string) {
   let hash = 0
@@ -34,7 +41,9 @@ export function getCalendarEventType(event: calendar_v3.Schema$Event) {
   return EVENT_TYPE.EVENT
 }
 export function getCalendarEventColor(type: EVENT_TYPE) {
-  return EVENT_COLOR[type]
+  const color = EVENT_TYPE_OBJECTS.find((e) => e.value === type)?.color
+
+  return color ? color : EVENT_TYPE_OBJECTS[0].color
 }
 export function getCalendarEventFromGoogleEvent(
   events: calendar_v3.Schema$Event[] = [],
@@ -110,7 +119,6 @@ export function getRecurrenceStringParts(recString: string): Recurrence {
     return { ...a, [subParts[0]]: subParts[1] }
   }, {})
 }
-
 export function getHumanReadableRecurrenceString(startDate: Moment, recString: string) {
   const rObj = getRecurrenceStringParts(recString)
   let result = ''
@@ -197,4 +205,9 @@ export function getHumanReadableRecurrenceString(startDate: Moment, recString: s
   }
 
   return result
+}
+export function formatMoney(number: string | number) {
+  const toFormat = typeof number === 'string' ? parseFloat(number) : number
+
+  return toFormat.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }

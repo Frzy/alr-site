@@ -10,6 +10,8 @@ export default function TextDisplay({
   autoComplete,
   ...textFieldProps
 }: TextDisplayProps) {
+  const InputProps = { ...textFieldProps.InputProps }
+
   return (
     <TextField
       {...textFieldProps}
@@ -18,9 +20,13 @@ export default function TextDisplay({
       inputProps={{
         ...textFieldProps.inputProps,
         readOnly: !editing,
-        disabled: !editing,
+        disabled: !editing || textFieldProps.disabled,
       }}
-      InputProps={{ ...textFieldProps.InputProps, disableUnderline: !editing }}
+      InputProps={
+        !editing
+          ? { ...textFieldProps.InputProps, disableUnderline: true }
+          : { ...textFieldProps.InputProps }
+      }
     />
   )
 }

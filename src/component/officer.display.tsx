@@ -12,7 +12,7 @@ import {
 import { OFFICER_POSITION } from '@/utils/constants'
 import TextDisplay from './text.display'
 
-interface OfficerDisplayProps extends SelectProps {
+interface OfficerDisplayProps extends SelectProps<OFFICER_POSITION> {
   editing?: boolean
   value?: OFFICER_POSITION
 }
@@ -38,30 +38,23 @@ export default function OfficeDisplay({
   ...selectProps
 }: OfficerDisplayProps) {
   const theme = useTheme()
-  const displayValue = React.useMemo(() => {
-    const found = Offices.find((o) => o.value === value)
-
-    return found ? found.label : 'No Office Held'
-  }, [value])
   if (!editing) {
-    return <TextDisplay label='Office' value={displayValue} fullWidth={fullWidth} size={size} />
+    return <TextDisplay label='Office' value={value} fullWidth={fullWidth} size={size} />
   }
 
   return (
-    <FormControl fullWidth={fullWidth} variant={editing ? 'outlined' : 'standard'}>
-      <InputLabel id='officier-select-label'>Office</InputLabel>
+    <FormControl fullWidth={fullWidth}>
+      <InputLabel id='officier-select-label' shrink>
+        Office
+      </InputLabel>
       <Select
         labelId='officier-select-label'
         id='officier-select'
         label='Office'
-        displayEmpty
         {...selectProps}
+        notched
+        displayEmpty
         value={value || ''}
-        disableUnderline
-        inputProps={{
-          readOnly: !editing,
-          disabled: !editing,
-        }}
         sx={{
           ...selectProps.sx,
           '& .MuiSelect-icon': {
@@ -76,7 +69,7 @@ export default function OfficeDisplay({
           },
         }}
       >
-        <MenuItem value=''>No Office Held</MenuItem>
+        <MenuItem value=''>None</MenuItem>
         {Offices.map((o) => (
           <MenuItem key={o.value} value={o.value}>
             {o.label}

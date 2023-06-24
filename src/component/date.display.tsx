@@ -3,7 +3,7 @@ import { Moment } from 'moment'
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers'
 import TextDisplay from './text.display'
 
-interface DateDisplayProps extends DatePickerProps<unknown> {
+interface DateDisplayProps extends DatePickerProps<Moment> {
   editing?: boolean
   size?: 'small' | 'medium'
   fullWidth?: boolean
@@ -63,8 +63,6 @@ export default function DateDisplay({
       }}
       slotProps={{
         textField: {
-          variant: editing ? 'outlined' : 'standard',
-          InputProps: { disableUnderline: !editing },
           fullWidth,
           size,
         },

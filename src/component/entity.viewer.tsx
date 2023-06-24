@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ENTITY, ENTITY_COLOR, ENTITY_LABEL } from '@/utils/constants'
+import { ENTITY, ENTITY_OBJECTS, ENTITY_COLORS } from '@/utils/constants'
 import { Theme, useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -12,16 +12,10 @@ import {
   useMediaQuery,
 } from '@mui/material'
 
-interface TextDisplayProps extends SelectProps {
+interface EntityDisplayProps extends SelectProps<ENTITY | ENTITY[]> {
   editing?: boolean
   values?: ENTITY[]
 }
-
-const Entities = [
-  { label: ENTITY_LABEL.AUX, value: ENTITY.AUXILIARY },
-  { label: ENTITY_LABEL.AL, value: ENTITY.LEGION },
-  { label: ENTITY_LABEL.SAL, value: ENTITY.SAL },
-]
 
 const ITEM_HEIGHT = 48
 const ITEM_PADDING_TOP = 8
@@ -49,9 +43,12 @@ export default function EntityDisplay({
   fullWidth,
   size = 'small',
   ...selectProps
-}: TextDisplayProps) {
+}: EntityDisplayProps) {
   const theme = useTheme()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+
+  if (!editing) selectProps.disableUnderline = true
+
   return (
     <FormControl fullWidth>
       <InputLabel id='entity-select-label' sx={{ left: editing ? undefined : -15 }}>
@@ -60,12 +57,12 @@ export default function EntityDisplay({
       <Select
         labelId='entity-select-label'
         id='entity-select'
+        name='entity'
         multiple
         value={values}
-        disableUnderline
         inputProps={{
           readOnly: !editing,
-          disabled: !editing,
+          disabled: !editing || selectProps.disabled,
         }}
         renderValue={(selected) => {
           return (
@@ -73,8 +70,11 @@ export default function EntityDisplay({
               {(selected as ENTITY[]).map((value) => (
                 <Chip
                   key={value}
-                  sx={{ bgcolor: ENTITY_COLOR[value].background, color: ENTITY_COLOR[value].text }}
-                  label={isSmall ? value : Entities.find((e) => e.value === value)?.label}
+                  sx={{
+                    bgcolor: ENTITY_COLORS[value].background,
+                    color: ENTITY_COLORS[value].text,
+                  }}
+                  label={isSmall ? value : ENTITY_OBJECTS.find((e) => e.value === value)?.label}
                   size={size}
                 />
               ))}
@@ -100,7 +100,7 @@ export default function EntityDisplay({
           },
         }}
       >
-        {Entities.map((entity) => (
+        {ENTITY_OBJECTS.map((entity) => (
           <MenuItem
             key={entity.value}
             value={entity.value}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Avatar, Box, Chip, Paper, PaperProps, Tooltip, Typography, Link } from '@mui/material'
-import { ENTITY, ENTITY_COLOR, MEMBER_ROLE } from '@/utils/constants'
+import { ENTITY, ENTITY_COLORS, MEMBER_ROLE } from '@/utils/constants'
 import { stringToColor } from '@/utils/helpers'
 import CharterMemberIcon from '@mui/icons-material/SportsMotorsports'
 import EmailIcon from '@mui/icons-material/Email'
@@ -31,8 +31,8 @@ function entityChip(entity: ENTITY) {
   return {
     label: entity,
     sx: {
-      bgcolor: ENTITY_COLOR[entity].background,
-      color: ENTITY_COLOR[entity].text,
+      bgcolor: ENTITY_COLORS[entity].background,
+      color: ENTITY_COLORS[entity].text,
     },
   }
 }

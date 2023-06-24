@@ -19,7 +19,7 @@ const PhoneNumberMask = React.forwardRef<HTMLInputElement, CustomProps>(function
   return (
     <IMaskInput
       {...other}
-      mask='(#00) 000-0000'
+      mask='#00-000-0000'
       definitions={{
         '#': /[1-9]/,
       }}
@@ -41,11 +41,15 @@ export default function PhoneField({ editing, autoComplete, ...textFieldProps }:
         readOnly: !editing,
         disabled: !editing,
       }}
-      InputProps={{
-        ...textFieldProps.InputProps,
-        inputComponent: PhoneNumberMask as any,
-        disableUnderline: !editing,
-      }}
+      InputProps={
+        !editing
+          ? {
+              ...textFieldProps.InputProps,
+              inputComponent: PhoneNumberMask as any,
+              disableUnderline: true,
+            }
+          : { ...textFieldProps.InputProps, inputComponent: PhoneNumberMask as any }
+      }
     />
   )
 }

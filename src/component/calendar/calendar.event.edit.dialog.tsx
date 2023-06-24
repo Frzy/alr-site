@@ -26,7 +26,7 @@ import NotesIcon from '@mui/icons-material/Notes'
 import type { ICalendarEvent } from './calendar.timeline'
 import moment, { Moment } from 'moment'
 import { DatePicker, TimePicker } from '@mui/x-date-pickers'
-import { EVENT_COLOR, EVENT_TYPE } from '@/utils/constants'
+import { EVENT_TYPE_OBJECTS, EVENT_TYPE } from '@/utils/constants'
 import CustomRepeatOptions from './event.dialog/repeat.options'
 
 interface CalendarEventPros extends Omit<DialogProps, 'onClose'> {
@@ -127,39 +127,19 @@ export default function CalendarEditEventDialog({
                 <MenuItem disabled value=''>
                   <em>Add Event Type</em>
                 </MenuItem>
-                <MenuItem value={EVENT_TYPE.EVENT}>
-                  <Box
-                    component={'span'}
-                    width={24}
-                    height={24}
-                    borderRadius={1}
-                    bgcolor={EVENT_COLOR.event.main}
-                    mr={2}
-                  />
-                  <ListItemText primary={EVENT_TYPE.EVENT.toUpperCase()} />
-                </MenuItem>
-                <MenuItem value={EVENT_TYPE.MEETING}>
-                  <Box
-                    component={'span'}
-                    width={24}
-                    height={24}
-                    borderRadius={1}
-                    bgcolor={EVENT_COLOR.meeting.main}
-                    mr={2}
-                  />
-                  <ListItemText primary={EVENT_TYPE.MEETING.toUpperCase()} />
-                </MenuItem>
-                <MenuItem value={EVENT_TYPE.RIDE}>
-                  <Box
-                    component={'span'}
-                    width={24}
-                    height={24}
-                    borderRadius={1}
-                    bgcolor={EVENT_COLOR.ride.main}
-                    mr={2}
-                  />
-                  <ListItemText primary={EVENT_TYPE.RIDE.toUpperCase()} />
-                </MenuItem>
+                {EVENT_TYPE_OBJECTS.map((e) => (
+                  <MenuItem key={e.value} value={e.value}>
+                    <Box
+                      component={'span'}
+                      width={24}
+                      height={24}
+                      borderRadius={1}
+                      bgcolor={e.color.main}
+                      mr={2}
+                    />
+                    <ListItemText primary={e.value.toUpperCase()} />
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>

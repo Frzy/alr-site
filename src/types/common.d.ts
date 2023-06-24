@@ -1,8 +1,8 @@
-import { ENTITY, OFFICER_POSITION } from '@/utils/constants'
+import { ACTIVITY_TYPE, ENTITY, OFFICER_POSITION } from '@/utils/constants'
+import { Moment } from 'moment'
 
 export type Member = {
   id: string
-  activityLogLink: string
   email?: string
   entity?: ENTITY[]
   firstName: string
@@ -23,4 +23,15 @@ export type Member = {
   suffix?: string
   yearsActive?: number
   username: string
+}
+
+export type ActivityLog = {
+  id: number
+  date: string
+  name: string
+  activityName: string
+  activityType: ACTIVITY_TYPE
+  hours?: number
+  monies?: number
+  miles?: number
 }

@@ -1,4 +1,4 @@
-import type { Member } from '@/lib/spreadsheet'
+import type { Member } from '@/lib/roster'
 
 declare module 'next-auth' {
   /**

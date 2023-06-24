@@ -1,5 +1,30 @@
-import { ENTITY, MEMBER_ROLE } from '@/utils/constants'
+import { ActivityLog } from '@/types/common'
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
+
+function rowToActivityLog(r: GoogleSpreadsheetRow, index: number): ActivityLog {
+  const log = {
+    id: index,
+    date: r.date,
+    name: r.name,
+    activityName: r.activity,
+    activityType: r.activityType,
+    hours: r.hours ? parseFloat(r.hours) : undefined,
+    monies: r.monies ? parseFloat(r.monies.replace('$', '')) : undefined,
+    miles: r.miles ? parseFloat(r.miles) : undefined,
+  }
+
+  Object.keys(log).forEach(
+    (key) => log[key as keyof ActivityLog] === undefined && delete log[key as keyof ActivityLog],
+  )
+
+  return log
+}
+
+export function convertToPublicActivityLog(log: ActivityLog) {
+  const { monies, ...publicLog } = log
+
+  return publicLog
+}
 
 export async function getActivityLogNames(filter?: (name: string) => boolean) {
   const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY)
@@ -23,4 +48,44 @@ export async function getActivityLogNames(filter?: (name: string) => boolean) {
   }
 
   return names
+}
+
+export async function getActivityLogEntries(filter?: (log: ActivityLog) => boolean) {
+  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY)
+
+  await doc.useServiceAccountAuth({
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY,
+  })
+  await doc.loadInfo()
+  const worksheet = doc.sheetsById[process.env.ACTIVITY_LOG_DATA_SHEET_KEY]
+
+  const rows = await worksheet.getRows()
+
+  const logs = rows.map(rowToActivityLog)
+
+  if (filter) return logs.filter(filter)
+
+  return logs
+}
+
+export async function udpateActivityLogName(oldName: string, newName: string) {
+  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY)
+
+  await doc.useServiceAccountAuth({
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY,
+  })
+  await doc.loadInfo()
+  const worksheet = doc.sheetsById[process.env.ACTIVITY_LOG_DATA_SHEET_KEY]
+
+  await worksheet.loadCells('B:B')
+  const stats = worksheet.cellStats
+
+  for (let i = 0; i < stats.loaded; i++) {
+    const cell = worksheet.getCell(i, 1)
+    if (cell.value === oldName) cell.value = newName
+  }
+
+  await worksheet.saveUpdatedCells()
 }

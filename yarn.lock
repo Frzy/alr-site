@@ -50,6 +50,13 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
+"@babel/runtime@^7.22.5":
+  version "7.22.5"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.5.tgz#8564dd588182ce0047d55d7a75e93921107b57ec"
+  integrity sha512-ecjvYlnAaZ/KVneE/OdKYBYfgXV3Ptu6zQWmgEF7vwKhQnvVS6bjMD2XYgj+SNvQ1GfK/pjgokfPkC/2CO8CuA==
+  dependencies:
+    regenerator-runtime "^0.13.11"
+
 "@babel/types@^7.21.4":
   version "7.22.3"
   resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.22.3.tgz#0cc6af178b91490acaeb4a2f70dcbf27cdf3d8f3"
@@ -354,6 +361,17 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
+"@mui/x-data-grid@^6.9.0":
+  version "6.9.0"
+  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-6.9.0.tgz#3383722e0c23e09d25da1a3357865644c12576ac"
+  integrity sha512-JlvLvYHUrfFBQMQa7fzkxUmEVygQL5IWt0cww1Rs4zKYaVcDM5v1T8ZhFOrOQp04c7meB+CykuP94r3Dn30wqQ==
+  dependencies:
+    "@babel/runtime" "^7.22.5"
+    "@mui/utils" "^5.13.1"
+    clsx "^1.2.1"
+    prop-types "^15.8.1"
+    reselect "^4.1.8"
+
 "@mui/x-date-pickers@^6.6.0":
   version "6.6.0"
   resolved "https://registry.yarnpkg.com/@mui/x-date-pickers/-/x-date-pickers-6.6.0.tgz#3b921c3b1d24b1df1062b16e43921957063adf85"
@@ -492,6 +510,11 @@
   dependencies:
     "@types/react" "*"
     immutable "~3.7.4"
+
+"@types/fuzzy-search@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@types/fuzzy-search/-/fuzzy-search-2.1.2.tgz#d57b2af8fb723baa1792d40d511f431c4c8f75af"
+  integrity sha512-YOqA50Z3xcycm4Br5+MBUpSumfdOAcv34A8A8yFn62zBQPTzJSXQk11qYE5w8BWQ0KrVThXUgEQh7ZLrYI1NaQ==
 
 "@types/google-spreadsheet@^3.3.2":
   version "3.3.2"
@@ -1644,6 +1667,11 @@ functions-have-names@^1.2.2, functions-have-names@^1.2.3:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
+
+fuzzy-search@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fuzzy-search/-/fuzzy-search-3.2.1.tgz#65d5faad6bc633aee86f1898b7788dfe312ac6c9"
+  integrity sha512-vAcPiyomt1ioKAsAL2uxSABHJ4Ju/e4UeDM+g1OlR0vV4YhLGMNsdLNvZTpEDY4JCSt0E4hASCNM5t2ETtsbyg==
 
 gauge@^3.0.0:
   version "3.0.2"
@@ -2958,6 +2986,11 @@ regexp.prototype.flags@^1.4.3, regexp.prototype.flags@^1.5.0:
     call-bind "^1.0.2"
     define-properties "^1.2.0"
     functions-have-names "^1.2.3"
+
+reselect@^4.1.8:
+  version "4.1.8"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.1.8.tgz#3f5dc671ea168dccdeb3e141236f69f02eaec524"
+  integrity sha512-ab9EmR80F/zQTMNeneUr4cv+jSwPJgIlvEmVwLerwrWVbpLlBuls9XHzIeTFy4cegU2NHBp3va0LKOzU5qFEYQ==
 
 resolve-from@^4.0.0:
   version "4.0.0"
