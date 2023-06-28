@@ -18,6 +18,7 @@ export enum MEMBER_ROLE {
   ABANDONED = 'Abandoned',
   CHARTER = 'Charter Member',
   DISCHARGED = 'Discharged',
+  FOUNDER = 'Founder',
   MEMBER = 'Member',
   PAST_MEMBER = 'Past Member',
   PAST_SUPPORTER = 'Past Supporter',
@@ -26,6 +27,12 @@ export enum MEMBER_ROLE {
   SUPPORTER = 'Supporter',
 }
 export const MEMBER_ROLES = Object.values(MEMBER_ROLE)
+export const ACTIVE_MEMERB_ROLES = [
+  MEMBER_ROLE.CHARTER,
+  MEMBER_ROLE.MEMBER,
+  MEMBER_ROLE.PROSPECT,
+  MEMBER_ROLE.SUPPORTER,
+]
 
 export enum ENTITY {
   LEGION = 'AL',
@@ -57,7 +64,7 @@ export const ENTITY_OBJECTS = ENTITIES.map((e) => {
       }
     case ENTITY.AUXILIARY:
       return {
-        value: ENTITY.SAL,
+        value: ENTITY.AUXILIARY,
         label: 'American Legion Auxiliary',
         short: 'Auxiliary',
         color: {

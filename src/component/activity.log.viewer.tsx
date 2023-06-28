@@ -27,7 +27,6 @@ import SearchIcon from '@mui/icons-material/Search'
 
 import type { ActivityLog } from '@/types/common'
 import { formatMoney } from '@/utils/helpers'
-import { useSession } from 'next-auth/react'
 
 enum TimeFrame {
   ALL = 'All',
@@ -37,14 +36,8 @@ enum TimeFrame {
   LAST_MONTH = 'Last 30 Days',
   LAST_QUARTER = 'Last 90 Days',
 }
-const TimeFrames = [
-  TimeFrame.ALL,
-  TimeFrame.CALENDAR_YEAR,
-  TimeFrame.LEGION_YEAR,
-  TimeFrame.LAST_WEEK,
-  TimeFrame.LAST_MONTH,
-  TimeFrame.LAST_QUARTER,
-]
+const TimeFrames = Object.values(TimeFrame)
+
 const columns: GridColDef[] = [
   {
     field: 'date',
@@ -205,11 +198,10 @@ function TotalFooter(props: NonNullable<GridSlotsComponentsProps['footer']>) {
 }
 
 export default function ActivityLogViewer({ logs: initialLogs, isPublic }: ActivityLogViewerProps) {
-  const session = useSession()
   const logs = React.useMemo(() => {
     return new Logs(initialLogs)
   }, [initialLogs])
-  const [timeFrame, setTimeFrame] = React.useState<string>(TimeFrame.ALL)
+  const [timeFrame, setTimeFrame] = React.useState<string>(TimeFrame.CALENDAR_YEAR)
   const years = React.useMemo(() => {
     const currYear = moment().year() - 1
     const minYear = logs.minDate.year()
@@ -220,7 +212,48 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
       (_, offset) => Math.min(currYear, maxYear) - offset,
     )
   }, [logs])
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>()
+  const dateFilter = React.useMemo(() => {
+    const today = moment()
+
+    switch (timeFrame) {
+      case TimeFrame.ALL:
+        return undefined
+      case TimeFrame.CALENDAR_YEAR:
+        return { minDate: moment().startOf('year'), maxDate: moment().endOf('year') }
+      case TimeFrame.LEGION_YEAR:
+        const currentMonth = today.month()
+        const minDate = moment()
+          .year(currentMonth < 6 ? today.year() - 1 : today.year())
+          .month(6)
+          .startOf('month')
+
+        return {
+          minDate,
+          maxDate: moment(minDate).add(1, 'year').subtract(1, 'day').endOf('day'),
+        }
+      case TimeFrame.LAST_WEEK:
+        return {
+          minDate: moment().subtract(1, 'week').startOf('day'),
+          maxDate: moment().endOf('day'),
+        }
+      case TimeFrame.LAST_MONTH:
+        return {
+          minDate: moment().subtract(1, 'month').startOf('day'),
+          maxDate: moment().endOf('day'),
+        }
+      case TimeFrame.LAST_QUARTER:
+        return {
+          minDate: moment().subtract(3, 'months').startOf('day'),
+          maxDate: moment().endOf('day'),
+        }
+      default:
+        return {
+          minDate: moment(timeFrame, 'YYYY').startOf('year'),
+          maxDate: moment(timeFrame, 'YYYY').endOf('year'),
+        }
+    }
+  }, [timeFrame])
+  // const [dateFilter, setDateFilter] = React.useState<DateFilter>()
   const [searchTerm, setSearchTerm] = React.useState('')
   const filter = React.useCallback(
     (log: ActivityLog) => {
@@ -233,54 +266,7 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
   )
 
   function handleTimeframeChange(event: SelectChangeEvent) {
-    const newTimeFrame = event.target.value
-    const today = moment()
-
-    switch (newTimeFrame) {
-      case TimeFrame.ALL:
-        setDateFilter(undefined)
-        break
-      case TimeFrame.CALENDAR_YEAR:
-        setDateFilter({ minDate: moment().startOf('year'), maxDate: moment().endOf('year') })
-        break
-      case TimeFrame.LEGION_YEAR:
-        const currentMonth = today.month()
-        const minDate = moment()
-          .year(currentMonth < 6 ? today.year() - 1 : today.year())
-          .month(6)
-          .startOf('month')
-
-        setDateFilter({
-          minDate,
-          maxDate: moment(minDate).add(1, 'year').subtract(1, 'day').endOf('day'),
-        })
-        break
-      case TimeFrame.LAST_WEEK:
-        setDateFilter({
-          minDate: moment().subtract(1, 'week').startOf('day'),
-          maxDate: moment().endOf('day'),
-        })
-        break
-      case TimeFrame.LAST_MONTH:
-        setDateFilter({
-          minDate: moment().subtract(1, 'month').startOf('day'),
-          maxDate: moment().endOf('day'),
-        })
-        break
-      case TimeFrame.LAST_QUARTER:
-        setDateFilter({
-          minDate: moment().subtract(3, 'months').startOf('day'),
-          maxDate: moment().endOf('day'),
-        })
-        break
-      default:
-        setDateFilter({
-          minDate: moment(newTimeFrame, 'YYYY').startOf('year'),
-          maxDate: moment(newTimeFrame, 'YYYY').endOf('year'),
-        })
-    }
-
-    setTimeFrame(newTimeFrame)
+    setTimeFrame(event.target.value)
   }
   function handleFuzzySearch(event: React.ChangeEvent<HTMLInputElement>) {
     setSearchTerm(event.target.value)

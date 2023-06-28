@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Divider,
   FormControlLabel,
   Paper,
   SelectChangeEvent,
@@ -246,6 +247,15 @@ export default function MemberInformation({
             </Grid>
             {isOfficer && (
               <React.Fragment>
+                <Grid xs={12}>
+                  <Box display='flex' alignItems='center' justifyContent='center'>
+                    <Divider sx={{ flexGrow: 1 }} />
+                    <Typography variant='h5' fontWeight='fontWeightBold' sx={{ px: 1 }}>
+                      Officers Only
+                    </Typography>
+                    <Divider sx={{ flexGrow: 1 }} />
+                  </Box>
+                </Grid>
                 <Grid xs={12} md={4} lg={3}>
                   <TextDisplay
                     label='Membership Id'
@@ -283,7 +293,7 @@ export default function MemberInformation({
                 <Grid xs={12} md={4} lg={3}>
                   <DateDisplay
                     label='Joined On'
-                    value={moment(member.joined, 'MM-DD-YYYY')}
+                    value={member.joined ? moment(member.joined, 'MM-DD-YYYY') : null}
                     editing={isEditing && isOfficer}
                     size={isEditing ? 'medium' : 'small'}
                     onChange={handleDateChange}
@@ -291,20 +301,22 @@ export default function MemberInformation({
                     fullWidth
                   />
                 </Grid>
-                <Grid xs={12} md={4} lg={3}>
-                  <TextDisplay
-                    label='Canidate Rides'
-                    name='rides'
-                    value={member.rides ? member.rides : '0'}
-                    type='number'
-                    editing={isEditing && isOfficer}
-                    size={isEditing ? 'medium' : 'small'}
-                    onChange={handleTextChange}
-                    disabled={disabled || loading}
-                    inputProps={{ min: 0, max: 3 }}
-                    fullWidth
-                  />
-                </Grid>
+                {member.role === MEMBER_ROLE.PROSPECT && (
+                  <Grid xs={12} md={4} lg={3}>
+                    <TextDisplay
+                      label='Canidate Rides'
+                      name='rides'
+                      value={member.rides ? member.rides : '0'}
+                      type='number'
+                      editing={isEditing && isOfficer}
+                      size={isEditing ? 'medium' : 'small'}
+                      onChange={handleTextChange}
+                      disabled={disabled || loading}
+                      inputProps={{ min: 0, max: 3 }}
+                      fullWidth
+                    />
+                  </Grid>
+                )}
                 <Grid xs={6} md={4}>
                   <FormControlLabel
                     control={
@@ -316,19 +328,6 @@ export default function MemberInformation({
                       />
                     }
                     label='Lifetime Member'
-                  />
-                </Grid>
-                <Grid xs={6} md={4}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        name='isRetired'
-                        checked={member.isRetired}
-                        onChange={handleCheckboxChange}
-                        disabled={disabled || loading}
-                      />
-                    }
-                    label='Retired Member'
                   />
                 </Grid>
                 <Grid xs={6} md={4}>

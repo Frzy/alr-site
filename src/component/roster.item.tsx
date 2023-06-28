@@ -56,6 +56,7 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
         return <ProspectIcon />
     }
   }, [member])
+  const [hover, setHover] = React.useState(false)
 
   function getRideCount() {
     if (member.rides === undefined) return null
@@ -87,9 +88,13 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
 
   return (
     <Paper
-      variant='outlined'
+      variant={hover ? 'elevation' : 'outlined'}
+      elevation={hover ? 10 : undefined}
       {...paperProps}
-      sx={{ display: 'flex', gap: 1, px: 1, py: 0.5, ...sx }}
+      sx={{ display: 'flex', gap: 1, px: 1, py: 0.5, cursor: 'pointer', ...sx }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={() => (window.location.href = `/member/${member.id}`)}
     >
       <Box display='flex' alignSelf='flex-start' pt={1}>
         {member.image ? (

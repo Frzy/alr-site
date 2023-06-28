@@ -1,8 +1,7 @@
-import { ENTITY, MEMBER_ROLE } from '@/utils/constants'
+import { ACTIVE_MEMERB_ROLES } from '@/utils/constants'
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
 import moment from 'moment'
 import type { Member } from '@/types/common'
-import { getSpeadsheetPhoneNumber } from '@/utils/helpers'
 
 async function getRows() {
   const doc = new GoogleSpreadsheet(process.env.ROSTER_SPREADSHEET_KEY)
@@ -30,10 +29,9 @@ function rowToMember(r: GoogleSpreadsheetRow): Member {
     entity: r.entity ? r.entity.split(',') : undefined,
     firstName: r.firstName,
     image: r.image || undefined,
-    isActive: !!lastPaid && cutOffYear <= lastPaid,
+    isActive: ACTIVE_MEMERB_ROLES.indexOf(r.role) !== -1,
     isLifeTimeMember: r.lifttimeMember === 'TRUE',
     isPastPresident: r.pastPresident === 'TRUE',
-    isRetired: r.retiredMember === 'TRUE',
     joined: r.joinDate || undefined,
     lastName: r.lastName,
     membershipId: r.memberId,
@@ -88,7 +86,6 @@ export async function updateMember(m: Member) {
     r.entity = m.entity ? m.entity?.join(',') : ''
     r.joinDate = m.joined
     r.lifttimeMember = m.isLifeTimeMember ? 'TRUE' : 'FALSE'
-    r.retiredMember = m.isRetired ? 'TRUE' : 'FALSE'
     r.pastPresident = m.isPastPresident ? 'TRUE' : 'FALSE'
     r.rides = m.rides
     r.image = m.image

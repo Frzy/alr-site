@@ -7,7 +7,7 @@ interface DateDisplayProps extends DatePickerProps<Moment> {
   editing?: boolean
   size?: 'small' | 'medium'
   fullWidth?: boolean
-  value: Moment
+  value: Moment | null
 }
 
 export default function DateDisplay({
@@ -25,7 +25,7 @@ export default function DateDisplay({
         fullWidth={fullWidth}
         size={size}
         label={label}
-        value={value.format('MM/DD/YYYY')}
+        value={value ? value.format('MM/DD/YYYY') : ''}
       />
     )
   }

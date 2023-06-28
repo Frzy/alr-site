@@ -10,7 +10,6 @@ export type Member = {
   isActive: boolean
   isLifeTimeMember: boolean
   isPastPresident: boolean
-  isRetired: boolean
   joined?: string
   lastName: string
   membershipId?: string

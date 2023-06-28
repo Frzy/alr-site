@@ -65,19 +65,23 @@ export default function EntityDisplay({
           disabled: !editing || selectProps.disabled,
         }}
         renderValue={(selected) => {
+          console.log(selected)
           return (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {(selected as ENTITY[]).map((value) => (
-                <Chip
-                  key={value}
-                  sx={{
-                    bgcolor: ENTITY_COLORS[value].background,
-                    color: ENTITY_COLORS[value].text,
-                  }}
-                  label={isSmall ? value : ENTITY_OBJECTS.find((e) => e.value === value)?.label}
-                  size={size}
-                />
-              ))}
+              {(selected as ENTITY[]).map((value) => {
+                console.log({ entity: value })
+                return (
+                  <Chip
+                    key={value}
+                    sx={{
+                      bgcolor: ENTITY_COLORS[value].background,
+                      color: ENTITY_COLORS[value].text,
+                    }}
+                    label={isSmall ? value : ENTITY_OBJECTS.find((e) => e.value === value)?.label}
+                    size={size}
+                  />
+                )
+              })}
             </Box>
           )
         }}

@@ -220,6 +220,13 @@
   resolved "https://registry.yarnpkg.com/@fontsource/roboto/-/roboto-5.0.1.tgz#c9d374fc71553d356986b393ec8aace1bf740d58"
   integrity sha512-pWF64nF35Tfoh2kWgOuJYEFTLkpn+O3/GIR//u1MGD9b1yR+UBwYKXmcNx9CRyNPjMdWjkdN9GKDHhaWZRYbnw==
 
+"@googleapis/people@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@googleapis/people/-/people-3.0.2.tgz#7d1bc700a9dbd27eb65f859ee31e6d95c1c9343d"
+  integrity sha512-wny/jW1Ld2rhk6Csxx8rlE3BVzvoLibxYxUmNBNHGJbAryQwbZc8IxS9YMBJUKko7awd1iKO9HAPpkPqtOiH9Q==
+  dependencies:
+    googleapis-common "^6.0.3"
+
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.11.8.tgz#03595ac2075a4dc0f191cc2131de14fbd7d410b9"
@@ -1881,7 +1888,7 @@ google-spreadsheet@^3.3.0:
     google-auth-library "^6.1.3"
     lodash "^4.17.21"
 
-googleapis-common@^6.0.0:
+googleapis-common@^6.0.0, googleapis-common@^6.0.3:
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/googleapis-common/-/googleapis-common-6.0.4.tgz#bd968bef2a478bcd3db51b27655502a11eaf8bf4"
   integrity sha512-m4ErxGE8unR1z0VajT6AYk3s6a9gIMM6EkDZfkPnES8joeOlEtFEJeF8IyZkb0tjPXkktUfYrE4b3Li1DNyOwA==
