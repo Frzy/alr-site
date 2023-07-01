@@ -1,4 +1,4 @@
-import { ACTIVITY_TYPE, ENTITY, OFFICER_POSITION } from '@/utils/constants'
+import { ACTIVITY_TYPE, ENTITY, OFFICER_POSITION, ROLE } from '@/utils/constants'
 import { Moment } from 'moment'
 
 export type Member = {
@@ -18,10 +18,24 @@ export type Member = {
   office?: OFFICER_POSITION
   phoneNumber?: string
   rides?: number
-  role: MEMBER_ROLE
+  role: ROLE
   suffix?: string
   yearsActive?: number
   username: string
+}
+
+export type BaseLog = {
+  miles: number
+  hours: number
+  events: number
+}
+
+export type GroupLogs = {
+  [key: string]: BaseLog & {
+    breakdown: {
+      [key in ACTIVITY_TYPE]: BaseLog
+    }
+  }
 }
 
 export type ActivityLog = {

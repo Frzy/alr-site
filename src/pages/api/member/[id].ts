@@ -29,14 +29,11 @@ async function PutHandle(req: NextApiRequest, res: NextApiResponse<Member | Api.
     }
     return
   } catch (e) {
-    console.log(e)
     res.status(400).json({ code: 400, message: 'Unable to update member.' })
   }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log(req.method)
-
   switch (req.method) {
     case 'GET':
       GetHandle(req, res)

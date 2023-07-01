@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Avatar, Box, Chip, Paper, PaperProps, Tooltip, Typography, Link } from '@mui/material'
-import { ENTITY, ENTITY_COLORS, MEMBER_ROLE } from '@/utils/constants'
+import { ENTITY, ENTITY_COLORS, ROLE } from '@/utils/constants'
 import { stringToColor } from '@/utils/helpers'
 import CharterMemberIcon from '@mui/icons-material/SportsMotorsports'
 import EmailIcon from '@mui/icons-material/Email'
@@ -37,22 +37,16 @@ function entityChip(entity: ENTITY) {
   }
 }
 
-const NO_RIDE_COLOR = {
-  light: 'rgba(0, 0, 0, 0.3)',
-  dark: 'rgba(255, 255, 255, 0.3)',
-}
-const RIDE_COLOR = 'green'
-
 export default function RosterItem({ member, sx, ...paperProps }: RosterItemProps) {
   const RoleIcons = React.useMemo(() => {
     switch (member.role) {
-      case MEMBER_ROLE.CHARTER:
+      case ROLE.CHARTER:
         return <CharterMemberIcon />
-      case MEMBER_ROLE.MEMBER:
+      case ROLE.MEMBER:
         return <RiderIcon />
-      case MEMBER_ROLE.SUPPORTER:
+      case ROLE.SUPPORTER:
         return <SupporterIcon />
-      case MEMBER_ROLE.PROSPECT:
+      case ROLE.PROSPECT:
         return <ProspectIcon />
     }
   }, [member])
@@ -62,22 +56,38 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
     if (member.rides === undefined) return null
 
     return (
-      <Box display='flex' alignItems='center' gap={1} pb={1}>
+      <Box
+        display='flex'
+        alignItems='center'
+        gap={1}
+        pb={1}
+        sx={{
+          '& .no-ride': (theme) => ({
+            opacity: 0.15,
+            [theme.getColorSchemeSelector('dark')]: {
+              opacity: 1,
+            },
+          }),
+        }}
+      >
         <Typography variant='subtitle2'>Rides:</Typography>
         <Image
           src={member.rides < 1 ? '/images/american_skull_black.png' : '/images/american_skull.png'}
+          className={member.rides < 1 ? 'no-ride' : undefined}
           width={24}
           height={24}
           alt='ride'
         />
         <Image
           src={member.rides < 2 ? '/images/american_skull_black.png' : '/images/american_skull.png'}
+          className={member.rides < 2 ? 'no-ride' : undefined}
           width={24}
           height={24}
           alt='ride'
         />
         <Image
           src={member.rides < 3 ? '/images/american_skull_black.png' : '/images/american_skull.png'}
+          className={member.rides < 3 ? 'no-ride' : undefined}
           width={24}
           height={24}
           alt='ride'
@@ -111,7 +121,7 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
                 {member.name}
               </Typography>
               {member.office && <Chip variant='outlined' label={member.office} size='small' />}
-              {member.role === MEMBER_ROLE.PROSPECT && !!member.rides && member.rides >= 3 && (
+              {member.role === ROLE.PROSPECT && !!member.rides && member.rides >= 3 && (
                 <Chip variant='outlined' label='Ready' size='small' />
               )}
             </Box>
@@ -142,7 +152,7 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
               <Typography component='a'></Typography>
             </Grid>
           )}
-          {member.role === MEMBER_ROLE.PROSPECT && getRideCount()}
+          {member.role === ROLE.PROSPECT && getRideCount()}
         </Grid>
       </Box>
       <Box

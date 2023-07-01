@@ -27,7 +27,7 @@ import moment, { Moment } from 'moment'
 import CheckBoxIcon from '@mui/icons-material/CheckBox'
 import UncheckedCheckBoxIcon from '@mui/icons-material/CheckBoxOutlineBlank'
 import EditIcon from '@mui/icons-material/Edit'
-import { ENTITY, MEMBER_ROLE } from '@/utils/constants'
+import { ENTITY, ROLE } from '@/utils/constants'
 
 const enum Mode {
   Edit = 'edit',
@@ -122,7 +122,7 @@ export default function MemberInformation({
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Nickname' value={member.nickName || '{Empty}'} />
             </Grid>
-            {member.role === MEMBER_ROLE.PROSPECT ? (
+            {member.role === ROLE.PROSPECT ? (
               <Grid xs={6} md={4} lg={3}>
                 <TextDisplay label='Rides' value={`${member.rides ? member.rides : 0} / 3`} />
               </Grid>
@@ -301,7 +301,7 @@ export default function MemberInformation({
                     fullWidth
                   />
                 </Grid>
-                {member.role === MEMBER_ROLE.PROSPECT && (
+                {member.role === ROLE.PROSPECT && (
                   <Grid xs={12} md={4} lg={3}>
                     <TextDisplay
                       label='Canidate Rides'

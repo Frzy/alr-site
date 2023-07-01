@@ -2,7 +2,8 @@ import { ICalendarEvent } from '@/component/calendar/calendar.timeline'
 
 import type { calendar_v3 } from 'googleapis'
 import moment, { Moment } from 'moment'
-import { EVENT_TYPE_OBJECTS, EVENT_TYPE } from './constants'
+import { EVENT_TYPE_OBJECTS, EVENT_TYPE, OFFICER_ORDER } from './constants'
+import { Member } from '@/types/common'
 
 export function getPhoneLink(phoneNumber: string) {
   return phoneNumber.replace(/[^0-9]/gi, '')
@@ -210,4 +211,13 @@ export function formatMoney(number: string | number) {
   const toFormat = typeof number === 'string' ? parseFloat(number) : number
 
   return toFormat.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+}
+
+export function officerSort(a: Member, b: Member) {
+  if (!a.office || !b.office) return 0
+
+  if (OFFICER_ORDER[a.office] <= OFFICER_ORDER[b.office]) return -1
+  if (OFFICER_ORDER[a.office] > OFFICER_ORDER[b.office]) return 1
+
+  return 0
 }

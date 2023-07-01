@@ -65,11 +65,9 @@ export default function EntityDisplay({
           disabled: !editing || selectProps.disabled,
         }}
         renderValue={(selected) => {
-          console.log(selected)
           return (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               {(selected as ENTITY[]).map((value) => {
-                console.log({ entity: value })
                 return (
                   <Chip
                     key={value}

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { MEMBER_ROLE, MEMBER_ROLES } from '@/utils/constants'
+import { ROLE, ROLES } from '@/utils/constants'
 import { Theme, useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -11,9 +11,9 @@ import {
   Typography,
 } from '@mui/material'
 
-interface TextDisplayProps extends SelectProps<MEMBER_ROLE> {
+interface TextDisplayProps extends SelectProps<ROLE> {
   editing?: boolean
-  value?: MEMBER_ROLE
+  value?: ROLE
 }
 
 const ITEM_HEIGHT = 48
@@ -57,7 +57,7 @@ export default function RoleDisplay({ editing, fullWidth, ...selectProps }: Text
           },
         }}
       >
-        {MEMBER_ROLES.map((r) => (
+        {ROLES.map((r) => (
           <MenuItem key={r} value={r}>
             {r}
           </MenuItem>

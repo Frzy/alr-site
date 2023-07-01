@@ -14,7 +14,7 @@ export enum OFFICER_POSITION {
 }
 export const OFFICES = Object.values(OFFICER_POSITION)
 
-export enum MEMBER_ROLE {
+export enum ROLE {
   ABANDONED = 'Abandoned',
   CHARTER = 'Charter Member',
   DISCHARGED = 'Discharged',
@@ -26,13 +26,10 @@ export enum MEMBER_ROLE {
   RETIRED = 'Retiree',
   SUPPORTER = 'Supporter',
 }
-export const MEMBER_ROLES = Object.values(MEMBER_ROLE)
-export const ACTIVE_MEMERB_ROLES = [
-  MEMBER_ROLE.CHARTER,
-  MEMBER_ROLE.MEMBER,
-  MEMBER_ROLE.PROSPECT,
-  MEMBER_ROLE.SUPPORTER,
-]
+export const ROLES = Object.values(ROLE)
+
+export const MEMBER_ROLES = [ROLE.CHARTER, ROLE.MEMBER, ROLE.SUPPORTER]
+export const ACTIVE_ROLES = [ROLE.CHARTER, ROLE.MEMBER, ROLE.PROSPECT, ROLE.SUPPORTER]
 
 export enum ENTITY {
   LEGION = 'AL',
@@ -128,6 +125,19 @@ export const EVENT_TYPE_OBJECTS = EVENT_TYPES.map((e) => {
       }
   }
 })
+
+export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
+  Director: 1,
+  'Vice Director': 2,
+  'Jr Vice': 3,
+  Secretary: 4,
+  Treasurer: 5,
+  'Sgt at Arms': 6,
+  'Road Captain': 7,
+  Historian: 8,
+  Chaplain: 9,
+  'Past Director': 10,
+}
 
 export enum ENDPOINT {
   EVENTS = '/api/calendar/events',

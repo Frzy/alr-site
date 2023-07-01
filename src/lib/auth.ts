@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { findMember } from './roster'
-import { MEMBER_ROLE } from '@/utils/constants'
+import { ACTIVE_ROLES } from '@/utils/constants'
 
 export const authOptions: NextAuthOptions = {
   pages: {
@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
 
           return (
             member.username === credentials.username.toLowerCase() &&
-            (member.isActive || member.role === MEMBER_ROLE.PROSPECT) &&
+            ACTIVE_ROLES.indexOf(member.role) !== -1 &&
             passwordToMatch.toLowerCase() === credentials.password.toLowerCase()
           )
         })

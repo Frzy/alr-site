@@ -1,4 +1,4 @@
-import { ACTIVE_MEMERB_ROLES } from '@/utils/constants'
+import { MEMBER_ROLES } from '@/utils/constants'
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
 import moment from 'moment'
 import type { Member } from '@/types/common'
@@ -29,7 +29,7 @@ function rowToMember(r: GoogleSpreadsheetRow): Member {
     entity: r.entity ? r.entity.split(',') : undefined,
     firstName: r.firstName,
     image: r.image || undefined,
-    isActive: ACTIVE_MEMERB_ROLES.indexOf(r.role) !== -1,
+    isActive: MEMBER_ROLES.indexOf(r.role) !== -1,
     isLifeTimeMember: r.lifttimeMember === 'TRUE',
     isPastPresident: r.pastPresident === 'TRUE',
     joined: r.joinDate || undefined,
@@ -91,8 +91,6 @@ export async function updateMember(m: Member) {
     r.image = m.image
 
     await r.save()
-
-    console.log({ first: r.firstName, last: r.lastName })
 
     return rowToMember(r)
   }

@@ -1,5 +1,22 @@
-import { ActivityLog } from '@/types/common'
+import { ActivityLog, BaseLog, GroupLogs } from '@/types/common'
+import { ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
+
+const BASE_STATS: BaseLog = {
+  miles: 0,
+  hours: 0,
+  events: 0,
+}
+function getBaseGroupLog() {
+  return {
+    breakdown: ACTIVITY_TYPES.reduce((acc, curr) => {
+      acc[curr] = { ...BASE_STATS }
+
+      return acc
+    }, {} as { [key in ACTIVITY_TYPE]: BaseLog }),
+    ...BASE_STATS,
+  }
+}
 
 function rowToActivityLog(r: GoogleSpreadsheetRow, index: number): ActivityLog {
   const log = {
@@ -67,6 +84,25 @@ export async function getActivityLogEntries(filter?: (log: ActivityLog) => boole
   if (filter) return logs.filter(filter)
 
   return logs
+}
+
+export async function getActivityLogEntriesGroupedByPerson(filter?: (log: ActivityLog) => boolean) {
+  const logs = await getActivityLogEntries(filter)
+
+  return logs.reduce((groups, log) => {
+    if (!groups[log.name]) {
+      groups[log.name] = getBaseGroupLog()
+    }
+
+    groups[log.name].events += 1
+    groups[log.name].hours += log.hours || 0
+    groups[log.name].miles += log.miles || 0
+    groups[log.name].breakdown[log.activityType].events += 1
+    groups[log.name].breakdown[log.activityType].hours += log.hours || 0
+    groups[log.name].breakdown[log.activityType].miles += log.miles || 0
+
+    return groups
+  }, {} as GroupLogs)
 }
 
 export async function udpateActivityLogName(oldName: string, newName: string) {
