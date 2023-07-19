@@ -102,11 +102,9 @@ export async function deleteCalendarEvent(
 export const fetcher: Fetcher<ICalendarEvent[], [string, Record<string, string>]> = async (
   args,
 ) => {
-  // const [url, query] = args
-  // const response = await queryRequest('GET', url, query)
-  // const data = (await response.json()) as IServerCalendarEvent[]
+  const [url, query] = args
+  const response = await queryRequest('GET', url, query)
+  const data = (await response.json()) as IServerCalendarEvent[]
 
-  // return data.map(getFrontEndCalendarEvent)
-
-  return []
+  return data.map(getFrontEndCalendarEvent)
 }

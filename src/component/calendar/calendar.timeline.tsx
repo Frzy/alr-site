@@ -88,6 +88,7 @@ export default function CalendarTimeline({
   const allDayEvents = React.useMemo(() => {
     const positions: ICalendarEvent[][] = Array.from(Array(days.length), (x) => [])
     const dayEvents = events.filter((e) => e.isAllDayEvent)
+
     days.map((day, dayIndex) => {
       dayEvents.forEach((e) => {
         if (e.startDate.isSame(day, 'day') || (dayIndex === 0 && e.startDate.isBefore(day))) {
@@ -120,10 +121,9 @@ export default function CalendarTimeline({
     const calEvents = events.filter((e) => !e.isAllDayEvent)
 
     for (let i = 0; i < calEvents.length; i++) {
-      const currentEvnet = calEvents[i]
-      const startDate = currentEvnet.startDate
-      const endDate = currentEvnet.endDate
-      const localCluster = [currentEvnet]
+      const currentEvent = calEvents[i]
+      const { startDate, endDate } = currentEvent
+      const localCluster = [currentEvent]
 
       if (startDate.isSame(endDate, 'day')) {
         while (i + 1 < calEvents.length && calEvents[i + 1].startDate.isBefore(endDate)) {
@@ -162,7 +162,10 @@ export default function CalendarTimeline({
 
       return cluster
         .filter((e) => {
-          return e.startDate.isBetween(moment(day).startOf('day'), moment(day).endOf('day'))
+          return e.startDate.isBetween(
+            moment(day).subtract(1, 'day').endOf('day'),
+            moment(day).add(1, 'day').startOf('day'),
+          )
         })
         .map((event, index) => {
           let width: string
@@ -199,7 +202,6 @@ export default function CalendarTimeline({
               event={event}
               mode={mode}
               onClick={handleEventClick}
-              sx={{ zIndex: 2 }}
             />
           )
         })
@@ -216,7 +218,7 @@ export default function CalendarTimeline({
           width='100%'
           height={2}
           bgcolor='red'
-          zIndex={1}
+          zIndex={1000}
         >
           <Box ml='-12px' mt='-12px'>
             <HelmetIcon sx={{ color: 'red' }} />
@@ -402,10 +404,11 @@ export default function CalendarTimeline({
   return (
     <Box display='flex' flexDirection='column' overflow='hidden' {...boxProps}>
       <Box>
+        {/* Headers */}
         {mode === 'day' ? (
           <Box display='flex'>
-            <Box width={55} />
-            <Box flexGrow={1} pr={3}>
+            <Box width={55} sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }} />
+            <Box flexGrow={1} pr={3} onClick={handleAddNewAllDayCalendarEvent(date)}>
               <Box pl={1}>
                 <Typography variant='body2' color='text.secondary' fontWeight='fontWeightBold'>
                   {date.format('dddd')}
@@ -422,12 +425,7 @@ export default function CalendarTimeline({
                   width='100%'
                   pl={1}
                   sx={{
-                    borderLeft: (theme) =>
-                      dayIndex === 0 ? `1px solid ${theme.palette.divider}` : undefined,
-                    borderRight: (theme) =>
-                      dayIndex !== days.length - 1
-                        ? `1px solid ${theme.palette.divider}`
-                        : undefined,
+                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                     minHeight: 16,
                     py: allDayEvents.length && 0.5,
                   }}
@@ -555,7 +553,7 @@ export default function CalendarTimeline({
                   sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }}
                   onClick={handleAddNewCalendarEvent(day)}
                 >
-                  {!!events.length && getCalendarEvents(day)}
+                  {getCalendarEvents(day)}
                 </Box>
               ))}
             </Box>
