@@ -327,6 +327,11 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
             sorting: { sortModel: [{ field: 'date', sort: 'desc' }] },
           }}
           pageSizeOptions={[5, 10, 25]}
+          sx={{
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+          }}
           disableColumnMenu
         />
         <Typography component={'h2'} variant='h4' gutterBottom>
@@ -337,6 +342,11 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
           columns={isPublic ? statColumns.slice(0, -1) : statColumns}
           slots={{ footer: TotalFooter }}
           slotProps={{ footer: { totals: logs.stats.totals, isPublic } }}
+          sx={{
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+          }}
           disableColumnMenu
         />
       </Stack>

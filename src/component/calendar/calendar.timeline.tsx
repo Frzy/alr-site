@@ -1,37 +1,22 @@
 import * as React from 'react'
-import useSWR, { Fetcher } from 'swr'
-import moment, { Moment } from 'moment'
+import { getFrontEndCalendarEvent } from '@/utils/helpers'
+import { ICalendarEvent, IServerCalendarEvent } from '@/types/common'
 import HelmetIcon from '@mui/icons-material/SportsMotorsports'
+import moment, { Moment } from 'moment'
+import pSBC from '@/utils/pSBC'
+import useSWR, { Fetcher } from 'swr'
 import { Box, BoxProps, Chip, IconButton, Stack, Typography } from '@mui/material'
 
-import type { calendar_v3 } from 'googleapis'
 import type { CalendarState } from './calendar'
-import {
-  getCalendarEventColor,
-  getCalendarEventFromGoogleEvent,
-  getCalendarEventType,
-} from '@/utils/helpers'
-import { EVENT_TYPE } from '@/utils/constants'
-
-export type ICalendarEvent = {
-  endDate: Moment
-  eventType: EVENT_TYPE
-  isAllDayEvent: boolean
-  dayTotal: number
-  isPastEvent: boolean
-  startDate: Moment
-  originalStartDate?: Moment
-  dayNumber?: number
-} & calendar_v3.Schema$Event
 
 const fetcher: Fetcher<ICalendarEvent[], string[]> = async (args) => {
   const now = moment()
   const [url, queryParams] = args
   const fullUrl = queryParams ? `${url}?${queryParams}` : url
   const response = await fetch(fullUrl)
-  const data = (await response.json()) as calendar_v3.Schema$Events
+  const data = (await response.json()) as IServerCalendarEvent[]
 
-  return getCalendarEventFromGoogleEvent(data.items)
+  return data.map(getFrontEndCalendarEvent)
 }
 
 const MINUTES_IN_DAY = 1440
@@ -400,9 +385,9 @@ function TimelineEvent({
   zIndex,
   ...boxProps
 }: TimelineEventProps) {
-  const color = getCalendarEventColor(event.eventType)
-  const backgroundColor = color[event.isPastEvent ? 'light' : 'main']
-  const hoverColor = event.isPastEvent ? color.color.A400 : color.color.A700
+  const color = event.color
+  const backgroundColor = event.isPastEvent ? pSBC(0.4, color) : color
+  const hoverColor = pSBC(0.2, backgroundColor)
 
   return (
     <Box
@@ -434,9 +419,9 @@ function TimelineEvent({
 }
 
 function AllDayTimelineEvent({ event, filler }: TimelineEventProps) {
-  const color = getCalendarEventColor(event.eventType)
-  const backgroundColor = color[event.isPastEvent ? 'light' : 'main']
-  const hoverColor = event.isPastEvent ? color.color.A400 : color.color.A700
+  const color = event.color
+  const backgroundColor = event.isPastEvent ? pSBC(0.4, color) : color
+  const hoverColor = pSBC(0.2, backgroundColor)
 
   return (
     <Chip

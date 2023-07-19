@@ -116,9 +116,11 @@ export default function MemberInformation({
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Name' value={member.name} />
             </Grid>
-            <Grid xs={6} md={4} lg={3}>
-              <TextDisplay label='Membership Id' value={member.membershipId || '{Empty}'} />
-            </Grid>
+            {(isOfficer || isMember) && (
+              <Grid xs={6} md={4} lg={3}>
+                <TextDisplay label='Membership Id' value={member.membershipId || '{Empty}'} />
+              </Grid>
+            )}
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Nickname' value={member.nickName || '{Empty}'} />
             </Grid>
@@ -137,12 +139,16 @@ export default function MemberInformation({
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Office' value={member.office || 'None'} />
             </Grid>
-            <Grid xs={12} sm={6} lg={3}>
-              <TextDisplay label='Email' value={member.email} />
-            </Grid>
-            <Grid xs={12} sm={6} lg={3}>
-              <TextDisplay label='Phone Number' value={member.phoneNumber} />
-            </Grid>
+            {isLoggedIn && (
+              <Grid xs={12} sm={6} lg={3}>
+                <TextDisplay label='Email' value={member.email} />
+              </Grid>
+            )}
+            {isLoggedIn && (
+              <Grid xs={12} sm={6} lg={3}>
+                <TextDisplay label='Phone Number' value={member.phoneNumber} />
+              </Grid>
+            )}
             <Grid xs={12}>
               <EntityDisplay values={member.entity} size='medium' fullWidth />
             </Grid>

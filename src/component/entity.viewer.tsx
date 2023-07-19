@@ -97,7 +97,7 @@ export default function EntityDisplay({
             WebkitTextFillColor: (theme) => {
               if (!selectProps.disabled && !editing) return '#FFF'
 
-              return theme.palette.text.disabled
+              return theme.vars.palette.text.disabled
             },
           },
         }}

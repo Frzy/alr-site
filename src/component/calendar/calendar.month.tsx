@@ -10,16 +10,32 @@ import {
   IconButton,
   Typography,
   Stack,
+  AlertColor,
   useMediaQuery,
 } from '@mui/material'
 import Grid from '@mui/material/Unstable_Grid2'
-
-import type { calendar_v3 } from 'googleapis'
 import { CALENDAR_VIEW, CalendarState } from './calendar'
-import { getCalendarEventFromGoogleEvent } from '@/utils/helpers'
-import { ICalendarEvent } from './calendar.timeline'
-import { ENDPOINT } from '@/utils/constants'
+import { getContrastTextColor, getFrontEndCalendarEvent } from '@/utils/helpers'
+import {
+  DEFAULT_CALENDAR_COLOR,
+  DEFAULT_CALENDAR_COLOR_ID,
+  ENDPOINT,
+  EVENT_TYPE,
+  RECURRENCE_MODE,
+} from '@/utils/constants'
 import CalendarDayDialog from './calendar.month.day.dialog'
+import {
+  ICalendarEvent,
+  IRequestBodyCalendarEvent,
+  IServerCalendarEvent,
+  RecurrenceOptions,
+} from '@/types/common'
+import pSBC from '@/utils/pSBC'
+import { useRouter } from 'next/router'
+import CalendarEventDialog from './calendar.event.dialog'
+import { createCalendarEvent, deleteCalendarEvent, udpateCalendarEvent } from '@/utils/api'
+import Notifier from '../notifier'
+import CalendarCreateEventDialog from './calendar.create.event.dialog'
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const CHIP_HEIGHT = 20
@@ -29,11 +45,16 @@ const fetcher: Fetcher<ICalendarEvent[], string[]> = async (args) => {
   const fullUrl = queryParams ? `${url}?${queryParams}` : url
   const response = await fetch(fullUrl)
 
-  const data = (await response.json()) as calendar_v3.Schema$Events
+  const data = (await response.json()) as IServerCalendarEvent[]
 
-  return getCalendarEventFromGoogleEvent(data.items)
+  return data.map(getFrontEndCalendarEvent)
 }
 
+type NotifierState = {
+  open: boolean
+  message: string
+  severity: AlertColor
+}
 type DayDialogState = {
   day: Moment
   events: ICalendarEvent[]
@@ -41,21 +62,20 @@ type DayDialogState = {
 
 type MonthCalendarProps = {
   date: Moment
+  parseUrl?: boolean
   onCalendarChange?: (state: CalendarState) => void
-  onCalendarCreateEvent?: (date: Moment) => void
-  onCalendarEventClick?: (event: ICalendarEvent) => void
 } & BoxProps
 
 export default function MonthCalendar({
   date,
   onCalendarChange,
-  onCalendarCreateEvent,
-  onCalendarEventClick,
   sx,
   ...boxProps
 }: MonthCalendarProps) {
   const theme = useTheme()
   const isTiny = useMediaQuery(theme.breakpoints.down('sm'))
+  const [calendarEvent, setCalendarEvent] = React.useState<ICalendarEvent>()
+  const [newCalendarEvent, setNewCalendarEvent] = React.useState<ICalendarEvent>()
   const firstDate = React.useMemo(() => {
     return moment(date).startOf('month').day(0)
   }, [date])
@@ -72,16 +92,29 @@ export default function MonthCalendar({
     return searchParams.toString()
   }, [firstDate, lastDate])
   const numOfWeeks = React.useMemo(() => lastDate.diff(firstDate, 'weeks'), [firstDate, lastDate])
-  const { data: events, isLoading } = useSWR([ENDPOINT.EVENTS, queryParams], fetcher, {
+  const {
+    data: fetchedEvents,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR([ENDPOINT.EVENTS, queryParams], fetcher, {
     fallbackData: [],
   })
   const [dayDialog, setDayDialog] = React.useState<DayDialogState>()
+  const [notifierState, setNotifierState] = React.useState<NotifierState>({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
+  const events = React.useMemo(() => {
+    console.log({ fetchedEvents, newCalendarEvent })
+
+    return newCalendarEvent ? [...fetchedEvents, newCalendarEvent] : [...fetchedEvents]
+  }, [fetchedEvents, newCalendarEvent])
 
   function getCalendarDayEvents(date: Moment) {
     return events.filter((e) => {
-      const isMultiDay = e.endDate.diff(e.startDate, 'day') > 1
-
-      if (isMultiDay) e.endDate.subtract(1, 'day')
+      const isMultiDay = e.dayTotal > 1
 
       if (isMultiDay)
         return (
@@ -96,14 +129,118 @@ export default function MonthCalendar({
   function handleCalendarDayClick(date: Moment) {
     if (onCalendarChange) onCalendarChange({ date, view: CALENDAR_VIEW.DAY })
   }
+  function handleCreateNewCalendarEvent(date: Moment) {
+    setNewCalendarEvent({
+      start: {
+        date: date.format('YYYY-MM-DD'),
+      },
+      end: {
+        date: moment(date).add(1, 'day').format('YYYY-MM-DD'),
+      },
+      color: DEFAULT_CALENDAR_COLOR,
+      colorId: DEFAULT_CALENDAR_COLOR_ID,
+      dayTotal: 1,
+      endDate: moment(date),
+      eventType: EVENT_TYPE.EVENT,
+      isAllDayEvent: true,
+      isPastEvent: moment().isAfter(date),
+      startDate: moment(date),
+      textColor: getContrastTextColor(DEFAULT_CALENDAR_COLOR),
+    })
+  }
   function handleCalendarEventClick(event: ICalendarEvent) {
-    if (onCalendarEventClick) onCalendarEventClick(event)
+    setCalendarEvent(event)
   }
   function handleShowMoreDialog(day: Moment, events: ICalendarEvent[]) {
     setDayDialog({
       day,
       events,
     })
+  }
+  function handleCalendarEventDialogClose() {
+    setCalendarEvent(undefined)
+    setNewCalendarEvent(undefined)
+  }
+  async function handleDeleteCalendarEvent(
+    event: ICalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) {
+    try {
+      await deleteCalendarEvent(event, recurrenceOptions)
+
+      if (recurrenceOptions?.mode === RECURRENCE_MODE.SINGLE) {
+        mutate(events.filter((e) => e.id !== event.id))
+      } else if (recurrenceOptions?.mode === RECURRENCE_MODE.ALL) {
+        mutate(events.filter((e) => e.recurringEventId !== event.recurringEventId))
+      } else if (recurrenceOptions?.mode === RECURRENCE_MODE.FUTURE && recurrenceOptions.stopDate) {
+        const stopDate = recurrenceOptions.stopDate
+        mutate(
+          events.filter((e) => {
+            return (
+              e.recurringEventId !== event.recurringEventId ||
+              (e.recurringEventId === event.recurringEventId && e.startDate.isBefore(stopDate))
+            )
+          }),
+        )
+      }
+      setNotifierState({
+        open: true,
+        message: `Deleted event${recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''}`,
+        severity: 'success',
+      })
+    } catch (error) {
+      setNotifierState({
+        open: true,
+        message: `Oops failed to delete event${
+          recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''
+        }`,
+        severity: 'error',
+      })
+    }
+  }
+  async function handleEditCalendarEvent(
+    event: ICalendarEvent,
+    body: IRequestBodyCalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) {
+    try {
+      await udpateCalendarEvent(event, body, recurrenceOptions)
+      mutate()
+      setNotifierState({
+        open: true,
+        message: `Updated event${recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''}`,
+        severity: 'success',
+      })
+    } catch (error) {
+      setNotifierState({
+        open: true,
+        message: `Oops failed to update event${
+          recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''
+        }`,
+        severity: 'error',
+      })
+    }
+  }
+  async function handleCreateCalendarEvent(event: ICalendarEvent, body: IRequestBodyCalendarEvent) {
+    try {
+      await createCalendarEvent(body)
+      setTimeout(() => {
+        mutate([...fetchedEvents, event])
+        setNewCalendarEvent(undefined)
+      }, 500)
+      setNotifierState({
+        open: true,
+        message: 'Created event',
+        severity: 'success',
+      })
+    } catch (error) {
+      setNewCalendarEvent(undefined)
+      setNotifierState({
+        open: true,
+        message: 'Oops failed to create event',
+        severity: 'error',
+      })
+    }
   }
 
   return (
@@ -122,7 +259,7 @@ export default function MonthCalendar({
             sx={{
               borderWidth: '1px',
               borderStyle: 'solid',
-              borderColor: (theme) => theme.palette.divider,
+              borderColor: (theme) => theme.vars.palette.divider,
               borderLeft: index === 0 ? undefined : 'hidden',
               borderBottom: 'hidden',
               display: 'flex',
@@ -142,7 +279,7 @@ export default function MonthCalendar({
               height: `${100 / numOfWeeks}%`,
               borderWidth: '1px',
               borderStyle: 'solid',
-              borderColor: (theme) => theme.palette.divider,
+              borderColor: (theme) => theme.vars.palette.divider,
               borderTop: 'hidden',
               borderLeft: index % 7 === 0 ? undefined : 'hidden',
               display: 'flex',
@@ -156,7 +293,7 @@ export default function MonthCalendar({
               dense={isTiny}
               onDayClick={handleCalendarDayClick}
               onEventClick={handleCalendarEventClick}
-              onEventCreate={onCalendarCreateEvent}
+              onEventCreate={handleCreateNewCalendarEvent}
               onShowMoreClick={handleShowMoreDialog}
             />
           </Grid>
@@ -170,11 +307,35 @@ export default function MonthCalendar({
           onClose={() => setDayDialog(undefined)}
         />
       )}
-      {isLoading && (
+      {(isLoading || isValidating) && (
         <Box position='absolute' left={8} bottom={8} display='flex'>
           <CircularProgress />
         </Box>
       )}
+      {newCalendarEvent && (
+        <CalendarCreateEventDialog
+          event={newCalendarEvent}
+          open={true}
+          onChange={(event) => setNewCalendarEvent(event)}
+          onClose={handleCalendarEventDialogClose}
+          onSave={handleCreateCalendarEvent}
+        />
+      )}
+      {calendarEvent && (
+        <CalendarEventDialog
+          event={calendarEvent}
+          open={true}
+          editable
+          onClose={handleCalendarEventDialogClose}
+          onDelete={handleDeleteCalendarEvent}
+          onEdit={handleEditCalendarEvent}
+        />
+      )}
+      {}
+      <Notifier
+        {...notifierState}
+        onClose={() => setNotifierState((prev) => ({ ...prev, open: false }))}
+      />
     </Box>
   )
 }
@@ -235,6 +396,7 @@ function MonthDay({
         onClick={handleIconClick}
         size={dense ? 'small' : 'medium'}
         sx={{
+          mt: '2px',
           '&:hover': {
             backgroundColor: isToday ? 'primary.light' : undefined,
           },
@@ -244,12 +406,14 @@ function MonthDay({
           alignSelf: 'center',
           alignItems: 'center',
           fontSize: '0.95rem',
+          width: { xs: 24, sm: 33 },
+          height: { xs: 24, sm: 33 },
           color: (theme) =>
             date.month() === activeMonth
               ? isToday
                 ? '#FFF'
-                : theme.palette.text.primary
-              : theme.palette.text.secondary,
+                : theme.vars.palette.text.primary
+              : theme.vars.palette.text.secondary,
         }}
       >
         {date.format('D')}
@@ -258,9 +422,9 @@ function MonthDay({
         <Stack spacing={0.5} sx={{ px: 1, overflow: 'hidden' }} ref={elCallback}>
           {events.map((e, index) => {
             if (itemsToHide && index < events.length - itemsToHide) {
-              return <MonthDayEvents key={e.id} event={e} dense={dense} onClick={onEventClick} />
+              return <MonthDayEvents key={index} event={e} dense={dense} onClick={onEventClick} />
             } else if (!itemsToHide) {
-              return <MonthDayEvents key={e.id} event={e} dense={dense} onClick={onEventClick} />
+              return <MonthDayEvents key={index} event={e} dense={dense} onClick={onEventClick} />
             }
 
             return null
@@ -285,6 +449,10 @@ interface MonthDayEventsProps {
 }
 
 function MonthDayEvents({ dense, event, onClick }: MonthDayEventsProps) {
+  const bgcolor = event.isPastEvent ? pSBC(0.7, event.color) : event.color
+  const textColor = event.isPastEvent ? getContrastTextColor(bgcolor.slice(1)) : event.textColor
+  const hoverColor = pSBC(-0.2, bgcolor)
+
   function hanldeClick(e: React.MouseEvent<HTMLDivElement>) {
     e.stopPropagation()
     if (onClick) onClick(event)
@@ -295,15 +463,28 @@ function MonthDayEvents({ dense, event, onClick }: MonthDayEventsProps) {
       onClick={onClick ? hanldeClick : undefined}
       label={
         <Typography variant='caption' color={event.isPastEvent ? 'text.secondary' : 'text.primary'}>
-          {`${event.summary}${event.isAllDayEvent ? '' : event.startDate.format(' @ h:mma')}`}
+          {`${event.summary ? event.summary : '(No Title)'}${
+            event.isAllDayEvent ? '' : event.startDate.format(' @ h:mma')
+          }`}
         </Typography>
       }
       sx={{
+        '&:hover': {
+          bgcolor: hoverColor,
+          '& .MuiTypography-root': {
+            color: () =>
+              event.isPastEvent ? `#0000007F` : getContrastTextColor(hoverColor.slice(1)),
+          },
+        },
         borderRadius: 2,
         height: CHIP_HEIGHT,
         maxHeight: CHIP_HEIGHT,
         minHeight: CHIP_HEIGHT,
+        bgcolor,
         justifyContent: 'flex-start',
+        '& .MuiTypography-root': {
+          color: () => (event.isPastEvent ? `#0000007F` : event.textColor),
+        },
       }}
     />
   )

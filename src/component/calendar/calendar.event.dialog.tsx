@@ -1,17 +1,35 @@
 import * as React from 'react'
-
-import { Box, CircularProgress, Dialog, DialogProps, Slide } from '@mui/material'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import {
+  Box,
+  CircularProgress,
+  Dialog,
+  DialogProps,
+  DialogTitle,
+  IconButton,
+  Slide,
+} from '@mui/material'
+import { ENDPOINT } from '@/utils/constants'
+import { getFrontEndCalendarEvent } from '@/utils/helpers'
+import {
+  ICalendarEvent,
+  IRequestBodyCalendarEvent,
+  IServerCalendarEvent,
+  RecurrenceOptions,
+} from '@/types/common'
+import { useSession } from 'next-auth/react'
 import { useTheme } from '@mui/material/styles'
+import CloseIcon from '@mui/icons-material/Close'
 import DefaultCalendarEventDialog from './event.dialog/default'
+import DeleteCalendarEventDialog from './event.dialog/delete'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditCalendarEventDialog from './event.dialog/edit'
+import EditIcon from '@mui/icons-material/Edit'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 import type { TransitionProps } from '@mui/material/transitions'
-import type { ICalendarEvent } from './calendar.timeline'
-import EditCalendarEventDialog from './event.dialog/edit'
-import { ENDPOINT } from '@/utils/constants'
 
-export enum MODE {
-  DEFAULT = 'default',
+enum MODE {
+  VIEW = 'view',
   EDIT = 'edit',
   DELETE = 'delete',
 }
@@ -25,50 +43,65 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-interface CalendarEventPros extends Omit<DialogProps, 'onClose'> {
+interface CalendarEventProps extends Omit<DialogProps, 'onClose'> {
   editable?: boolean
-  event: ICalendarEvent
-  onClose: () => void
+  event: ICalendarEvent | string
+  onDelete?: (event: ICalendarEvent, recurrenceOptions?: RecurrenceOptions) => Promise<void> | void
+  onEdit?: (
+    event: ICalendarEvent,
+    body: IRequestBodyCalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) => Promise<void> | void
+  onClose?: () => void
 }
 
 export default function CalendarEventDialog({
-  event,
+  event: initEvent,
   editable,
+  onDelete,
+  onEdit,
   onClose,
   ...dialogProps
-}: CalendarEventPros) {
+}: CalendarEventProps) {
   const theme = useTheme()
-  const [loading, setLoading] = React.useState(true)
+  const session = useSession()
+  const isAdmin = !!session.data?.user.office
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'))
-  const [mode, setMode] = React.useState(MODE.DEFAULT)
-  const [recurrence, setRecurrence] = React.useState<string[]>([])
-
-  function handleModeChange(newMode: MODE) {
-    setMode(newMode)
-  }
-  function handleClose() {
-    setMode(MODE.DEFAULT)
-  }
-  function handleEventChange(newEvent: ICalendarEvent) {
-    if (onClose) onClose()
-  }
+  const [event, setEvent] = React.useState<ICalendarEvent>()
+  const [mode, setMode] = React.useState(MODE.VIEW)
+  const isRecurringEvent = !!event?.recurringEventId
 
   React.useEffect(() => {
-    async function fetchReccurringEvent(id: String) {
-      const response = await fetch(`${ENDPOINT.RECURRING_EVENT}/${id}`)
+    async function fetchCalendarEvent(id: string) {
+      const response = await fetch(`${ENDPOINT.EVENT}/${id}`)
+      const calEvent = (await response.json()) as IServerCalendarEvent
 
-      const rEvent = await response.json()
-      setRecurrence(rEvent.recurrence)
-      setLoading(false)
+      if (calEvent.recurringEventId) {
+        calEvent.recurrence = await fetchRecurrenceString(calEvent.recurringEventId)
+      }
+
+      setEvent(getFrontEndCalendarEvent(calEvent))
+    }
+    async function fetchRecurrenceEvent(event: ICalendarEvent) {
+      event.recurrence = await fetchRecurrenceString(event.recurringEventId as string)
+
+      setEvent(event)
+    }
+    async function fetchRecurrenceString(id: string) {
+      const response = await fetch(`${ENDPOINT.EVENT}/${id}`)
+      const recurEvent = (await response.json()) as IServerCalendarEvent
+
+      return recurEvent.recurrence
     }
 
-    if (event.recurringEventId) {
-      setLoading(true)
-      fetchReccurringEvent(event.recurringEventId)
+    if (typeof initEvent === 'string') {
+      fetchCalendarEvent(initEvent)
+    } else if (initEvent.recurringEventId) {
+      fetchRecurrenceEvent(initEvent)
     } else {
-      setLoading(false)
+      setEvent(initEvent)
     }
-  }, [event])
+  }, [initEvent])
 
   return (
     <Dialog
@@ -79,7 +112,36 @@ export default function CalendarEventDialog({
       fullWidth
       fullScreen={fullScreen}
     >
-      {loading && (
+      {mode === MODE.EDIT ? (
+        <DialogTitle>Edit {isRecurringEvent ? 'Recurring Event' : 'Calendar Event'}</DialogTitle>
+      ) : mode === MODE.DELETE ? (
+        <DialogTitle>Delete {isRecurringEvent ? 'Recurring Event' : 'Calendar Event'}</DialogTitle>
+      ) : (
+        <DialogTitle sx={{ display: 'flex' }}>
+          <Box flexGrow={1} />
+          <Box>
+            {editable && isAdmin && (
+              <React.Fragment>
+                <IconButton size='small' onClick={() => setMode(MODE.EDIT)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton size='small' onClick={() => setMode(MODE.DELETE)}>
+                  <DeleteIcon />
+                </IconButton>
+              </React.Fragment>
+            )}
+            <IconButton
+              size='small'
+              onClick={() => {
+                if (onClose) onClose()
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+      )}
+      {!event ? (
         <Box
           display='flex'
           flexDirection='column'
@@ -91,18 +153,22 @@ export default function CalendarEventDialog({
           <Box>Fetching Event</Box>
           <CircularProgress />
         </Box>
-      )}
-      {!loading && mode === MODE.DEFAULT && (
-        <DefaultCalendarEventDialog
+      ) : mode === MODE.EDIT ? (
+        <EditCalendarEventDialog
           event={event}
-          onClose={onClose}
-          onModeChange={handleModeChange}
-          recurrence={recurrence}
-          editable
+          onCancel={() => setMode(MODE.VIEW)}
+          onSave={onEdit}
+          onComplete={onClose}
         />
-      )}
-      {!loading && mode === MODE.EDIT && (
-        <EditCalendarEventDialog event={event} onClose={handleClose} recurrence={recurrence} />
+      ) : mode === MODE.DELETE ? (
+        <DeleteCalendarEventDialog
+          event={event}
+          onCancel={() => setMode(MODE.VIEW)}
+          onDelete={onDelete}
+          onComplete={onClose}
+        />
+      ) : (
+        <DefaultCalendarEventDialog event={event} />
       )}
     </Dialog>
   )

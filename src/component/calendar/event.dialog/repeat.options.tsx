@@ -15,9 +15,10 @@ import {
   Typography,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers'
-import { getRecurrenceStringParts } from '@/utils/helpers'
+import { getRecurrenceStringFromParts, getRecurrenceStringParts } from '@/utils/helpers'
 import DayPicker, { DAY } from '../calendar.day.picker'
 import moment, { Moment, unitOfTime } from 'moment'
+import { Recurrence } from '@/types/common'
 
 type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
 enum Ends {
@@ -39,7 +40,7 @@ const DEFAULT_UNTIL = {
   YEARLY: { value: 5, timeUnit: 'years' },
 }
 
-type Recurrence = {
+type CustomRecurrence = {
   freq: Frequency
   interval: number
   count?: number
@@ -47,7 +48,7 @@ type Recurrence = {
   byDay?: string
 }
 
-const BASE_STATE: Recurrence = {
+const BASE_STATE: CustomRecurrence = {
   freq: 'WEEKLY',
   interval: 1,
   until: null,
@@ -69,21 +70,34 @@ function getBaseState(recStr?: string) {
 
   return state
 }
+function convertRecurrenceObject(parts: CustomRecurrence) {
+  const newParts: Recurrence = {}
+  for (let key in parts) {
+    if (key === 'freq') newParts['FREQ'] = parts.freq as Frequency
+    if (key === 'byDay') newParts['BYDAY'] = parts.byDay ? parts.byDay : undefined
+    if (key === 'count') newParts['COUNT'] = parts.count ? `${parts.count}` : undefined
+    if (key === 'interval') newParts['INTERVAL'] = parts.interval ? `${parts.interval}` : undefined
+    if (key === 'until')
+      newParts['UNTIL'] = parts.until ? parts.until.format('YYYYMMDD') : undefined
+  }
+
+  return newParts
+}
 
 interface RecurrenceCalendarDialogProps {
   date: Moment
   defaultValue?: string
-  onClose?: () => void
-  onDone?: (recurrence: String) => void
+  onCancel?: () => void
+  onChange?: (recurrence: string) => void
 }
 
 export default function RecurrenceCalendarDialog({
   date,
   defaultValue,
-  onClose,
-  onDone,
+  onCancel,
+  onChange,
 }: RecurrenceCalendarDialogProps) {
-  const [state, setState] = React.useState<Recurrence>(getBaseState(defaultValue))
+  const [state, setState] = React.useState<CustomRecurrence>(getBaseState(defaultValue))
   const [endValue, setEndValue] = React.useState<Ends>(
     state.count ? Ends.COUNT : !!state.until ? Ends.UNTIL : Ends.NEVER,
   )
@@ -138,9 +152,6 @@ export default function RecurrenceCalendarDialog({
 
   return (
     <React.Fragment>
-      <DialogTitle sx={{ display: 'flex' }} component='div'>
-        Recurrence Options
-      </DialogTitle>
       <DialogContent>
         <Stack spacing={1}>
           <Box display='flex' alignItems='center' gap={1}>
@@ -251,10 +262,12 @@ export default function RecurrenceCalendarDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button color='inherit' onClick={onCancel}>
+          Cancel
+        </Button>
         <Button
           onClick={() => {
-            if (onDone) onDone('test')
+            if (onChange) onChange(getRecurrenceStringFromParts(convertRecurrenceObject(state)))
           }}
         >
           Done

@@ -1,3 +1,4 @@
+import { IRequestBodyCalendarEvent } from '@/types/common'
 import { orange, teal, cyan } from '@mui/material/colors'
 
 export enum OFFICER_POSITION {
@@ -27,10 +28,8 @@ export enum ROLE {
   SUPPORTER = 'Supporter',
 }
 export const ROLES = Object.values(ROLE)
-
 export const MEMBER_ROLES = [ROLE.CHARTER, ROLE.MEMBER, ROLE.SUPPORTER]
 export const ACTIVE_ROLES = [ROLE.CHARTER, ROLE.MEMBER, ROLE.PROSPECT, ROLE.SUPPORTER]
-
 export enum ENTITY {
   LEGION = 'AL',
   SAL = 'SAL',
@@ -76,7 +75,6 @@ export const ENTITY_COLORS = ENTITY_OBJECTS.reduce((a, b) => {
 
   return a
 }, {} as { [key in ENTITY]: { background: string; text: string } })
-
 export enum ACTIVITY_TYPE {
   EVENT = 'Event',
   MEETING = 'Meeting',
@@ -84,48 +82,13 @@ export enum ACTIVITY_TYPE {
   RIDE = 'Ride',
 }
 export const ACTIVITY_TYPES = Object.values(ACTIVITY_TYPE)
-
 export enum EVENT_TYPE {
-  RIDE = 'ride',
   EVENT = 'event',
   MEETING = 'meeting',
+  RIDE = 'ride',
+  UNOFFICAL_RIDE = 'unoffical ride',
 }
 export const EVENT_TYPES = Object.values(EVENT_TYPE)
-export const EVENT_TYPE_OBJECTS = EVENT_TYPES.map((e) => {
-  switch (e) {
-    case EVENT_TYPE.RIDE:
-      return {
-        value: EVENT_TYPE.RIDE,
-        color: {
-          main: orange[500],
-          light: orange[200],
-          dark: orange[700],
-          color: orange,
-        },
-      }
-    case EVENT_TYPE.MEETING:
-      return {
-        value: EVENT_TYPE.MEETING,
-        color: {
-          main: teal[500],
-          light: teal[200],
-          dark: teal[700],
-          color: teal,
-        },
-      }
-    case EVENT_TYPE.EVENT:
-      return {
-        value: EVENT_TYPE.EVENT,
-        color: {
-          main: cyan[500],
-          light: cyan[200],
-          dark: cyan[700],
-          color: cyan,
-        },
-      }
-  }
-})
-
 export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
   Director: 1,
   'Vice Director': 2,
@@ -138,11 +101,81 @@ export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
   Chaplain: 9,
   'Past Director': 10,
 }
-
 export enum ENDPOINT {
   EVENTS = '/api/calendar/events',
-  RECURRING_EVENT = '/api/calendar/recurring-event',
+  EVENT = '/api/calendar/event',
   ROSTER = '/api/roster',
   MEMBER = '/api/member/',
   LOG_NAMES = '/api/activity-log/names',
 }
+export enum CALENDAR_COLOR {
+  SKYBLUE = '#039be5',
+  LAVENDER = '#7986CB',
+  SAGE = '#33B679',
+  GRAPE = '#8E24AA',
+  FLAMINGO = '#E67C73',
+  BANANA = '#F6C026',
+  TANGERINE = '#F5511D',
+  PEACOCK = '#039BE5',
+  GRAPHITE = '#616161',
+  BLUEBERRY = '#3F51B5',
+  BASIL = '#0B8043',
+  TOMATO = '#D60000',
+}
+export enum CALENDAR_COLOR_ID {
+  SKYBLUE = '0',
+  LAVENDER = '1',
+  SAGE = '2',
+  GRAPE = '3',
+  FLAMINGO = '4',
+  BANANA = '5',
+  TANGERINE = '6',
+  PEACOCK = '7',
+  GRAPHITE = '8',
+  BLUEBERRY = '9',
+  BASIL = '10',
+  TOMATO = '11',
+}
+export const COLOR_OPTIONS = [
+  { value: '1', color: '#7986CB' },
+  { value: '2', color: '#33B679' },
+  { value: '3', color: '#8E24AA' },
+  { value: '4', color: '#E67C73' },
+  { value: '5', color: '#F6C026' },
+  { value: '6', color: '#F5511D' },
+  { value: '7', color: '#039BE5' },
+  { value: '8', color: '#616161' },
+  { value: '9', color: '#3F51B5' },
+  { value: '10', color: '#0B8043' },
+  { value: '11', color: '#D60000' },
+]
+export const CALENDAR_COLORS = Object.values(CALENDAR_COLOR)
+export const DEFAULT_CALENDAR_COLOR = CALENDAR_COLOR.PEACOCK
+export const DEFAULT_CALENDAR_COLOR_ID = CALENDAR_COLOR_ID.PEACOCK
+export enum EVENT_TYPE_COLOR_ID {
+  RIDE = CALENDAR_COLOR_ID.GRAPE,
+  UNOFFICAL_RIDE = CALENDAR_COLOR_ID.BANANA,
+  EVENT = CALENDAR_COLOR_ID.PEACOCK,
+  MEETING = CALENDAR_COLOR_ID.SAGE,
+}
+export enum EVENT_TYPE_COLOR {
+  RIDE = CALENDAR_COLOR.GRAPE,
+  UNOFFICAL_RIDE = CALENDAR_COLOR.BANANA,
+  EVENT = CALENDAR_COLOR.PEACOCK,
+  MEETING = CALENDAR_COLOR.SAGE,
+}
+export enum RECURRENCE_MODE {
+  ALL = 'all',
+  SINGLE = 'single',
+  FUTURE = 'future',
+}
+export const UPDATEABLE_PROPS: Array<keyof IRequestBodyCalendarEvent> = [
+  'colorId',
+  'description',
+  'end',
+  'location',
+  'recurrence',
+  'start',
+  'summary',
+  'extendedProperties',
+]

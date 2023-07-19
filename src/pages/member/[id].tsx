@@ -4,11 +4,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import Head from 'next/head'
 import Header from '@/component/header'
 import { Alert, AlertTitle, Box, Container, Stack, Typography } from '@mui/material'
-import {
-  convertToPublicActivityLog,
-  getActivityLogEntries,
-  udpateActivityLogName,
-} from '@/lib/activity.log'
+import { convertToPublicActivityLog, getActivityLogEntries } from '@/lib/activity.log'
 import ActivityLogViewer from '@/component/activity.log.viewer'
 import { findMember } from '@/lib/roster'
 import MemberInformation from '@/component/member.information'
@@ -20,6 +16,7 @@ import type { ActivityLog, Member } from '@/types/common'
 import type { GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { ENDPOINT } from '@/utils/constants'
+import MemberYearlyRequirments from '@/component/member-yearly-requirments'
 
 export const getServerSideProps: GetServerSideProps<MemberPageProps> = async ({
   req,
@@ -62,6 +59,8 @@ interface MemberPageProps {
 export default function MemberPage({ member: initMember, activityLogs }: MemberPageProps) {
   const session = useSession()
   const [member, setMember] = React.useState(initMember)
+  const isCurrentlySignedIn = session.data?.user.id === member?.id
+  const isOfficer = !!session.data?.user.office
 
   function handleMemberChange(memberPart: Partial<Member>) {
     if (member) setMember({ ...member, ...memberPart })
@@ -103,10 +102,10 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
                   onSave={handleUdpateMember}
                   onChange={handleMemberChange}
                 />
-                <ActivityLogViewer
-                  logs={activityLogs}
-                  isPublic={session.data?.user.id !== member.id}
-                />
+                {(isCurrentlySignedIn || isOfficer) && (
+                  <MemberYearlyRequirments logs={activityLogs} year={2023} member={member} />
+                )}
+                <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
               </Stack>
             ) : (
               <Alert severity='error' sx={{ mt: 3 }}>

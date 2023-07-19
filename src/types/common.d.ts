@@ -1,4 +1,5 @@
-import { ACTIVITY_TYPE, ENTITY, OFFICER_POSITION, ROLE } from '@/utils/constants'
+import { ACTIVITY_TYPE, ENTITY, OFFICER_POSITION, RECURRENCE_MODE, ROLE } from '@/utils/constants'
+import { calendar_v3 } from 'googleapis'
 import { Moment } from 'moment'
 
 export type Member = {
@@ -22,6 +23,19 @@ export type Member = {
   suffix?: string
   yearsActive?: number
   username: string
+}
+
+export type Recurrence = {
+  FREQ?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+  COUNT?: string
+  INTERVAL?: string
+  UNTIL?: string
+  BYDAY?: string
+}
+
+export type RecurrenceOptions = {
+  mode: RECURRENCE_MODE
+  stopDate?: Moment
 }
 
 export type BaseLog = {
@@ -48,3 +62,35 @@ export type ActivityLog = {
   monies?: number
   miles?: number
 }
+
+export type IServerCalendarEvent = {
+  endDate: string
+  eventType: EVENT_TYPE
+  isAllDayEvent: boolean
+  dayTotal: number
+  isPastEvent: boolean
+  startDate: string
+  originalStartDate?: string
+  dayNumber?: number
+  color: CALENDAR_COLOR
+  textColor: '#000' | '#FFF'
+} & calendar_v3.Schema$Event
+
+export type IRequestBodyCalendarEvent = {
+  colorId?: calendar_v3.Schema$Event.colorId
+  description?: calendar_v3.Schema$Event.description
+  end?: calendar_v3.Schema$Event.end
+  location?: calendar_v3.Schema$Event.location
+  recurrence?: calendar_v3.Schema$Event.recurrence
+  start?: calendar_v3.Schema$Event.start
+  summary?: calendar_v3.Schema$Event.summary
+  extendedProperties?: calendar_v3.Schema$Event.extendedProperties
+}
+
+export type ICalendarEvent = {
+  endDate: Moment
+  startDate: Moment
+  originalStartDate?: Moment
+  ksu?: Moment
+  muster?: Moment
+} & Omit<IServerCalendarEvent, 'endDate' | 'startDate' | 'originalStartDate'>

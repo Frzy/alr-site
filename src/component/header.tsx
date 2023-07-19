@@ -16,6 +16,7 @@ import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import { Hidden, Toolbar } from '@mui/material'
+import Link from 'next/link'
 
 const pages = ['Products', 'Pricing', 'Blog']
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
@@ -216,11 +217,15 @@ export default function Header() {
                 <MenuItem onClick={handleCloseNavMenu}>
                   <Typography textAlign='center'>Home</Typography>
                 </MenuItem>
-                <MenuItem href='/roster'>
-                  <Typography textAlign='center'>Roster</Typography>
+                <MenuItem>
+                  <Link href='/roster'>
+                    <Typography textAlign='center'>Roster</Typography>
+                  </Link>
                 </MenuItem>
-                <MenuItem href='/events'>
-                  <Typography textAlign='center'>Events</Typography>
+                <MenuItem>
+                  <Link href='/events'>
+                    <Typography textAlign='center'>Events</Typography>
+                  </Link>
                 </MenuItem>
                 <MenuItem onClick={handleCloseNavMenu}>
                   <Typography textAlign='center'>Logs</Typography>

@@ -1,9 +1,7 @@
-import { ICalendarEvent } from '@/component/calendar/calendar.timeline'
-
 import type { calendar_v3 } from 'googleapis'
 import moment, { Moment } from 'moment'
-import { EVENT_TYPE_OBJECTS, EVENT_TYPE, OFFICER_ORDER } from './constants'
-import { Member } from '@/types/common'
+import { EVENT_TYPE, OFFICER_ORDER, CALENDAR_COLORS, DEFAULT_CALENDAR_COLOR } from './constants'
+import { ICalendarEvent, IServerCalendarEvent, Member, Recurrence } from '@/types/common'
 
 export function getPhoneLink(phoneNumber: string) {
   return phoneNumber.replace(/[^0-9]/gi, '')
@@ -34,67 +32,25 @@ export function stringToColor(string: string) {
 
   return color
 }
-export function getCalendarEventType(event: calendar_v3.Schema$Event) {
-  if (event.summary?.toLowerCase().indexOf(EVENT_TYPE.RIDE) !== -1) return EVENT_TYPE.RIDE
+export function getFrontEndCalendarEvent(cEvent: IServerCalendarEvent): ICalendarEvent {
+  const startDate = moment(cEvent.startDate)
+  const endDate = moment(cEvent.endDate)
+  const originalStartDate = cEvent.originalStartTime ? moment(cEvent.originalStartDate) : undefined
+  const muster = cEvent.extendedProperties?.shared?.muster
+    ? moment(cEvent.extendedProperties?.shared?.muster)
+    : moment(startDate)
+  const ksu = cEvent.extendedProperties?.shared?.ksu
+    ? moment(cEvent.extendedProperties?.shared?.ksu)
+    : moment(startDate).add(15, 'minutes')
 
-  if (event.summary?.toLowerCase().indexOf(EVENT_TYPE.MEETING) !== -1) return EVENT_TYPE.MEETING
-
-  return EVENT_TYPE.EVENT
-}
-export function getCalendarEventColor(type: EVENT_TYPE) {
-  const color = EVENT_TYPE_OBJECTS.find((e) => e.value === type)?.color
-
-  return color ? color : EVENT_TYPE_OBJECTS[0].color
-}
-export function getCalendarEventFromGoogleEvent(
-  events: calendar_v3.Schema$Event[] = [],
-): ICalendarEvent[] {
-  const now = moment()
-  return events
-    .map((e) => {
-      const startDate = moment(e.start?.date || e.start?.dateTime)
-      const endDate = moment(e.end?.date || e.end?.dateTime)
-      const originalStartDate = e.originalStartTime
-        ? moment(e.originalStartTime.date || e.originalStartTime.dateTime)
-        : undefined
-      const isAllDayEvent = !startDate.isSame(endDate, 'day')
-      // This is becuase google is an exclusive end date
-      if (e.end?.date) endDate.subtract(1, 'day').endOf('day')
-      const dayTotal = endDate.diff(startDate, 'day') + 1
-      const isPastEvent = now.isAfter(endDate)
-      const eventType = getCalendarEventType(e)
-
-      return {
-        ...e,
-        endDate,
-        eventType,
-        isAllDayEvent,
-        dayTotal,
-        isPastEvent,
-        startDate,
-        originalStartDate,
-      }
-    })
-    .map((e) => {
-      const startDate = moment(e.start?.date || e.start?.dateTime)
-      const endDate = moment(e.end?.date || e.end?.dateTime)
-      const isAllDayEvent = !startDate.isSame(endDate, 'day')
-      // This is becuase google is an exclusive end date
-      if (e.end?.date) endDate.subtract(1, 'day').endOf('day')
-      const dayTotal = endDate.diff(startDate, 'day') + 1
-      const isPastEvent = now.isAfter(endDate)
-      const eventType = getCalendarEventType(e)
-
-      return {
-        ...e,
-        dayTotal,
-        endDate,
-        eventType,
-        isAllDayEvent,
-        isPastEvent,
-        startDate,
-      }
-    })
+  return {
+    ...cEvent,
+    endDate,
+    startDate,
+    originalStartDate,
+    ksu,
+    muster,
+  }
 }
 export function stripHTML(html: string | undefined | null) {
   if (!html) return ''
@@ -103,15 +59,15 @@ export function stripHTML(html: string | undefined | null) {
 
   return doc.body.textContent || ''
 }
+export function getRecurrenceStringFromParts(parts: Recurrence) {
+  let recString = 'RRULE:'
 
-type Recurrence = {
-  FREQ?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
-  COUNT?: string
-  INTERVAL?: string
-  UNTIL?: string
-  BYDAY?: string
+  for (const [key, value] of Object.entries(parts)) {
+    if (value) recString += `${key}=${value};`
+  }
+
+  return recString.slice(0, -1)
 }
-
 export function getRecurrenceStringParts(recString: string): Recurrence {
   const rStr = recString.replace('RRULE:', '')
   return rStr.split(';').reduce((a, b) => {
@@ -157,7 +113,7 @@ export function getHumanReadableRecurrenceString(startDate: Moment, recString: s
   }
 
   if (rObj.FREQ === 'YEARLY') {
-    if (rObj.INTERVAL) {
+    if (rObj.INTERVAL && parseInt(rObj.INTERVAL) > 1) {
       result = `Every ${rObj.INTERVAL} years on ${startDate.format('MMMM D')}`
     } else {
       result = `Annually on ${startDate.format('MMMM D')}`
@@ -172,13 +128,13 @@ export function getHumanReadableRecurrenceString(startDate: Moment, recString: s
       dayOfMonth = `${time} ${day}`
     }
 
-    if (rObj.INTERVAL) {
+    if (rObj.INTERVAL && parseInt(rObj.INTERVAL) > 1) {
       result = `Every ${rObj.INTERVAL} months on the ${dayOfMonth}`
     } else {
       result = `Monthly on the ${dayOfMonth}`
     }
   } else if (rObj.FREQ === 'WEEKLY') {
-    let dayOfMonth = startDate.format('Do')
+    let dayOfMonth = startDate.format('dddd')
 
     if (rObj.BYDAY) {
       const day = getDayFromByDay(rObj.BYDAY)
@@ -186,13 +142,13 @@ export function getHumanReadableRecurrenceString(startDate: Moment, recString: s
       dayOfMonth = `${day}`
     }
 
-    if (rObj.INTERVAL) {
+    if (rObj.INTERVAL && parseInt(rObj.INTERVAL) > 1) {
       result = `Every ${rObj.INTERVAL} weeks on ${dayOfMonth}`
     } else {
       result = `Weekly on ${dayOfMonth}`
     }
   } else if (rObj.FREQ === 'DAILY') {
-    if (rObj.INTERVAL) {
+    if (rObj.INTERVAL && parseInt(rObj.INTERVAL) > 1) {
       result = `Every ${rObj.INTERVAL} days`
     } else {
       result = `Daily`
@@ -201,7 +157,7 @@ export function getHumanReadableRecurrenceString(startDate: Moment, recString: s
 
   if (rObj.COUNT) result += `, ${rObj.COUNT} times`
   if (rObj.UNTIL) {
-    const untilDate = moment(rObj.UNTIL, 'YYYYMMDD')
+    const untilDate = moment(rObj.UNTIL)
     result += `, until ${untilDate.format('MMM D, YYYY')}`
   }
 
@@ -212,7 +168,6 @@ export function formatMoney(number: string | number) {
 
   return toFormat.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
-
 export function officerSort(a: Member, b: Member) {
   if (!a.office || !b.office) return 0
 
@@ -220,4 +175,38 @@ export function officerSort(a: Member, b: Member) {
   if (OFFICER_ORDER[a.office] > OFFICER_ORDER[b.office]) return 1
 
   return 0
+}
+export function getCalendarEventColorById(colorId: number) {
+  if (CALENDAR_COLORS[colorId]) return CALENDAR_COLORS[colorId]
+
+  return DEFAULT_CALENDAR_COLOR
+}
+export function getContrastTextColor(color: string | number[]) {
+  return luma(color) >= 165 ? '#000' : '#FFF'
+}
+function luma(color: string | number[]) {
+  // color can be a hx string or an array of RGB values 0-255
+  var rgb = typeof color === 'string' ? hexToRGBArray(color) : color
+  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] // SMPTE C, Rec. 709 weightings
+}
+function hexToRGBArray(colorStr: string) {
+  let color = colorStr.startsWith('#') ? colorStr.slice(1) : colorStr
+  if (color.length === 3)
+    color =
+      color.charAt(0) +
+      color.charAt(0) +
+      color.charAt(1) +
+      color.charAt(1) +
+      color.charAt(2) +
+      color.charAt(2)
+  else if (color.length !== 6) throw 'Invalid hex color: ' + color
+  var rgb = []
+  for (var i = 0; i <= 2; i++) rgb[i] = parseInt(color.substr(i * 2, 2), 16)
+  return rgb
+}
+export function capitalizeAllWords(str: string) {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }

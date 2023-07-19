@@ -39,22 +39,22 @@ export default function DateDisplay({
       sx={{
         '& .MuiFormLabel-root.Mui-disabled': {
           color: (theme) => {
-            if (!disabled && !editing) return theme.palette.text.secondary
-            return theme.palette.text.disabled
+            if (!disabled && !editing) return theme.vars.palette.text.secondary
+            return theme.vars.palette.text.disabled
           },
         },
         '& .MuiInputBase-root.Mui-disabled': {
           color: (theme) => {
-            if (!disabled && !editing) return theme.palette.text.primary
+            if (!disabled && !editing) return theme.vars.palette.text.primary
 
-            return theme.palette.text.disabled
+            return theme.vars.palette.text.disabled
           },
         },
         '& .MuiInputBase-input.Mui-disabled': {
           WebkitTextFillColor: (theme) => {
-            if (!disabled && !editing) return theme.palette.text.primary
+            if (!disabled && !editing) return theme.vars.palette.text.primary
 
-            return theme.palette.text.disabled
+            return theme.vars.palette.text.disabled
           },
         },
         '& .Mui-disabled .MuiInputAdornment-root': {

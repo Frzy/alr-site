@@ -50,9 +50,9 @@ export default function RoleDisplay({ editing, fullWidth, ...selectProps }: Text
           },
           '&.MuiInputBase-root .Mui-disabled': {
             WebkitTextFillColor: (theme) => {
-              if (!selectProps.disabled && !editing) return theme.palette.text.primary
+              if (!selectProps.disabled && !editing) return theme.vars.palette.text.primary
 
-              return theme.palette.text.disabled
+              return theme.vars.palette.text.disabled
             },
           },
         }}

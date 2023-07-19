@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Box } from '@mui/material'
+import { Box, useTheme } from '@mui/material'
 import moment, { Moment } from 'moment'
 
 export enum DAY {
@@ -30,6 +30,7 @@ interface DayPickerProps {
 }
 
 export default function DayPicker({ date = moment(), days = [], onChange }: DayPickerProps) {
+  const theme = useTheme()
   function handleDayClick(day: DAY) {
     return () => {
       const newDays = [...days]
@@ -66,20 +67,28 @@ export default function DayPicker({ date = moment(), days = [], onChange }: DayP
             height: 32,
             borderRadius: 4,
             cursor: 'pointer',
-            backgroundColor: (theme) => {
-              if (days.indexOf(d) !== -1) return theme.palette.primary.light
-
-              return theme.palette.mode === 'dark'
-                ? theme.palette.grey.A700
-                : theme.palette.grey[300]
+            [theme.getColorSchemeSelector('dark')]: {
+              bgcolor: () =>
+                days.indexOf(d) !== -1
+                  ? theme.vars.palette.primary.main
+                  : theme.vars.palette.grey.A700,
+              '&:hover': {
+                bgcolor: () =>
+                  days.indexOf(d) !== -1
+                    ? theme.vars.palette.primary.dark
+                    : theme.vars.palette.grey.A400,
+              },
             },
-            '&:hover': {
-              backgroundColor: (theme) => {
-                if (days.indexOf(d) !== -1) return theme.palette.primary.light
-
-                return theme.palette.mode === 'dark'
-                  ? theme.palette.grey.A400
-                  : theme.palette.grey[500]
+            [theme.getColorSchemeSelector('light')]: {
+              bgcolor: () =>
+                days.indexOf(d) !== -1
+                  ? theme.vars.palette.primary.main
+                  : theme.vars.palette.grey[300],
+              '&:hover': {
+                bgcolor: () =>
+                  days.indexOf(d) !== -1
+                    ? theme.vars.palette.primary.dark
+                    : theme.vars.palette.grey[500],
               },
             },
           }}
