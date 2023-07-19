@@ -5,13 +5,14 @@ import HelmetIcon from '@mui/icons-material/SportsMotorsports'
 import moment, { Moment } from 'moment'
 import pSBC from '@/utils/pSBC'
 import useSWR, { Fetcher } from 'swr'
-import { Box, BoxProps, Chip, IconButton, Stack, Typography } from '@mui/material'
+import { Box, BoxProps, Chip, IconButton, Stack, Typography, CircularProgress } from '@mui/material'
 
 import type { CalendarState } from './calendar'
 import { fetcher } from '@/utils/api'
+import { ENDPOINT } from '@/utils/constants'
 
 const MINUTES_IN_DAY = 1440
-const RIGHT_PADDING = 4
+const RIGHT_PADDING = 24
 const LEFT_PADDING = 2
 
 type CalendarTimelineProps = {
@@ -54,7 +55,7 @@ export default function CalendarTimeline({
     data: events,
     isLoading,
     isValidating,
-  } = useSWR(['/api/calendarEvents', queryParams], fetcher, {
+  } = useSWR([ENDPOINT.EVENTS, queryParams], fetcher, {
     fallbackData: [],
   })
   const allDayEvents = React.useMemo(() => {
@@ -233,9 +234,12 @@ export default function CalendarTimeline({
                   width='100%'
                   pl={1}
                   sx={{
-                    borderLeft: dayIndex === 0 ? '1px solid rgb(218,220,224)' : undefined,
-                    borderRight:
-                      dayIndex !== days.length - 1 ? '1px solid rgb(218,220,224)' : undefined,
+                    borderLeft: (theme) =>
+                      dayIndex === 0 ? `1px solid ${theme.palette.divider}` : undefined,
+                    borderRight: (theme) =>
+                      dayIndex !== days.length - 1
+                        ? `1px solid ${theme.palette.divider}`
+                        : undefined,
                     minHeight: 16,
                     py: allDayEvents.length && 0.5,
                   }}
@@ -251,7 +255,7 @@ export default function CalendarTimeline({
           </Box>
         ) : (
           <Box display='flex'>
-            <Box width={55} borderRight='1px solid rgb(218,220,224)' />
+            <Box width={55} sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }} />
             <Box display='flex' flexGrow={1} width='calc(100% - 55px)'>
               {days.map((day, dayIndex) => (
                 <Box
@@ -261,7 +265,7 @@ export default function CalendarTimeline({
                   maxWidth={`${100 / days.length}%`}
                   flexDirection='column'
                   alignItems='center'
-                  borderBottom='1px solid rgb(218,220,224)'
+                  sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
                 >
                   <Typography component={'span'}>{day.format('ddd')}</Typography>
                   <IconButton
@@ -270,8 +274,8 @@ export default function CalendarTimeline({
                         backgroundColor: day.isSame(today, 'day') ? 'primary.light' : undefined,
                       },
                       backgroundColor: day.isSame(today, 'day') ? 'primary.main' : undefined,
-                      width: 48,
-                      height: 48,
+                      width: 40,
+                      height: 40,
                     }}
                   >
                     {day.format('D')}
@@ -281,8 +285,10 @@ export default function CalendarTimeline({
                     flexGrow={1}
                     width='100%'
                     sx={{
-                      borderRight:
-                        dayIndex !== days.length - 1 ? '1px solid rgb(218,220,224)' : undefined,
+                      borderRight: (theme) =>
+                        dayIndex !== days.length - 1
+                          ? `1px solid ${theme.palette.divider}`
+                          : undefined,
                       minHeight: 16,
                       py: allDayEvents.length && 0.5,
                     }}
@@ -334,7 +340,7 @@ export default function CalendarTimeline({
                     sx={{
                       '&::after': {
                         content: '""',
-                        borderBottom: '1px solid rgb(218,220,224)',
+                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                         position: 'absolute',
                         width: '100%',
                         marginTop: '-1px',
@@ -344,13 +350,16 @@ export default function CalendarTimeline({
                   />
                 ))}
               </Box>
-              <Box borderRight='1px solid rgb(218,220,224)' width={7} />
+              <Box
+                sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }}
+                width={7}
+              />
               {days.map((day, index) => (
                 <Box
                   key={index}
                   flexGrow={1}
                   position='relative'
-                  borderRight={'1px solid rgb(218,220,224)'}
+                  sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }}
                 >
                   {!!events.length && getCalendarEvents(day)}
                 </Box>
@@ -359,6 +368,11 @@ export default function CalendarTimeline({
           </Box>
         </Box>
       </Box>
+      {(isLoading || isValidating) && (
+        <Box position='absolute' left={64} bottom={8} display='flex'>
+          <CircularProgress />
+        </Box>
+      )}
     </Box>
   )
 }
@@ -378,6 +392,7 @@ function TimelineEvent({
   ...boxProps
 }: TimelineEventProps) {
   const color = event.color
+  const duration = event.endDate.diff(event.startDate, 'minutes')
   const backgroundColor = event.isPastEvent ? pSBC(0.4, color) : color
   const hoverColor = pSBC(0.2, backgroundColor)
 
@@ -399,13 +414,43 @@ function TimelineEvent({
         },
         borderRadius: 2,
         pl: 0.5,
-        pt: 0.5,
+        pt: duration <= 15 ? 0 : 0.5,
+        cursor: 'pointer',
         ...boxProps.sx,
       }}
     >
-      <Typography variant='caption' component='div' noWrap>
-        {event.summary}
-      </Typography>
+      {duration <= 15 ? (
+        <Typography variant='caption' component='div' fontSize={12} lineHeight={1} noWrap>
+          {event.summary} @ {event.startDate.format('h:mma')}
+        </Typography>
+      ) : duration <= 30 ? (
+        <Typography variant='caption' component='div' noWrap>
+          {event.summary} @ {event.startDate.format('h:mma')}
+        </Typography>
+      ) : duration <= 60 ? (
+        <React.Fragment>
+          <Typography variant='caption' component='div' noWrap>
+            {event.summary}
+          </Typography>
+          <Typography variant='caption' component='div' noWrap>
+            {`${event.startDate.format('h:mma')}${event.location ? ' ' + event.location : ''}`}
+          </Typography>
+        </React.Fragment>
+      ) : (
+        <React.Fragment>
+          <Typography variant='caption' component='div' noWrap>
+            {event.summary}
+          </Typography>
+          <Typography variant='caption' component='div' noWrap>
+            {event.startDate.format('h:mma')}
+          </Typography>
+          {event.location && (
+            <Typography variant='caption' component='div' noWrap>
+              {event.location}
+            </Typography>
+          )}
+        </React.Fragment>
+      )}
     </Box>
   )
 }
