@@ -1,18 +1,26 @@
-import { ICalendarEvent, IRequestBodyCalendarEvent, RecurrenceOptions } from '@/types/common'
+import {
+  ICalendarEvent,
+  IRequestBodyCalendarEvent,
+  IServerCalendarEvent,
+  RecurrenceOptions,
+} from '@/types/common'
 import { ENDPOINT, RECURRENCE_MODE } from './constants'
 import moment, { Moment } from 'moment'
+import { Fetcher } from 'swr'
+import { FetcherResponse } from 'swr/_internal'
+import { getFrontEndCalendarEvent } from './helpers'
 
 async function queryRequest(
-  url: string,
   method: 'GET' | 'DELETE',
-  queries: Record<string, string>,
+  url: string,
+  queries?: Record<string, string>,
 ) {
   const params = new URLSearchParams(queries)
 
-  return fetch(`${url}?${params}`, { method })
+  return params.toString() ? fetch(`${url}?${params}`, { method }) : fetch(url, { method })
 }
 
-async function bodyRequest(url: string, method: 'PUT' | 'POST' | 'PATCH', data: unknown) {
+async function bodyRequest(method: 'PUT' | 'POST' | 'PATCH', url: string, data: unknown) {
   return fetch(url, {
     method,
     body: JSON.stringify(data),
@@ -22,7 +30,7 @@ async function bodyRequest(url: string, method: 'PUT' | 'POST' | 'PATCH', data: 
 export function createCalendarEvent<T = unknown>(calendarEvent: IRequestBodyCalendarEvent) {
   return new Promise(async (resolve, reject) => {
     const url = `${ENDPOINT.EVENTS}`
-    const response = await bodyRequest(url, 'POST', calendarEvent)
+    const response = await bodyRequest('POST', url, calendarEvent)
     const data = (await response.json()) as T
 
     if (response.ok) {
@@ -60,7 +68,7 @@ export function udpateCalendarEvent<T = unknown>(
     }
 
     const url = `${ENDPOINT.EVENT}/${id}`
-    const response = await bodyRequest(url, 'PUT', { ...params, event: body })
+    const response = await bodyRequest('PUT', url, { ...params, event: body })
     const data = (await response.json()) as T
 
     if (response.ok) {
@@ -89,5 +97,14 @@ export async function deleteCalendarEvent(
     id = calendarEvent.recurringEventId
   }
 
-  await queryRequest(`${ENDPOINT.EVENT}/${id}`, 'DELETE', params)
+  await queryRequest('DELETE', `${ENDPOINT.EVENT}/${id}`, params)
+}
+export const fetcher: Fetcher<ICalendarEvent[], [string, Record<string, string>]> = async (
+  args,
+) => {
+  const [url, query] = args
+  const response = await queryRequest('GET', url, query)
+  const data = (await response.json()) as IServerCalendarEvent[]
+
+  return data.map(getFrontEndCalendarEvent)
 }

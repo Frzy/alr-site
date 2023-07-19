@@ -33,22 +33,12 @@ import {
 import pSBC from '@/utils/pSBC'
 import { useRouter } from 'next/router'
 import CalendarEventDialog from './calendar.event.dialog'
-import { createCalendarEvent, deleteCalendarEvent, udpateCalendarEvent } from '@/utils/api'
+import { createCalendarEvent, deleteCalendarEvent, fetcher, udpateCalendarEvent } from '@/utils/api'
 import Notifier from '../notifier'
 import CalendarCreateEventDialog from './calendar.create.event.dialog'
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const CHIP_HEIGHT = 20
-
-const fetcher: Fetcher<ICalendarEvent[], string[]> = async (args) => {
-  const [url, queryParams] = args
-  const fullUrl = queryParams ? `${url}?${queryParams}` : url
-  const response = await fetch(fullUrl)
-
-  const data = (await response.json()) as IServerCalendarEvent[]
-
-  return data.map(getFrontEndCalendarEvent)
-}
 
 type NotifierState = {
   open: boolean
@@ -83,13 +73,10 @@ export default function MonthCalendar({
     return moment(date).endOf('month').day(7)
   }, [date])
   const queryParams = React.useMemo(() => {
-    const data = {
+    return {
       start: firstDate.format(),
       end: lastDate.format(),
     }
-    const searchParams = new URLSearchParams(data)
-
-    return searchParams.toString()
   }, [firstDate, lastDate])
   const numOfWeeks = React.useMemo(() => lastDate.diff(firstDate, 'weeks'), [firstDate, lastDate])
   const {

@@ -8,16 +8,7 @@ import useSWR, { Fetcher } from 'swr'
 import { Box, BoxProps, Chip, IconButton, Stack, Typography } from '@mui/material'
 
 import type { CalendarState } from './calendar'
-
-const fetcher: Fetcher<ICalendarEvent[], string[]> = async (args) => {
-  const now = moment()
-  const [url, queryParams] = args
-  const fullUrl = queryParams ? `${url}?${queryParams}` : url
-  const response = await fetch(fullUrl)
-  const data = (await response.json()) as IServerCalendarEvent[]
-
-  return data.map(getFrontEndCalendarEvent)
-}
+import { fetcher } from '@/utils/api'
 
 const MINUTES_IN_DAY = 1440
 const RIGHT_PADDING = 4
@@ -54,15 +45,16 @@ export default function CalendarTimeline({
     const startDate = moment(days[0])
     const endDate = moment(days[days.length - 1]).endOf('day')
 
-    const data = {
+    return {
       start: startDate.format(),
       end: endDate.format(),
     }
-    const searchParams = new URLSearchParams(data)
-
-    return searchParams.toString()
   }, [days])
-  const { data: events, isLoading } = useSWR(['/api/calendarEvents', queryParams], fetcher, {
+  const {
+    data: events,
+    isLoading,
+    isValidating,
+  } = useSWR(['/api/calendarEvents', queryParams], fetcher, {
     fallbackData: [],
   })
   const allDayEvents = React.useMemo(() => {
@@ -203,7 +195,6 @@ export default function CalendarTimeline({
 
     return calendarEvents.flat().filter(Boolean)
   }
-
   function getAllDayEvent(event: ICalendarEvent | undefined, dayIndex: number) {
     if (!event) return <Box key={dayIndex} minHeight={24} />
 
@@ -327,7 +318,8 @@ export default function CalendarTimeline({
                     pr: 0.5,
                   }}
                 >
-                  {index % 12 === 0 ? 12 : index % 12} {index < 12 ? 'am' : 'pm'}
+                  {index === 0 ? '' : index % 12 === 0 ? 12 : index % 12}{' '}
+                  {index === 0 ? '' : index < 12 ? 'am' : 'pm'}
                 </Typography>
               </Box>
             ))}
