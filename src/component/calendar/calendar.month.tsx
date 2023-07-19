@@ -28,6 +28,7 @@ import {
   ICalendarEvent,
   IRequestBodyCalendarEvent,
   IServerCalendarEvent,
+  NotifierState,
   RecurrenceOptions,
 } from '@/types/common'
 import pSBC from '@/utils/pSBC'
@@ -40,11 +41,6 @@ import CalendarCreateEventDialog from './calendar.create.event.dialog'
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const CHIP_HEIGHT = 20
 
-type NotifierState = {
-  open: boolean
-  message: string
-  severity: AlertColor
-}
 type DayDialogState = {
   day: Moment
   events: ICalendarEvent[]
@@ -94,8 +90,6 @@ export default function MonthCalendar({
     severity: 'success',
   })
   const events = React.useMemo(() => {
-    console.log({ fetchedEvents, newCalendarEvent })
-
     return newCalendarEvent ? [...fetchedEvents, newCalendarEvent] : [...fetchedEvents]
   }, [fetchedEvents, newCalendarEvent])
 
@@ -318,7 +312,6 @@ export default function MonthCalendar({
           onEdit={handleEditCalendarEvent}
         />
       )}
-      {}
       <Notifier
         {...notifierState}
         onClose={() => setNotifierState((prev) => ({ ...prev, open: false }))}

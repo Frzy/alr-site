@@ -1,19 +1,35 @@
 import * as React from 'react'
-import { getFrontEndCalendarEvent } from '@/utils/helpers'
-import { ICalendarEvent, IServerCalendarEvent } from '@/types/common'
+import { getContrastTextColor, getFrontEndCalendarEvent } from '@/utils/helpers'
+import {
+  ICalendarEvent,
+  IRequestBodyCalendarEvent,
+  IServerCalendarEvent,
+  NotifierState,
+  RecurrenceOptions,
+} from '@/types/common'
 import HelmetIcon from '@mui/icons-material/SportsMotorsports'
 import moment, { Moment } from 'moment'
 import pSBC from '@/utils/pSBC'
 import useSWR, { Fetcher } from 'swr'
 import { Box, BoxProps, Chip, IconButton, Stack, Typography, CircularProgress } from '@mui/material'
 
-import type { CalendarState } from './calendar'
-import { fetcher } from '@/utils/api'
-import { ENDPOINT } from '@/utils/constants'
+import { CALENDAR_VIEW, CalendarState } from './calendar'
+import { createCalendarEvent, deleteCalendarEvent, fetcher, udpateCalendarEvent } from '@/utils/api'
+import {
+  DEFAULT_CALENDAR_COLOR,
+  DEFAULT_CALENDAR_COLOR_ID,
+  ENDPOINT,
+  EVENT_TYPE,
+  RECURRENCE_MODE,
+} from '@/utils/constants'
+import CalendarEventDialog from './calendar.event.dialog'
+import Notifier from '../notifier'
+import CalendarCreateEventDialog from './calendar.create.event.dialog'
 
 const MINUTES_IN_DAY = 1440
 const RIGHT_PADDING = 24
 const LEFT_PADDING = 2
+const HOUR_HEIGHT = 48
 
 type CalendarTimelineProps = {
   date: Moment
@@ -51,13 +67,24 @@ export default function CalendarTimeline({
       end: endDate.format(),
     }
   }, [days])
+  const [notifierState, setNotifierState] = React.useState<NotifierState>({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
+  const [calendarEvent, setCalendarEvent] = React.useState<ICalendarEvent>()
+  const [newCalendarEvent, setNewCalendarEvent] = React.useState<ICalendarEvent>()
   const {
-    data: events,
+    data: fetchedEvents,
     isLoading,
     isValidating,
+    mutate,
   } = useSWR([ENDPOINT.EVENTS, queryParams], fetcher, {
     fallbackData: [],
   })
+  const events = React.useMemo(() => {
+    return newCalendarEvent ? [...fetchedEvents, newCalendarEvent] : [...fetchedEvents]
+  }, [fetchedEvents, newCalendarEvent])
   const allDayEvents = React.useMemo(() => {
     const positions: ICalendarEvent[][] = Array.from(Array(days.length), (x) => [])
     const dayEvents = events.filter((e) => e.isAllDayEvent)
@@ -170,6 +197,9 @@ export default function CalendarTimeline({
               width={width}
               zIndex={index}
               event={event}
+              mode={mode}
+              onClick={handleEventClick}
+              sx={{ zIndex: 2 }}
             />
           )
         })
@@ -186,6 +216,7 @@ export default function CalendarTimeline({
           width='100%'
           height={2}
           bgcolor='red'
+          zIndex={1}
         >
           <Box ml='-12px' mt='-12px'>
             <HelmetIcon sx={{ color: 'red' }} />
@@ -205,10 +236,167 @@ export default function CalendarTimeline({
         return e ? e?.id === event.id : false
       }) !== -1
     ) {
-      return <AllDayTimelineEvent key={event.id} event={event} filler />
+      return <AllDayTimelineEvent key={event.id} event={event} mode={mode} filler />
     }
 
-    return <AllDayTimelineEvent key={event.id} event={event} />
+    return (
+      <AllDayTimelineEvent key={event.id} event={event} mode={mode} onClick={handleEventClick} />
+    )
+  }
+
+  function handleDayClick(date: Moment) {
+    return (event: React.MouseEvent) => {
+      event.stopPropagation()
+      event.preventDefault()
+
+      if (onCalendarChange) onCalendarChange({ view: CALENDAR_VIEW.DAY, date })
+    }
+  }
+  function handleEventClick(event: ICalendarEvent) {
+    setCalendarEvent(event)
+  }
+  function handleAddNewAllDayCalendarEvent(date: Moment) {
+    return (event: React.MouseEvent) => {
+      setNewCalendarEvent({
+        id: crypto.randomUUID(),
+        start: {
+          date: date.format('YYYY-MM-DD'),
+        },
+        end: {
+          date: moment(date).add(1, 'day').format('YYYY-MM-DD'),
+        },
+        color: DEFAULT_CALENDAR_COLOR,
+        colorId: DEFAULT_CALENDAR_COLOR_ID,
+        dayTotal: 1,
+        endDate: moment(date),
+        eventType: EVENT_TYPE.EVENT,
+        isAllDayEvent: true,
+        isPastEvent: moment().isAfter(date),
+        startDate: moment(date),
+        textColor: getContrastTextColor(DEFAULT_CALENDAR_COLOR),
+      })
+    }
+  }
+  function handleAddNewCalendarEvent(date: Moment) {
+    return (event: React.MouseEvent<HTMLElement>) => {
+      const box = event.currentTarget.getBoundingClientRect()
+      const point = {
+        x: event.clientX - box.left,
+        y: event.clientY - box.top,
+      }
+
+      const totalHour = point.y / HOUR_HEIGHT // mouse point convert to hour of day
+      const fractionHour = totalHour % 1
+      const hour = Math.round(totalHour - fractionHour)
+      const minute = fractionHour < 0.5 ? 0 : 30
+
+      const start = moment(date).startOf('day').hour(hour).minute(minute)
+      const end = moment(start).add(1, 'hour')
+
+      setNewCalendarEvent({
+        id: crypto.randomUUID(),
+        start: {
+          dateTime: start.format(),
+        },
+        end: {
+          dateTime: end.format(),
+        },
+        color: DEFAULT_CALENDAR_COLOR,
+        colorId: DEFAULT_CALENDAR_COLOR_ID,
+        dayTotal: end.diff(start, 'day') + 1,
+        endDate: end,
+        eventType: EVENT_TYPE.EVENT,
+        isAllDayEvent: false,
+        isPastEvent: moment().isAfter(end),
+        startDate: start,
+        textColor: getContrastTextColor(DEFAULT_CALENDAR_COLOR),
+      })
+    }
+  }
+  function handleCalendarEventDialogClose() {
+    setCalendarEvent(undefined)
+    setNewCalendarEvent(undefined)
+  }
+  async function handleDeleteCalendarEvent(
+    event: ICalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) {
+    try {
+      await deleteCalendarEvent(event, recurrenceOptions)
+
+      if (recurrenceOptions?.mode === RECURRENCE_MODE.SINGLE) {
+        mutate(events.filter((e) => e.id !== event.id))
+      } else if (recurrenceOptions?.mode === RECURRENCE_MODE.ALL) {
+        mutate(events.filter((e) => e.recurringEventId !== event.recurringEventId))
+      } else if (recurrenceOptions?.mode === RECURRENCE_MODE.FUTURE && recurrenceOptions.stopDate) {
+        const stopDate = recurrenceOptions.stopDate
+        mutate(
+          events.filter((e) => {
+            return (
+              e.recurringEventId !== event.recurringEventId ||
+              (e.recurringEventId === event.recurringEventId && e.startDate.isBefore(stopDate))
+            )
+          }),
+        )
+      }
+      setNotifierState({
+        open: true,
+        message: `Deleted event${recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''}`,
+        severity: 'success',
+      })
+    } catch (error) {
+      setNotifierState({
+        open: true,
+        message: `Oops failed to delete event${
+          recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''
+        }`,
+        severity: 'error',
+      })
+    }
+  }
+  async function handleEditCalendarEvent(
+    event: ICalendarEvent,
+    body: IRequestBodyCalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) {
+    try {
+      await udpateCalendarEvent(event, body, recurrenceOptions)
+      mutate()
+      setNotifierState({
+        open: true,
+        message: `Updated event${recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''}`,
+        severity: 'success',
+      })
+    } catch (error) {
+      setNotifierState({
+        open: true,
+        message: `Oops failed to update event${
+          recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''
+        }`,
+        severity: 'error',
+      })
+    }
+  }
+  async function handleCreateCalendarEvent(event: ICalendarEvent, body: IRequestBodyCalendarEvent) {
+    try {
+      await createCalendarEvent(body)
+      setTimeout(() => {
+        mutate([...fetchedEvents, event])
+        setNewCalendarEvent(undefined)
+      }, 500)
+      setNotifierState({
+        open: true,
+        message: 'Created event',
+        severity: 'success',
+      })
+    } catch (error) {
+      setNewCalendarEvent(undefined)
+      setNotifierState({
+        open: true,
+        message: 'Oops failed to create event',
+        severity: 'error',
+      })
+    }
   }
 
   return (
@@ -265,18 +453,23 @@ export default function CalendarTimeline({
                   maxWidth={`${100 / days.length}%`}
                   flexDirection='column'
                   alignItems='center'
-                  sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+                  sx={{
+                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                  }}
+                  onClick={handleAddNewAllDayCalendarEvent(day)}
                 >
                   <Typography component={'span'}>{day.format('ddd')}</Typography>
                   <IconButton
                     sx={{
-                      '&:hover': {
-                        backgroundColor: day.isSame(today, 'day') ? 'primary.light' : undefined,
-                      },
-                      backgroundColor: day.isSame(today, 'day') ? 'primary.main' : undefined,
                       width: 40,
                       height: 40,
+                      '&.Mui-disabled': {
+                        bgcolor: 'primary.main',
+                        color: 'text.primary',
+                      },
                     }}
+                    onClick={handleDayClick(day)}
+                    disabled={day.isSame(today, 'day')}
                   >
                     {day.format('D')}
                   </IconButton>
@@ -310,7 +503,7 @@ export default function CalendarTimeline({
         <Box position='relative' display='flex'>
           <Box>
             {Array.from(Array(24)).map((_, index) => (
-              <Box key={index} height={48} width={48} position='relative'>
+              <Box key={index} height={HOUR_HEIGHT} width={48} position='relative'>
                 <Typography
                   component='span'
                   variant='caption'
@@ -336,7 +529,7 @@ export default function CalendarTimeline({
                 {Array.from(Array(24)).map((_, index) => (
                   <Box
                     key={index}
-                    height={48}
+                    height={HOUR_HEIGHT}
                     sx={{
                       '&::after': {
                         content: '""',
@@ -360,6 +553,7 @@ export default function CalendarTimeline({
                   flexGrow={1}
                   position='relative'
                   sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }}
+                  onClick={handleAddNewCalendarEvent(day)}
                 >
                   {!!events.length && getCalendarEvents(day)}
                 </Box>
@@ -373,14 +567,39 @@ export default function CalendarTimeline({
           <CircularProgress />
         </Box>
       )}
+      {calendarEvent && (
+        <CalendarEventDialog
+          event={calendarEvent}
+          open={true}
+          editable
+          onClose={handleCalendarEventDialogClose}
+          onDelete={handleDeleteCalendarEvent}
+          onEdit={handleEditCalendarEvent}
+        />
+      )}
+      {newCalendarEvent && (
+        <CalendarCreateEventDialog
+          event={newCalendarEvent}
+          open={true}
+          onChange={(event) => setNewCalendarEvent(event)}
+          onClose={handleCalendarEventDialogClose}
+          onSave={handleCreateCalendarEvent}
+        />
+      )}
+      <Notifier
+        {...notifierState}
+        onClose={() => setNotifierState((prev) => ({ ...prev, open: false }))}
+      />
     </Box>
   )
 }
 
 type TimelineEventProps = {
   event: ICalendarEvent
+  mode: 'day' | 'week'
   filler?: boolean
-} & BoxProps
+  onClick?: (event: ICalendarEvent) => void
+} & Omit<BoxProps, 'onClick'>
 
 function TimelineEvent({
   event,
@@ -389,12 +608,22 @@ function TimelineEvent({
   top,
   width,
   zIndex,
+  mode,
+  onClick,
   ...boxProps
 }: TimelineEventProps) {
   const color = event.color
   const duration = event.endDate.diff(event.startDate, 'minutes')
   const backgroundColor = event.isPastEvent ? pSBC(0.4, color) : color
   const hoverColor = pSBC(0.2, backgroundColor)
+  const title = event.summary ? event.summary : '(No Title)'
+
+  function handleClick(clickEvent: React.MouseEvent) {
+    clickEvent.stopPropagation()
+    clickEvent.preventDefault()
+
+    if (onClick) onClick(event)
+  }
 
   return (
     <Box
@@ -418,28 +647,31 @@ function TimelineEvent({
         cursor: 'pointer',
         ...boxProps.sx,
       }}
+      onClick={handleClick}
     >
       {duration <= 15 ? (
         <Typography variant='caption' component='div' fontSize={12} lineHeight={1} noWrap>
-          {event.summary} @ {event.startDate.format('h:mma')}
+          {title} @ {event.startDate.format('h:mma')}
+          {mode === 'day' && event.location ? ` - ${event.location}` : ''}
         </Typography>
       ) : duration <= 30 ? (
         <Typography variant='caption' component='div' noWrap>
-          {event.summary} @ {event.startDate.format('h:mma')}
+          {title} @ {event.startDate.format('h:mma')}
+          {mode === 'day' && event.location ? ` - ${event.location}` : ''}
         </Typography>
       ) : duration <= 60 ? (
         <React.Fragment>
           <Typography variant='caption' component='div' noWrap>
-            {event.summary}
+            {title}
           </Typography>
           <Typography variant='caption' component='div' noWrap>
-            {`${event.startDate.format('h:mma')}${event.location ? ' ' + event.location : ''}`}
+            {`${event.startDate.format('h:mma')}${event.location ? ` - ${event.location}` : ''}`}
           </Typography>
         </React.Fragment>
       ) : (
         <React.Fragment>
           <Typography variant='caption' component='div' noWrap>
-            {event.summary}
+            {title}
           </Typography>
           <Typography variant='caption' component='div' noWrap>
             {event.startDate.format('h:mma')}
@@ -454,11 +686,18 @@ function TimelineEvent({
     </Box>
   )
 }
-
-function AllDayTimelineEvent({ event, filler }: TimelineEventProps) {
+function AllDayTimelineEvent({ event, onClick, filler }: TimelineEventProps) {
   const color = event.color
   const backgroundColor = event.isPastEvent ? pSBC(0.4, color) : color
   const hoverColor = pSBC(0.2, backgroundColor)
+  const title = event.summary ? event.summary : '(No Title)'
+
+  function handleClick(clickEvent: React.MouseEvent) {
+    clickEvent.stopPropagation()
+    clickEvent.preventDefault()
+
+    if (onClick) onClick(event)
+  }
 
   return (
     <Chip
@@ -466,6 +705,8 @@ function AllDayTimelineEvent({ event, filler }: TimelineEventProps) {
         backgroundColor,
         justifyContent: 'flex-start',
         borderRadius: 1,
+        width: `calc(100% - ${RIGHT_PADDING}px)`,
+        ml: LEFT_PADDING ? `${LEFT_PADDING}px` : 0,
         color: (theme) => theme.palette.getContrastText(backgroundColor),
         '&:hover': {
           backgroundColor: hoverColor,
@@ -473,8 +714,8 @@ function AllDayTimelineEvent({ event, filler }: TimelineEventProps) {
         },
       }}
       size='small'
-      label={filler ? '' : event.summary}
-      onClick={() => console.log(event)}
+      label={filler ? '' : title}
+      onClick={handleClick}
     />
   )
 }

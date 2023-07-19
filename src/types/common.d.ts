@@ -94,3 +94,9 @@ export type ICalendarEvent = {
   ksu?: Moment
   muster?: Moment
 } & Omit<IServerCalendarEvent, 'endDate' | 'startDate' | 'originalStartDate'>
+
+export type NotifierState = {
+  open: boolean
+  message: string
+  severity: AlertColor
+}
