@@ -3,7 +3,6 @@ import useSWR, { Fetcher } from 'swr'
 import moment, { Moment } from 'moment'
 import { useTheme } from '@mui/material/styles'
 import {
-  AlertColor,
   Box,
   BoxProps,
   Chip,
@@ -27,12 +26,10 @@ import CalendarDayDialog from './calendar.month.day.dialog'
 import {
   ICalendarEvent,
   IRequestBodyCalendarEvent,
-  IServerCalendarEvent,
   NotifierState,
   RecurrenceOptions,
 } from '@/types/common'
 import pSBC from '@/utils/pSBC'
-import { useRouter } from 'next/router'
 import CalendarEventDialog from './calendar.event.dialog'
 import { createCalendarEvent, deleteCalendarEvent, fetcher, udpateCalendarEvent } from '@/utils/api'
 import Notifier from '../notifier'

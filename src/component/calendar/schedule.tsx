@@ -1,54 +1,23 @@
 import * as React from 'react'
-import useSWR, { Fetcher } from 'swr'
-import moment, { Moment } from 'moment'
-import HelmetIcon from '@mui/icons-material/SportsMotorsports'
-import { Box, IconButton, Stack, StackProps, Typography } from '@mui/material'
-import CalendarEventDialog from './calendar.event.dialog'
+import { Box, CircularProgress, IconButton, Stack, StackProps, Typography } from '@mui/material'
 import { CALENDAR_VIEW, CalendarState } from './calendar'
-import { getCalendarEventColor, getCalendarEventFromGoogleEvent } from '@/utils/helpers'
-
-import type { calendar_v3 } from 'googleapis'
-import type { ICalendarEvent } from './calendar.timeline'
-import CalendarEditEventDialog from './calendar.event.edit.dialog'
-import { ENDPOINT } from '@/utils/constants'
-
-const fetcher: Fetcher<ICalendarEvent[][], string[]> = async (args) => {
-  const now = moment()
-  const [url, queryParams] = args
-  const fullUrl = queryParams ? `${url}?${queryParams}` : url
-  const response = await fetch(fullUrl)
-  const data = (await response.json()) as calendar_v3.Schema$Events
-  const events = getCalendarEventFromGoogleEvent(data.items)
-  let minDate = moment()
-  let maxDate = moment()
-
-  events.forEach((e) => {
-    minDate = minDate.isAfter(e.startDate) ? moment(e.startDate).startOf('day') : minDate
-    maxDate = maxDate.isBefore(e.endDate) ? moment(e.endDate).endOf('day') : maxDate
-  })
-
-  const dayDuration = maxDate.diff(minDate, 'days')
-  const groupedEvents: ICalendarEvent[][] = Array.from(Array(dayDuration + 1), (x) => [])
-
-  events.forEach((e) => {
-    const duration = e.endDate.diff(e.startDate, 'day')
-    const fromMin = e.startDate.diff(minDate, 'days')
-
-    for (let i = 0; i <= duration; i++) {
-      groupedEvents[fromMin + i].push({
-        dayNumber: i + 1,
-        ...e,
-      })
-    }
-  })
-
-  return groupedEvents
-}
+import { ENDPOINT, RECURRENCE_MODE } from '@/utils/constants'
+import { deleteCalendarEvent, fetcher, udpateCalendarEvent } from '@/utils/api'
+import {
+  ICalendarEvent,
+  IRequestBodyCalendarEvent,
+  NotifierState,
+  RecurrenceOptions,
+} from '@/types/common'
+import CalendarEventDialog from './calendar.event.dialog'
+import HelmetIcon from '@mui/icons-material/SportsMotorsports'
+import moment, { Moment } from 'moment'
+import useSWR, { Fetcher } from 'swr'
+import Notifier from '../notifier'
 
 type CalendarScheduleProps = {
   date: Moment
   onCalendarChange?: (state: CalendarState) => void
-  onEventClick?: (event: calendar_v3.Schema$Event) => void
 } & StackProps
 
 export default function CalendarSchedule({
@@ -59,21 +28,56 @@ export default function CalendarSchedule({
   const now = moment()
   const endMonth = React.useMemo(() => moment(date).add(1, 'month').endOf('day'), [date])
   const [openEventViewer, setOpenEventViewer] = React.useState(false)
-  const [openEditEvent, setOpenEditEvent] = React.useState(false)
   const [selected, setSelected] = React.useState<ICalendarEvent>()
   const queryParams = React.useMemo(() => {
-    const data = {
+    return {
       start: date.startOf('day').format(),
       end: endMonth.format(),
     }
-    const searchParams = new URLSearchParams(data)
-
-    return searchParams.toString()
   }, [date, endMonth])
-  const { data: events, isLoading } = useSWR([ENDPOINT.EVENTS, queryParams], fetcher, {
+  const {
+    data: fetchedEvents,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR([ENDPOINT.EVENTS, queryParams], fetcher, {
     fallbackData: [],
   })
+  const events = React.useMemo(() => {
+    let minDate = moment()
+    let maxDate = moment()
+
+    fetchedEvents.forEach((e) => {
+      minDate = minDate.isAfter(e.startDate) ? moment(e.startDate).startOf('day') : minDate
+      maxDate = maxDate.isBefore(e.endDate) ? moment(e.endDate).endOf('day') : maxDate
+    })
+
+    const dayDuration = maxDate.diff(minDate, 'days')
+
+    if (fetchedEvents.length) {
+      const groupedEvents: ICalendarEvent[][] = Array.from(Array(dayDuration + 1), (x) => [])
+      fetchedEvents.forEach((e) => {
+        const duration = e.endDate.diff(e.startDate, 'day')
+        const fromMin = e.startDate.diff(minDate, 'days')
+
+        for (let i = 0; i <= duration; i++) {
+          groupedEvents[fromMin + i].push({
+            dayNumber: i + 1,
+            ...e,
+          })
+        }
+      })
+      return groupedEvents
+    }
+
+    return []
+  }, [fetchedEvents])
   const minDate = events.length ? events[0][0].startDate : moment()
+  const [notifierState, setNotifierState] = React.useState<NotifierState>({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
 
   function shouldRenderIndicator(group: ICalendarEvent[], index: number) {
     const event = group[index]
@@ -87,10 +91,69 @@ export default function CalendarSchedule({
 
     return false
   }
-
   function handleCalendarEventClick(event?: ICalendarEvent) {
     setSelected(event)
     setOpenEventViewer(true)
+  }
+  async function handleDeleteCalendarEvent(
+    event: ICalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) {
+    try {
+      await deleteCalendarEvent(event, recurrenceOptions)
+
+      if (recurrenceOptions?.mode === RECURRENCE_MODE.SINGLE) {
+        mutate(fetchedEvents.filter((e) => e.id !== event.id))
+      } else if (recurrenceOptions?.mode === RECURRENCE_MODE.ALL) {
+        mutate(fetchedEvents.filter((e) => e.recurringEventId !== event.recurringEventId))
+      } else if (recurrenceOptions?.mode === RECURRENCE_MODE.FUTURE && recurrenceOptions.stopDate) {
+        const stopDate = recurrenceOptions.stopDate
+        mutate(
+          fetchedEvents.filter((e) => {
+            return (
+              e.recurringEventId !== event.recurringEventId ||
+              (e.recurringEventId === event.recurringEventId && e.startDate.isBefore(stopDate))
+            )
+          }),
+        )
+      }
+      setNotifierState({
+        open: true,
+        message: `Deleted event${recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''}`,
+        severity: 'success',
+      })
+    } catch (error) {
+      setNotifierState({
+        open: true,
+        message: `Oops failed to delete event${
+          recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''
+        }`,
+        severity: 'error',
+      })
+    }
+  }
+  async function handleEditCalendarEvent(
+    event: ICalendarEvent,
+    body: IRequestBodyCalendarEvent,
+    recurrenceOptions?: RecurrenceOptions,
+  ) {
+    try {
+      await udpateCalendarEvent(event, body, recurrenceOptions)
+      mutate()
+      setNotifierState({
+        open: true,
+        message: `Updated event${recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''}`,
+        severity: 'success',
+      })
+    } catch (error) {
+      setNotifierState({
+        open: true,
+        message: `Oops failed to update event${
+          recurrenceOptions?.mode !== RECURRENCE_MODE.SINGLE ? 's' : ''
+        }`,
+        severity: 'error',
+      })
+    }
   }
 
   return (
@@ -212,13 +275,24 @@ export default function CalendarSchedule({
         <CalendarEventDialog
           event={selected}
           open={openEventViewer}
-          editable
           onClose={() => {
             setSelected(undefined)
             setOpenEventViewer(false)
           }}
+          onDelete={handleDeleteCalendarEvent}
+          onEdit={handleEditCalendarEvent}
+          editable
         />
       )}
+      {(isLoading || isValidating) && (
+        <Box position='absolute' left={16} bottom={16} display='flex'>
+          <CircularProgress />
+        </Box>
+      )}
+      <Notifier
+        {...notifierState}
+        onClose={() => setNotifierState((prev) => ({ ...prev, open: false }))}
+      />
     </Box>
   )
 }
@@ -230,8 +304,6 @@ type ScheduleEventProps = {
 }
 
 function ScheduleEvent({ event, selected, onEventClick }: ScheduleEventProps) {
-  const color = getCalendarEventColor(event.eventType)
-
   return (
     <Box
       className={event.isPastEvent ? 'past' : undefined}
@@ -246,10 +318,11 @@ function ScheduleEvent({ event, selected, onEventClick }: ScheduleEventProps) {
         borderRadius: 3,
         cursor: 'pointer',
         transition: 'all 0.25s ease',
+        bgcolor: selected ? 'divider' : undefined,
         '&:hover': selected
           ? undefined
           : {
-              backgroundColor: 'rgb(218,220,224)',
+              backgroundColor: 'divider',
             },
       }}
     >
@@ -257,7 +330,7 @@ function ScheduleEvent({ event, selected, onEventClick }: ScheduleEventProps) {
         component='span'
         width={16}
         height={16}
-        sx={{ backgroundColor: color.main, borderRadius: 10 }}
+        sx={{ backgroundColor: event.color, borderRadius: 10 }}
       />
       <Typography
         component='span'
@@ -279,6 +352,11 @@ function ScheduleEvent({ event, selected, onEventClick }: ScheduleEventProps) {
       >
         {event.summary}
         {event.dayTotal > 1 ? ` (Day ${event.dayNumber}/${event.dayTotal})` : ''}
+        {event.location && !event.isPastEvent && (
+          <Typography component='span' variant='body2' sx={{ pl: 1 }} color='text.secondary'>
+            {event.location}
+          </Typography>
+        )}
       </Typography>
     </Box>
   )

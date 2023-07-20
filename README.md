@@ -14,9 +14,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 - [x] Authentication
 - [x] Google API hook up
-- [ ] Ability to Create Calendar Events
+- [x] Ability to Create Calendar Events
 - [x] Ability to Delete Calendar Events
-- [ ] Ability to Edit Calendar Events
+- [x] Ability to Edit Calendar Events
 - [ ] Generate Member at Risk Report
   - Must be officer
 - [ ] Generate Active Member Email List
@@ -39,9 +39,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
   - Must be member
   - Auto fill
 - [x] Calendar Month View
-- [ ] Calendar Week View
-- [ ] Calendar Day View
-- [ ] Calendar Agenda View
+- [x] Calendar Week View
+- [x] Calendar Day View
+- [x] Calendar Schedule View
 - [ ] In Calendar Month View differentiate between all day events and timed events
 - [ ] Support WYSIWUG in calendar event description
 
