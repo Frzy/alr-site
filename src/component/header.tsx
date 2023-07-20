@@ -94,35 +94,40 @@ export default function Header() {
               </Hidden>
               <Box display='flex' columnGap={1}>
                 <Button
-                  onClick={handleCloseNavMenu}
-                  sx={{ color: 'white', display: 'block' }}
                   disabled={pathname === '/'}
+                  href='/'
+                  color='inherit'
+                  onClick={handleCloseNavMenu}
                   size='small'
                 >
                   Home
                 </Button>
                 <Button
+                  disabled={pathname === '/roster'}
                   href='/roster'
+                  color='inherit'
                   onClick={handleCloseNavMenu}
                   size='small'
-                  sx={{ color: 'white', display: 'block' }}
                 >
                   Roster
                 </Button>
                 <Button
                   disabled={pathname === '/events'}
                   href='/events'
+                  color='inherit'
+                  onClick={handleCloseNavMenu}
                   size='small'
-                  sx={{ color: 'white', display: 'block' }}
                 >
                   Events
                 </Button>
                 <Button
+                  disabled={pathname === '/stats'}
+                  href='/stats'
+                  color='inherit'
                   onClick={handleCloseNavMenu}
-                  sx={{ color: 'white', display: 'block' }}
                   size='small'
                 >
-                  Logs
+                  Stats
                 </Button>
               </Box>
             </Box>
@@ -157,19 +162,30 @@ export default function Header() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={() => (window.location.href = `/member/${session.user.id}`)}>
+                  <MenuItem
+                    onClick={() => {
+                      handleCloseUserMenu()
+                      window.location.href = `/member/${session.user.id}`
+                    }}
+                  >
                     <Typography textAlign='center'>Profile</Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
                       setMode(mode === 'light' ? 'dark' : 'light')
+                      handleCloseUserMenu()
                     }}
                   >
                     <Typography textAlign='center'>
                       {mode === 'light' ? 'Use Dark Theme' : 'Use Light Theme'}
                     </Typography>
                   </MenuItem>
-                  <MenuItem onClick={() => signOut()}>
+                  <MenuItem
+                    onClick={() => {
+                      signOut()
+                      handleCloseUserMenu()
+                    }}
+                  >
                     <Typography textAlign='center'>Logout</Typography>
                   </MenuItem>
                 </Menu>
@@ -228,7 +244,9 @@ export default function Header() {
                   </Link>
                 </MenuItem>
                 <MenuItem onClick={handleCloseNavMenu}>
-                  <Typography textAlign='center'>Logs</Typography>
+                  <Link href='/stats'>
+                    <Typography textAlign='center'>Stats</Typography>
+                  </Link>
                 </MenuItem>
               </Menu>
             </Box>

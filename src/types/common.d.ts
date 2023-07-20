@@ -45,12 +45,18 @@ export type BaseLog = {
 }
 
 export type GroupLogs = {
-  [key: string]: BaseLog & {
-    breakdown: {
-      [key in ACTIVITY_TYPE]: BaseLog
-    }
-  }
+  [key: string]: LogStats
 }
+
+export type LogsByMember = {
+  name: string
+} & LogStats
+
+export type LogStats = {
+  breakdown: {
+    [key in ACTIVITY_TYPE]: BaseLog
+  }
+} & BaseLog
 
 export type ActivityLog = {
   id: number
@@ -61,6 +67,7 @@ export type ActivityLog = {
   hours?: number
   monies?: number
   miles?: number
+  created: string
 }
 
 export type IServerCalendarEvent = {
@@ -99,4 +106,15 @@ export type NotifierState = {
   open: boolean
   message: string
   severity: AlertColor
+}
+
+export type ActivityLogStats = {
+  events: number
+  hours: number
+  miles: number
+  breakdown: {
+    [key in ACTIVITY_TYPE]: BaseLog
+  }
+  latestEntries: ActivityLog[]
+  entriesByMember: LogsByMember[]
 }

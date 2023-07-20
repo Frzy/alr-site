@@ -107,6 +107,7 @@ export enum ENDPOINT {
   ROSTER = '/api/roster',
   MEMBER = '/api/member/',
   LOG_NAMES = '/api/activity-log/names',
+  LOGS_STATS = '/api/activity-log/stats',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',

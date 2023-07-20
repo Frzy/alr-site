@@ -35,6 +35,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
   - Must be Member
 - [ ] Ability to view current and past Finance Reports
   - Must be Member
+- [ ] Activity Log Stat Page
+  - [ ] Latest Submissions
+  - [ ] Top Riders
+  - [ ] Most Hours
+  - [ ] Most Active
+  - [ ] Most Miles
+  - [ ] Searchable form with all entries
+    - [ ] Support pagination
+  - [ ] Link names to profiles (clickable name links to profile)
 - [ ] Activity Log Form
   - Must be member
   - Auto fill
@@ -44,6 +53,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - [x] Calendar Schedule View
 - [ ] In Calendar Month View differentiate between all day events and timed events
 - [ ] Support WYSIWUG in calendar event description
+- [ ] Support form to update all activity log names to another name
+- [ ] Ability to edit personal activity logs
+- [ ] Ability for officers to edit any activity log
 
 ## Deploy on Vercel
 
