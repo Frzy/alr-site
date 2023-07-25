@@ -1,7 +1,6 @@
 import Head from 'next/head'
 import Header from '@/component/header'
-import { Container, Grid, Paper, Typography } from '@mui/material'
-import UpcomingEvents from '@/component/upcoming.events'
+import { Container, Grid, Paper } from '@mui/material'
 import Officers from '@/component/officers'
 import CalendarSchedule from '@/component/calendar/schedule'
 import moment from 'moment'
@@ -17,35 +16,19 @@ export default function HomePage() {
       </Head>
       <main>
         <Header />
-        <Container sx={{ pt: 2 }}>
-          <Typography gutterBottom>
-            The American Legion Riders are members of the American Legion who are also motorcycle
-            enthusiasts. They can be found participating in parades, partaking in motorcycling
-            events, and supporting the communities in which they live, work, and play. Members of
-            the ALR come from the Legion, the Legion Auxilliary, and the Sons of the American
-            Legion. The American Legion Riders were formed:
-          </Typography>
-          <Typography sx={{ pl: 4 }} gutterBottom>
-            • To participate in parades and other ceremonies that are in keeping with the Aims and
-            Purposes of the American Legion.
-          </Typography>
-          <Typography sx={{ pl: 4 }} gutterBottom>
-            • To promote motorcycle safety programs and to provide a social atmosphere for American
-            Legion members who share the same interest.
-          </Typography>
-          <Typography sx={{ pl: 4 }} gutterBottom>
-            • To use our Association to promote and support programs of the American Legion.
-          </Typography>
-          <Typography gutterBottom>
-            The American Legion Riders is not a M/C, and does not practice M/C rules or regulations,
-            nor do we infringe on any Motorcycle Club. We claim no territory or turf. We just ride
-            to serve the Vets. The American Legion Riders is family-oriented, just as is its parent
-            organization: the American Legion.
-          </Typography>
+        <Container maxWidth='xl'>
           <Grid container spacing={1} sx={{ pt: 2 }}>
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
-                <CalendarSchedule date={moment()} />
+            <Grid item xs={12}>
+              <Paper sx={{ p: 1 }}>
+                <CalendarSchedule
+                  date={moment()}
+                  title='Upcoming Events'
+                  endDate={moment().add(1, 'week').endOf('day')}
+                  fetchOptions={{
+                    revalidateOnFocus: false,
+                    revalidateOnReconnect: false,
+                  }}
+                />
               </Paper>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
