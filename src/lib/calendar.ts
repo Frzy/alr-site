@@ -46,7 +46,7 @@ export function getServerCalendarEvent(calendarEvent: calendar_v3.Schema$Event):
   const isAllDayEvent = !!calendarEvent.start?.date || !!calendarEvent.end?.date
   // This is becuase google is an exclusive end date
   const dayTotal = endDate.diff(startDate, 'day') + (isAllDayEvent ? 0 : 1)
-  if (isAllDayEvent) endDate.subtract(1, 'day')
+  if (isAllDayEvent) endDate.subtract(1, 'day').endOf('day')
   const isPastEvent = now.isAfter(endDate)
   const eventType = getCalendarEventType(calendarEvent)
   const color = getCalendarEventColor(calendarEvent)

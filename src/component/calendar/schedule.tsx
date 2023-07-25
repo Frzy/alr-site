@@ -42,7 +42,6 @@ export default function CalendarSchedule({
   onCalendarChange,
   ...stackProps
 }: CalendarScheduleProps) {
-  const now = moment()
   const [openEventViewer, setOpenEventViewer] = React.useState(false)
   const [selected, setSelected] = React.useState<ICalendarEvent>()
   const queryParams = React.useMemo(() => {
@@ -71,20 +70,17 @@ export default function CalendarSchedule({
       maxDate = maxDate.isBefore(e.endDate) ? moment(e.endDate).endOf('day') : maxDate
     })
 
-    const dayDuration = maxDate.diff(minDate, 'days')
-
     if (fetchedEvents.length) {
-      const groupedEvents: ICalendarEvent[][] = Array.from(Array(dayDuration + 1), (x) => [])
-      fetchedEvents.forEach((e) => {
-        const duration = e.endDate.diff(e.startDate, 'day')
-        const fromMin = e.startDate.diff(minDate, 'days')
+      const buckets = maxDate.diff(minDate, 'days')
+      const groupedEvents: ICalendarEvent[][] = Array.from(Array(buckets + 1), (x) => [])
 
-        for (let i = 0; i <= duration; i++) {
-          groupedEvents[fromMin + i].push({
-            dayNumber: i + 1,
-            ...e,
-          })
-        }
+      fetchedEvents.forEach((e) => {
+        const bucket = e.startDate.diff(minDate, 'days')
+
+        groupedEvents[bucket].push({
+          dayNumber: bucket + 1,
+          ...e,
+        })
       })
 
       return { minDate, events: groupedEvents.filter((g) => !!g.length) }
@@ -99,14 +95,21 @@ export default function CalendarSchedule({
   })
 
   function shouldRenderIndicator(group: ICalendarEvent[], index: number) {
+    const now = moment()
     const event = group[index]
     const prevEvent = index - 1 > 0 ? group[index - 1] : null
     const nextEvent = group[index + 1]
 
-    if (now.isBetween(event.startDate, event.endDate)) return 'before'
-    if (prevEvent && now.isBefore(event.startDate) && now.isAfter(prevEvent.endDate))
+    if (!now.isSame(event.startDate, 'day')) return false
+
+    if (!event.isAllDayEvent && now.isBetween(event.startDate, event.endDate)) return 'before'
+    if (
+      (prevEvent && now.isBefore(event.startDate) && now.isAfter(prevEvent.endDate)) ||
+      (!prevEvent && now.isBefore(event.startDate))
+    )
       return 'before'
     if (!nextEvent && now.isAfter(prevEvent?.startDate)) return 'after'
+    if (!nextEvent && event.isAllDayEvent) return 'after'
 
     return false
   }
@@ -201,12 +204,23 @@ export default function CalendarSchedule({
             {events.map((group, dayIndex) => {
               const day = moment(date).startOf('day')
               const displayDate = moment(minDate).add(dayIndex, 'days')
-              const isSameDay = displayDate.isSame(now, 'day')
+              const isSameDay = displayDate.isSame(moment(), 'day')
 
-              if (group.length && displayDate.isAfter(day)) {
+              if (group.length) {
                 return (
                   <Box key={dayIndex} sx={{ px: { xs: 0.5, md: 1 } }}>
-                    <Box position='relative' display='flex'>
+                    <Box
+                      position='relative'
+                      display='flex'
+                      sx={{
+                        '& .schedule-event': {
+                          borderBottomColor: 'divider',
+                          borderBottomStyle: 'solid',
+                          borderBottomWidth: 1,
+                          position: 'relative',
+                        },
+                      }}
+                    >
                       <Box
                         sx={{
                           mt: {
@@ -225,9 +239,12 @@ export default function CalendarSchedule({
                             width: { xs: 24, md: 48 },
                             height: { xs: 24, md: 48 },
                             fontSize: '1rem',
-                            backgroundColor: isSameDay ? 'primary.main' : undefined,
+                            bgcolor: isSameDay ? 'primary.main' : undefined,
+                            '&.Mui-disabled': {
+                              color: isSameDay ? 'primary.main' : 'text.primary',
+                            },
                             '&:hover': {
-                              backgroundColor: isSameDay ? 'primary.light' : undefined,
+                              bgcolor: isSameDay ? 'primary.light' : undefined,
                             },
                           }}
                         >
@@ -236,9 +253,10 @@ export default function CalendarSchedule({
                       </Box>
                       <Box
                         sx={{
-                          pt: { xs: '11px', md: '16px' },
-                          pl: { xs: '4px', md: '8px' },
+                          height: 48,
                           minWidth: { xs: 70, md: 85 },
+                          display: 'flex',
+                          alignItems: 'center',
                         }}
                       >
                         <Typography
@@ -249,19 +267,9 @@ export default function CalendarSchedule({
                           {displayDate.format('MMM, ddd')}
                         </Typography>
                       </Box>
-                      <Box
-                        flexGrow={1}
-                        pb={1}
-                        sx={{
-                          borderBottom: '1px solid rgb(218,220,224)',
-                          position: 'relative',
-                        }}
-                      >
+                      <Box flexGrow={1} className='schedule-event'>
                         {group.map((e, index) => {
-                          const renderIndicator =
-                            now.isSame(e.startDate, 'day') &&
-                            !e.isAllDayEvent &&
-                            shouldRenderIndicator(group, index)
+                          const renderIndicator = shouldRenderIndicator(group, index)
 
                           if (renderIndicator) {
                             return renderIndicator === 'before'
@@ -400,7 +408,7 @@ function SkeletonEvent() {
   return (
     <Box display='flex' sx={{ p: 1 }} gap={1}>
       <Skeleton variant='circular' width={40} height={40} animation='wave' />
-      <Skeleton variant='rectangular' height={40} sx={{ flexGrow: 1 }} />
+      <Skeleton variant='rectangular' height={40} sx={{ flexGrow: 1 }} animation='wave' />
     </Box>
   )
 }
