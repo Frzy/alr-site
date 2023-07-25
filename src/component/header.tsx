@@ -16,7 +16,7 @@ import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import { Hidden, Toolbar } from '@mui/material'
-import Link from 'next/link'
+import Link from './link'
 
 const pages = ['Products', 'Pricing', 'Blog']
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
@@ -50,11 +50,13 @@ export default function Header() {
       <AppBar sx={{ px: 2 }}>
         <Hidden smDown>
           <Box display='flex' alignItems='center'>
-            <Avatar
-              alt='American Legion Riders Logo'
-              src='/images/alr-logo.png'
-              sx={{ width: 'auto', height: 64 }}
-            />
+            <Link href='/'>
+              <Avatar
+                alt='American Legion Riders Logo'
+                src='/images/alr-logo.png'
+                sx={{ width: 'auto', height: 64 }}
+              />
+            </Link>
             <Box
               sx={{
                 display: 'flex',
@@ -63,34 +65,38 @@ export default function Header() {
               }}
             >
               <Hidden mdDown>
-                <Typography
-                  variant='h5'
-                  sx={{
-                    pl: 1,
-                    fontFamily: 'monospace',
-                    fontWeight: 700,
-                    letterSpacing: '.3rem',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                  }}
-                >
-                  American Legion Riders 91
-                </Typography>
+                <Link href='/' color='inherit' underline='none'>
+                  <Typography
+                    variant='h5'
+                    sx={{
+                      pl: 1,
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      letterSpacing: '.3rem',
+                      color: 'inherit',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    American Legion Riders 91
+                  </Typography>
+                </Link>
               </Hidden>
               <Hidden mdUp>
-                <Typography
-                  variant='h5'
-                  sx={{
-                    pl: 1,
-                    fontFamily: 'monospace',
-                    fontWeight: 700,
-                    letterSpacing: '.3rem',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                  }}
-                >
-                  ALR 91
-                </Typography>
+                <Link href='/'>
+                  <Typography
+                    variant='h5'
+                    sx={{
+                      pl: 1,
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      letterSpacing: '.3rem',
+                      color: 'inherit',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    ALR 91
+                  </Typography>
+                </Link>
               </Hidden>
               <Box display='flex' columnGap={1}>
                 <Button
@@ -131,6 +137,7 @@ export default function Header() {
                 </Button>
               </Box>
             </Box>
+
             {status === 'loading' ? (
               <Box display='flex' justifyContent='right' width={100} />
             ) : status === 'authenticated' ? (
