@@ -67,11 +67,13 @@ export default function CalendarSchedule({
           })
         }
       })
-      return groupedEvents
+
+      return groupedEvents.filter((g) => !!g.length)
     }
 
     return []
   }, [fetchedEvents])
+  console.log({ events })
   const minDate = events.length ? events[0][0].startDate : moment()
   const [notifierState, setNotifierState] = React.useState<NotifierState>({
     open: false,
