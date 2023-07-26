@@ -28,8 +28,9 @@ export enum ROLE {
   SUPPORTER = 'Supporter',
 }
 export const ROLES = Object.values(ROLE)
-export const MEMBER_ROLES = [ROLE.CHARTER, ROLE.MEMBER, ROLE.SUPPORTER]
-export const ACTIVE_ROLES = [ROLE.CHARTER, ROLE.MEMBER, ROLE.PROSPECT, ROLE.SUPPORTER]
+export const RIDER_ROLES = [ROLE.CHARTER, ROLE.MEMBER]
+export const MEMBER_ROLES = [...RIDER_ROLES, ROLE.SUPPORTER]
+export const ACTIVE_ROLES = [...MEMBER_ROLES, ROLE.PROSPECT]
 export enum ENTITY {
   LEGION = 'AL',
   SAL = 'SAL',
@@ -102,12 +103,14 @@ export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
   'Past Director': 10,
 }
 export enum ENDPOINT {
-  EVENTS = '/api/calendar/events',
   EVENT = '/api/calendar/event',
-  ROSTER = '/api/roster',
-  MEMBER = '/api/member/',
+  EVENTS = '/api/calendar/events',
   LOG_NAMES = '/api/activity-log/names',
   LOGS_STATS = '/api/activity-log/stats',
+  MEMBER = '/api/member/',
+  OFFICERS = '/api/roster/officers',
+  ROSTER = '/api/roster',
+  ROSTER_STATS = '/api/roster/stats',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',

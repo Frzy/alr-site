@@ -49,8 +49,8 @@ export default function MemberInformation({
   onReset,
   onSave,
 }: MemberInformationProps) {
-  const session = useSession()
   const [mode, setMode] = React.useState<Mode>(Mode.View)
+  const session = useSession()
   const isOfficer = !!session.data?.user.office
   const isLoggedIn = !!session.data?.user
   const isEditing = mode === Mode.Edit && isLoggedIn

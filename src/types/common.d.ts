@@ -1,4 +1,11 @@
-import { ACTIVITY_TYPE, ENTITY, OFFICER_POSITION, RECURRENCE_MODE, ROLE } from '@/utils/constants'
+import {
+  ACTIVITY_TYPE,
+  ENTITY,
+  OFFICER_POSITION,
+  RECURRENCE_MODE,
+  ROLE,
+  ROLES,
+} from '@/utils/constants'
 import { calendar_v3 } from 'googleapis'
 import { Moment } from 'moment'
 
@@ -117,4 +124,10 @@ export type ActivityLogStats = {
   }
   latestEntries: ActivityLog[]
   entriesByMember: LogsByMember[]
+}
+
+export type MembershipStats = ObjectFromList<typeof ROLES, number>
+
+export type ObjectFromList<T extends ReadonlyArray<string>, V = string> = {
+  [K in T extends ReadonlyArray<infer U> ? U : never]: V
 }

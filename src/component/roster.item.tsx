@@ -1,5 +1,15 @@
 import * as React from 'react'
-import { Avatar, Box, Chip, Paper, PaperProps, Tooltip, Typography, Link } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Chip,
+  Paper,
+  PaperProps,
+  Tooltip,
+  Typography,
+  Link,
+  Skeleton,
+} from '@mui/material'
 import { ENTITY, ENTITY_COLORS, ROLE } from '@/utils/constants'
 import { stringToColor } from '@/utils/helpers'
 import CharterMemberIcon from '@mui/icons-material/SportsMotorsports'
@@ -165,6 +175,34 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
         {RoleIcons && <Tooltip title={member.role}>{RoleIcons}</Tooltip>}
         {member.entity &&
           member.entity.map((e) => <Chip key={e} size='small' {...entityChip(e)} />)}
+      </Box>
+    </Paper>
+  )
+}
+
+export function SkeletonRosterItem() {
+  return (
+    <Paper variant='outlined' sx={{ p: 1 }}>
+      <Box display='flex' gap={1} width='100%'>
+        <Skeleton
+          variant='circular'
+          animation='wave'
+          width={40}
+          height={40}
+          sx={{ alignSelf: 'center' }}
+        />
+        <Box flexGrow={1}>
+          <Skeleton width={150} />
+          <Skeleton width={100} />
+        </Box>
+        <Skeleton
+          variant='circular'
+          animation='wave'
+          width={75}
+          height={20}
+          sx={{ borderRadius: '20px' }}
+        />
+        <Skeleton variant='circular' animation='wave' width={20} height={20} />
       </Box>
     </Paper>
   )

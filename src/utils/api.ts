@@ -10,7 +10,7 @@ import { Fetcher } from 'swr'
 import { FetcherResponse } from 'swr/_internal'
 import { getFrontEndCalendarEvent } from './helpers'
 
-async function queryRequest(
+export async function queryRequest(
   method: 'GET' | 'DELETE',
   url: string,
   queries?: Record<string, string>,
@@ -20,7 +20,7 @@ async function queryRequest(
   return params.toString() ? fetch(`${url}?${params}`, { method }) : fetch(url, { method })
 }
 
-async function bodyRequest(method: 'PUT' | 'POST' | 'PATCH', url: string, data: unknown) {
+export async function bodyRequest(method: 'PUT' | 'POST' | 'PATCH', url: string, data: unknown) {
   return fetch(url, {
     method,
     body: JSON.stringify(data),

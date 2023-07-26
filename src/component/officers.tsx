@@ -1,106 +1,58 @@
 import * as React from 'react'
+import { Alert, Box, Divider, Stack, Typography } from '@mui/material'
+import { ENDPOINT } from '@/utils/constants'
+import RosterItem, { SkeletonRosterItem } from './roster.item'
 import useSWR, { Fetcher } from 'swr'
-import {
-  Avatar,
-  Box,
-  CircularProgress,
-  Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Typography,
-} from '@mui/material'
-import { getPhoneLink, stringToColor } from '@/utils/helpers'
 
 import type { Member } from '@/types/common'
+import { queryRequest } from '@/utils/api'
 
 const fetcher: Fetcher<Member[], string> = async (url: string) => {
-  const officers = await fetch(url)
+  const response = await queryRequest('GET', url)
+  const data = (await response.json()) as Member[]
 
-  return await officers.json()
+  return data
 }
 
 export default function Officers() {
-  const { data: officers, error, isLoading } = useSWR('/api/officers', fetcher)
+  const {
+    data: officers,
+    error,
+    isLoading,
+  } = useSWR(ENDPOINT.OFFICERS, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  })
 
-  if (isLoading)
+  if (error)
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+        <Alert severity='error'>There was a problem fetching the officers</Alert>
       </Box>
     )
 
   return (
     <Box>
       <Typography sx={{ p: 1 }} variant='h4'>
-        Officers
+        E-Board
       </Typography>
       <Divider />
-      <List
-        sx={{
-          px: 1,
-          width: '100%',
-        }}
-      >
-        {officers?.map((o, index) => (
-          <React.Fragment key={o.id}>
-            <ListItem alignItems='center' disablePadding>
-              <ListItemAvatar>
-                {o.image ? (
-                  <Avatar alt={o.name} src={o.image} />
-                ) : (
-                  <Avatar
-                    alt={o.name}
-                    sx={{
-                      bgcolor: stringToColor(o.name),
-                    }}
-                  >{`${o.firstName[0]}${o.lastName[0]}`}</Avatar>
-                )}
-              </ListItemAvatar>
-              <ListItemText
-                primary={o.office}
-                secondaryTypographyProps={{ component: 'div' }}
-                secondary={
-                  <React.Fragment>
-                    <Box>
-                      <Typography
-                        sx={{ display: 'inline' }}
-                        component='span'
-                        variant='body2'
-                        color='text.primary'
-                      >
-                        {o.name}
-                      </Typography>
-
-                      {o.nickName && (
-                        <Typography
-                          sx={{ display: 'inline' }}
-                          component='span'
-                          variant='caption'
-                          color='text.primary'
-                        >
-                          {` (${o.nickName})`}
-                        </Typography>
-                      )}
-                    </Box>
-                    {o.phoneNumber && (
-                      <Typography
-                        component='a'
-                        variant='body2'
-                        href={`tel:${getPhoneLink(o.phoneNumber)}`}
-                      >
-                        {o.phoneNumber}
-                      </Typography>
-                    )}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
-            {index < officers.length - 1 && <Divider variant='inset' component='li' />}
-          </React.Fragment>
-        ))}
-      </List>
+      {isLoading ? (
+        <Stack sx={{ p: 1 }} spacing={1}>
+          {Array(10)
+            .fill(0)
+            .map((_, index) => (
+              <SkeletonRosterItem key={index} />
+            ))}
+        </Stack>
+      ) : (
+        <Stack sx={{ p: 1 }} spacing={1}>
+          {officers?.map((o, index) => (
+            <RosterItem key={index} member={o} />
+          ))}
+        </Stack>
+      )}
     </Box>
   )
 }
