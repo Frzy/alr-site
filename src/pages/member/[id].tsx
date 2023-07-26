@@ -16,7 +16,7 @@ import type { ActivityLog, Member } from '@/types/common'
 import type { GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { ENDPOINT } from '@/utils/constants'
-import MemberYearlyRequirments from '@/component/member-yearly-requirments'
+import MemberYearlyRequirments from '@/component/member.yearly.requirments'
 
 export const getServerSideProps: GetServerSideProps<MemberPageProps> = async ({
   req,

@@ -5,7 +5,8 @@ import { Container, Grid, Paper, Typography } from '@mui/material'
 import Officers from '@/component/officers'
 import CalendarSchedule from '@/component/calendar/schedule'
 import moment from 'moment'
-import MembershipStats from '@/component/membership-stats'
+import MembershipStats from '@/component/membership.stats'
+import ActivityLogStats from '@/component/activity.log.stats'
 
 export default function HomePage() {
   return (
@@ -38,9 +39,14 @@ export default function HomePage() {
                 <Officers />
               </Paper>
             </Grid>
-            <Grid item xs={12} lg={4}>
+            <Grid item xs={12} md={6} lg={4}>
               <Paper sx={{ p: 1 }}>
                 <MembershipStats />
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6} lg={4}>
+              <Paper sx={{ p: 1 }}>
+                <ActivityLogStats />
               </Paper>
             </Grid>
           </Grid>

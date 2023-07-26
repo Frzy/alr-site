@@ -56,6 +56,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - [ ] Support form to update all activity log names to another name
 - [ ] Ability to edit personal activity logs
 - [ ] Ability for officers to edit any activity log
+- [ ] Add 'x' (clear button) on search log box in profile page
 
 ## Deploy on Vercel
 
