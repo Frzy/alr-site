@@ -1,8 +1,7 @@
 import * as React from 'react'
-
 import { Chip, Dialog, DialogTitle, DialogContent, DialogProps, Stack } from '@mui/material'
-import { ICalendarEvent } from './calendar.timeline'
 import { Moment } from 'moment'
+import { ICalendarEvent } from '@/types/common'
 
 interface CalendarDayDialogProps extends DialogProps {
   day: Moment
