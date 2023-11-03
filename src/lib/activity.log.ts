@@ -95,7 +95,7 @@ export function convertToPublicActivityLog(log: ActivityLog) {
 export async function getActivityLogNames(filter?: (name: string) => boolean) {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: process.env.GOOGLE_PRIVATE_KEY,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     scopes: SCOPES,
   })
   const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
@@ -120,7 +120,7 @@ export async function getActivityLogNames(filter?: (name: string) => boolean) {
 export async function getActivityLogEntries(filter?: (log: ActivityLog) => boolean) {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: process.env.GOOGLE_PRIVATE_KEY,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     scopes: SCOPES,
   })
   const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
@@ -150,7 +150,7 @@ export async function getActivityLogEntriesGroupedByPerson(filter?: (log: Activi
 export async function udpateActivityLogName(oldName: string, newName: string) {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: process.env.GOOGLE_PRIVATE_KEY,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     scopes: SCOPES,
   })
   const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)

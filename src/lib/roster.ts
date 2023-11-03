@@ -12,7 +12,7 @@ const SCOPES = [
 async function getRows() {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: process.env.GOOGLE_PRIVATE_KEY,
+    key: process.env.process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\n/g, '\n'),
     scopes: SCOPES,
   })
 

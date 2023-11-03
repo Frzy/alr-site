@@ -69,7 +69,7 @@ export function getGoogleCalendarApi() {
   const jwtClient = new google.auth.JWT(
     process.env.GOOGLE_CLIENT_EMAIL,
     undefined,
-    process.env.GOOGLE_PRIVATE_KEY,
+    process.env.process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\n/g, '\n'),
     ['https://www.googleapis.com/auth/calendar'],
   )
 
