@@ -1,4 +1,4 @@
-import type { Member } from '@/lib/roster'
+import type { Member } from '@/types/common'
 
 declare module 'next-auth' {
   /**

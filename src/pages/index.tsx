@@ -26,7 +26,7 @@ export default function HomePage() {
                 <CalendarSchedule
                   date={moment()}
                   title='Upcoming Events'
-                  endDate={moment().add(1, 'week').endOf('day')}
+                  endDate={moment().add(2, 'week').endOf('day')}
                   fetchOptions={{
                     revalidateOnFocus: false,
                     revalidateOnReconnect: false,
@@ -34,17 +34,17 @@ export default function HomePage() {
                 />
               </Paper>
             </Grid>
-            <Grid item xs={12} lg={4}>
+            <Grid item xs={12}>
               <Paper>
                 <Officers />
               </Paper>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6}>
               <Paper sx={{ p: 1 }}>
                 <MembershipStats />
               </Paper>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6}>
               <Paper sx={{ p: 1 }}>
                 <ActivityLogStats />
               </Paper>

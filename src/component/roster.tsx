@@ -24,7 +24,9 @@ export default function Roster() {
   })
   const officers = roster.filter((m) => !!m.office).sort(officerSort)
   const members = roster.filter((m) => !m.office && m.isActive)
-  const prospects = roster.filter((m) => m.role === ROLE.PROSPECT)
+  const prospects = roster.filter(
+    (m) => m.role === ROLE.PROSPECT || m.role === ROLE.CANIDATE_SUPPORTER,
+  )
 
   return (
     <Stack spacing={1}>

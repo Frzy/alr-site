@@ -6,6 +6,7 @@ import useSWR, { Fetcher } from 'swr'
 
 import type { Member } from '@/types/common'
 import { queryRequest } from '@/utils/api'
+import Grid from '@mui/material/Unstable_Grid2'
 
 const fetcher: Fetcher<Member[], string> = async (url: string) => {
   const response = await queryRequest('GET', url)
@@ -38,21 +39,21 @@ export default function Officers() {
         E-Board
       </Typography>
       <Divider />
-      {isLoading ? (
-        <Stack sx={{ p: 1 }} spacing={1}>
-          {Array(10)
-            .fill(0)
-            .map((_, index) => (
-              <SkeletonRosterItem key={index} />
+      <Grid container spacing={1} sx={{ p: 1 }}>
+        {isLoading
+          ? Array(10)
+              .fill(0)
+              .map((_, index) => (
+                <Grid key={index}>
+                  <SkeletonRosterItem />
+                </Grid>
+              ))
+          : officers?.map((o, index) => (
+              <Grid key={index} xs={12} sm={6} lg={3}>
+                <RosterItem member={o} />
+              </Grid>
             ))}
-        </Stack>
-      ) : (
-        <Stack sx={{ p: 1 }} spacing={1}>
-          {officers?.map((o, index) => (
-            <RosterItem key={index} member={o} />
-          ))}
-        </Stack>
-      )}
+      </Grid>
     </Box>
   )
 }

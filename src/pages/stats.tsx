@@ -373,15 +373,8 @@ export const getServerSideProps: GetServerSideProps<{
   endDate: string
 }> = async () => {
   const now = moment()
-  const month = now.month()
-  const startDate = moment({
-    year: month < 6 ? now.year() - 1 : now.year(),
-    month: 5,
-  }).startOf('month')
-  const endDate = moment({
-    year: month < 6 ? now.year() : now.year() + 1,
-    month: 4,
-  }).endOf('month')
+  const startDate = moment().startOf('year')
+  const endDate = moment().endOf('year')
   const stats = await getActivityLogStats((l) => moment(l.date).isBetween(startDate, endDate))
 
   return { props: { stats, startDate: startDate.format(), endDate: endDate.format() } }

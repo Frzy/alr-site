@@ -28,10 +28,11 @@ type CalendarQueryState = {
   date?: string
 }
 
-interface CalendarProps extends BoxProps {}
-export default function Calendar({ ...boxProps }: CalendarProps) {
+interface CalendarProps extends BoxProps {
+  editable?: boolean
+}
+export default function Calendar({ editable, ...boxProps }: CalendarProps) {
   const router = useRouter()
-  const [event, setEvent] = React.useState<ICalendarEvent>()
   const [ready, setReady] = React.useState(false)
   const state: CalendarState = {
     view: router.query.view ? (router.query.view as CALENDAR_VIEW) : CALENDAR_VIEW.MONTH,
@@ -67,13 +68,14 @@ export default function Calendar({ ...boxProps }: CalendarProps) {
     <Box display='flex' flexDirection='column' height='100%' minWidth={150} {...boxProps}>
       <CalendarHeader date={state.date} view={state.view} onCalendarChange={handleCalendarChange} />
       {state.view === CALENDAR_VIEW.MONTH && (
-        <MonthCalendar date={state.date} flexGrow={1} onCalendarChange={handleCalendarChange} />
+        <MonthCalendar date={state.date} flexGrow={1} onCalendarChange={handleCalendarChange} editable={editable} />
       )}
       {(state.view === CALENDAR_VIEW.WEEK || state.view === CALENDAR_VIEW.DAY) && (
         <CalendarTimeline
           date={state.date}
           mode={state.view}
           onCalendarChange={handleCalendarChange}
+          editable={editable}
         />
       )}
       {state.view === CALENDAR_VIEW.SCHEDULE && (

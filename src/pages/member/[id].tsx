@@ -17,6 +17,7 @@ import type { GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { ENDPOINT } from '@/utils/constants'
 import MemberYearlyRequirments from '@/component/member.yearly.requirments'
+import moment from 'moment'
 
 export const getServerSideProps: GetServerSideProps<MemberPageProps> = async ({
   req,
@@ -103,7 +104,11 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
                   onChange={handleMemberChange}
                 />
                 {(isCurrentlySignedIn || isOfficer) && (
-                  <MemberYearlyRequirments logs={activityLogs} year={2023} member={member} />
+                  <MemberYearlyRequirments
+                    logs={activityLogs}
+                    year={moment().year()}
+                    member={member}
+                  />
                 )}
                 <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
               </Stack>

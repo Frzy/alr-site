@@ -24,8 +24,6 @@ import type { Member } from '@/types/common'
 import PhoneField from './phone.number.field'
 import DateDisplay from './date.display'
 import moment, { Moment } from 'moment'
-import CheckBoxIcon from '@mui/icons-material/CheckBox'
-import UncheckedCheckBoxIcon from '@mui/icons-material/CheckBoxOutlineBlank'
 import EditIcon from '@mui/icons-material/Edit'
 import { ENTITY, ROLE } from '@/utils/constants'
 
@@ -136,9 +134,16 @@ export default function MemberInformation({
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Status' value={member.role} />
             </Grid>
-            <Grid xs={6} md={4} lg={3}>
-              <TextDisplay label='Office' value={member.office || 'None'} />
-            </Grid>
+            {!!member.yearsActive && (
+              <Grid xs={6} md={4} lg={3}>
+                <TextDisplay label='Years Active' value={member.yearsActive} />
+              </Grid>
+            )}
+            {!!member.office && (
+              <Grid xs={6} md={4} lg={3}>
+                <TextDisplay label='Office' value={member.office} />
+              </Grid>
+            )}
             {isLoggedIn && (
               <Grid xs={12} sm={6} lg={3}>
                 <TextDisplay label='Email' value={member.email} />
@@ -155,14 +160,6 @@ export default function MemberInformation({
           </Grid>
         ) : (
           <Grid container spacing={2}>
-            <Grid xs={12}>
-              <Alert severity='info'>
-                Please note that updating your first or last name will update your user name that.
-                Your username is the first letter of your first name followed by your last name.
-                Please contact a system admin to adjust your activity log entries so they show up
-                under the new name.
-              </Alert>
-            </Grid>
             <Grid xs={12} md={4}>
               <TextDisplay
                 label='First Name'
@@ -262,6 +259,11 @@ export default function MemberInformation({
                     <Divider sx={{ flexGrow: 1 }} />
                   </Box>
                 </Grid>
+                <Grid xs={12}>
+                  <Alert severity='info'>
+                    If changing the username a relogin will be necessary
+                  </Alert>
+                </Grid>
                 <Grid xs={12} md={4} lg={3}>
                   <TextDisplay
                     label='Membership Id'
@@ -303,6 +305,18 @@ export default function MemberInformation({
                     editing={isEditing && isOfficer}
                     size={isEditing ? 'medium' : 'small'}
                     onChange={handleDateChange}
+                    disabled={disabled || loading}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid xs={12} md={4} lg={3}>
+                  <TextDisplay
+                    label='Username'
+                    name='username'
+                    value={member.username}
+                    editing={isEditing}
+                    size={isEditing ? 'medium' : 'small'}
+                    onChange={handleTextChange}
                     disabled={disabled || loading}
                     fullWidth
                   />

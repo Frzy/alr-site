@@ -54,6 +54,7 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
         return <CharterMemberIcon />
       case ROLE.MEMBER:
         return <RiderIcon />
+      case ROLE.CANIDATE_SUPPORTER:
       case ROLE.SUPPORTER:
         return <SupporterIcon />
       case ROLE.PROSPECT:
@@ -111,7 +112,15 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
       variant={hover ? 'elevation' : 'outlined'}
       elevation={hover ? 10 : undefined}
       {...paperProps}
-      sx={{ display: 'flex', gap: 1, px: 1, py: 0.5, cursor: 'pointer', ...sx }}
+      sx={{
+        display: 'flex',
+        gap: 1,
+        px: 1,
+        py: 0.5,
+        cursor: 'pointer',
+        border: (theme) => ({ border: `1px solid ${theme.palette.divider}` }),
+        ...sx,
+      }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => (window.location.href = `/member/${member.id}`)}
@@ -142,10 +151,12 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
               <Link
                 href={`tel:${member.phoneNumber?.replace(/\D/g, '')}`}
                 component={NextLink}
-                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}
               >
                 <PhoneIcon />
-                {member.phoneNumber}
+                <Typography component='span' noWrap>
+                  {member.phoneNumber}
+                </Typography>
               </Link>
             </Grid>
           )}
@@ -154,12 +165,18 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
               <Link
                 href={`mailto:${member.email}`}
                 component={NextLink}
-                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  width: '100%',
+                }}
               >
                 <EmailIcon />
-                {member.email}
+                <Typography component='span' noWrap>
+                  {member.email}
+                </Typography>
               </Link>
-              <Typography component='a'></Typography>
             </Grid>
           )}
           {member.role === ROLE.PROSPECT && getRideCount()}

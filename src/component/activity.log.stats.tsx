@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Alert, Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material'
-import { ENDPOINT, MEMBER_ROLES, RIDER_ROLES, ROLE } from '@/utils/constants'
+import { Alert, Box, Divider, Skeleton, Stack, Typography } from '@mui/material'
+import { ENDPOINT } from '@/utils/constants'
 import { queryRequest } from '@/utils/api'
 import useSWR, { Fetcher } from 'swr'
 import type { ActivityLogStats } from '@/types/common'
@@ -8,9 +8,16 @@ import type { ActivityLogStats } from '@/types/common'
 import HourIcon from '@mui/icons-material/AccessTime'
 import EventIcon from '@mui/icons-material/Event'
 import MileIcon from '@mui/icons-material/SocialDistance'
+import moment from 'moment'
 
 const fetcher: Fetcher<ActivityLogStats, string> = async (url: string) => {
-  const response = await queryRequest('GET', url)
+  const now = moment()
+  const start = moment().startOf('year').format()
+  const end = moment().endOf('year').format()
+
+  const queryParams = new URLSearchParams({ start, end })
+
+  const response = await queryRequest('GET', `${url}?${queryParams.toString()}`)
   const data = (await response.json()) as ActivityLogStats
 
   return data
@@ -27,17 +34,18 @@ export default function ActivityLogStats() {
     revalidateOnReconnect: false,
   })
 
-  if (error || !stats)
+  if (error || (!stats && !isLoading)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
         <Alert severity='error'>There was a problem fetching the activity log stats</Alert>
       </Box>
     )
+  }
 
   return (
     <Box>
       <Typography sx={{ p: 1 }} variant='h4'>
-        Membership
+        Log Stats
       </Typography>
       <Divider />
       {isLoading ? (
@@ -58,7 +66,7 @@ export default function ActivityLogStats() {
             <Skeleton variant='rounded' animation='wave' width={48} height={48} />
           </Box>
         </Stack>
-      ) : (
+      ) : !!stats ? (
         <Stack sx={{ p: 1 }} spacing={1}>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>
             <EventIcon sx={{ fontSize: 48 }} />
@@ -82,6 +90,10 @@ export default function ActivityLogStats() {
             </Typography>
           </Box>
         </Stack>
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+          <Alert severity='error'>There was a problem fetching the activity log stats</Alert>
+        </Box>
       )}
     </Box>
   )

@@ -258,7 +258,7 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
   const filter = React.useCallback(
     (log: ActivityLog) => {
       if (!dateFilter) return true
-      const logDate = moment(log.date, 'M/D/YYYY')
+      const logDate = moment(log.date)
 
       return logDate.isBetween(dateFilter.minDate, dateFilter.maxDate)
     },

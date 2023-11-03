@@ -47,11 +47,13 @@ type MonthCalendarProps = {
   date: Moment
   parseUrl?: boolean
   onCalendarChange?: (state: CalendarState) => void
+  editable?: boolean
 } & BoxProps
 
 export default function MonthCalendar({
   date,
   onCalendarChange,
+  editable,
   sx,
   ...boxProps
 }: MonthCalendarProps) {
@@ -271,7 +273,7 @@ export default function MonthCalendar({
               dense={isTiny}
               onDayClick={handleCalendarDayClick}
               onEventClick={handleCalendarEventClick}
-              onEventCreate={handleCreateNewCalendarEvent}
+              onEventCreate={editable ? handleCreateNewCalendarEvent : undefined}
               onShowMoreClick={handleShowMoreDialog}
             />
           </Grid>
@@ -303,7 +305,7 @@ export default function MonthCalendar({
         <CalendarEventDialog
           event={calendarEvent}
           open={true}
-          editable
+          editable={editable}
           onClose={handleCalendarEventDialogClose}
           onDelete={handleDeleteCalendarEvent}
           onEdit={handleEditCalendarEvent}

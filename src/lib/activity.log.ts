@@ -7,8 +7,15 @@ import {
   LogsByMember,
 } from '@/types/common'
 import { ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
+import { roundNumber } from '@/utils/helpers'
+import { JWT } from 'google-auth-library'
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
 import moment from 'moment'
+
+const SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/drive.file',
+]
 
 const BASE_STATS: BaseLog = {
   miles: 0,
@@ -31,16 +38,16 @@ function groupLogsByMember(logs: ActivityLog[]) {
       groups[log.name] = getBaseGroupLog()
     }
 
-    groups[log.name].events = roundToTenth(groups[log.name].events + 1)
-    groups[log.name].hours = roundToTenth(groups[log.name].hours + (log.hours || 0))
-    groups[log.name].miles = roundToTenth(groups[log.name].miles + (log.miles || 0))
-    groups[log.name].breakdown[log.activityType].events = roundToTenth(
+    groups[log.name].events = roundNumber(groups[log.name].events + 1)
+    groups[log.name].hours = roundNumber(groups[log.name].hours + (log.hours || 0))
+    groups[log.name].miles = roundNumber(groups[log.name].miles + (log.miles || 0))
+    groups[log.name].breakdown[log.activityType].events = roundNumber(
       groups[log.name].breakdown[log.activityType].events + 1,
     )
-    groups[log.name].breakdown[log.activityType].hours = roundToTenth(
+    groups[log.name].breakdown[log.activityType].hours = roundNumber(
       groups[log.name].breakdown[log.activityType].hours + (log.hours || 0),
     )
-    groups[log.name].breakdown[log.activityType].miles = roundToTenth(
+    groups[log.name].breakdown[log.activityType].miles = roundNumber(
       groups[log.name].breakdown[log.activityType].miles + (log.miles || 0),
     )
 
@@ -58,21 +65,18 @@ function groupLogsByMemberInArray(logs: ActivityLog[]): LogsByMember[] {
 
   return groupArray
 }
-function roundToTenth(num: number, decimail = 1) {
-  const dec = decimail * 10
-  return Math.floor(num) + Math.round((num % 1) * dec) / dec
-}
+
 function rowToActivityLog(r: GoogleSpreadsheetRow, index: number): ActivityLog {
   const log = {
     id: index,
-    date: moment(r.date).format(),
-    name: r.name,
-    activityName: r.activity,
-    activityType: r.activityType,
-    hours: r.hours ? roundToTenth(parseFloat(r.hours)) : undefined,
-    monies: r.monies ? roundToTenth(parseFloat(r.monies.replace('$', ''))) : undefined,
-    miles: r.miles ? roundToTenth(parseFloat(r.miles)) : undefined,
-    created: moment(r.timestamp).format(),
+    date: moment(r.get('finalDate')).format(),
+    name: r.get('Name'),
+    activityName: r.get('Activity'),
+    activityType: r.get('Activity Type'),
+    hours: r.get('Hours') ? roundNumber(parseFloat(r.get('Hours'))) : 0,
+    monies: r.get('Monies') ? roundNumber(parseFloat(r.get('Monies').replace('$', ''))) : undefined,
+    miles: r.get('Miles') ? roundNumber(parseFloat(r.get('Miles'))) : undefined,
+    created: moment(r.get('Timestamp')).format(),
   }
 
   Object.keys(log).forEach(
@@ -89,12 +93,13 @@ export function convertToPublicActivityLog(log: ActivityLog) {
 }
 
 export async function getActivityLogNames(filter?: (name: string) => boolean) {
-  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY)
-
-  await doc.useServiceAccountAuth({
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
+  const jwt = new JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY,
+    scopes: SCOPES,
   })
+  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
+
   await doc.loadInfo()
   const worksheet = doc.sheetsById[process.env.ACTIVITY_LOG_VAR_SHEET_KEY]
 
@@ -113,12 +118,13 @@ export async function getActivityLogNames(filter?: (name: string) => boolean) {
 }
 
 export async function getActivityLogEntries(filter?: (log: ActivityLog) => boolean) {
-  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY)
-
-  await doc.useServiceAccountAuth({
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
+  const jwt = new JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY,
+    scopes: SCOPES,
   })
+  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
+
   await doc.loadInfo()
   const worksheet = doc.sheetsById[process.env.ACTIVITY_LOG_DATA_SHEET_KEY]
 
@@ -126,7 +132,7 @@ export async function getActivityLogEntries(filter?: (log: ActivityLog) => boole
 
   const logs = rows
     .filter((r) => {
-      return !!r.activity && !!r.activityType && !!r.hours
+      return !!r.get('Activity') && !!r.get('Activity Type') && !!r.get('Hours')
     })
     .map(rowToActivityLog)
 
@@ -142,12 +148,13 @@ export async function getActivityLogEntriesGroupedByPerson(filter?: (log: Activi
 }
 
 export async function udpateActivityLogName(oldName: string, newName: string) {
-  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY)
-
-  await doc.useServiceAccountAuth({
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
+  const jwt = new JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY,
+    scopes: SCOPES,
   })
+  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
+
   await doc.loadInfo()
   const worksheet = doc.sheetsById[process.env.ACTIVITY_LOG_DATA_SHEET_KEY]
 
@@ -171,16 +178,16 @@ export async function getActivityLogStats(
 
   const stats = groups.reduce(
     (cur, next) => {
-      cur.events = roundToTenth(cur.events + next.events)
-      cur.hours = roundToTenth(cur.hours + next.hours)
-      cur.miles = roundToTenth(cur.miles + next.miles)
+      cur.events = roundNumber(cur.events + next.events)
+      cur.hours = roundNumber(cur.hours + next.hours)
+      cur.miles = roundNumber(cur.miles + next.miles)
 
       for (let [key, value] of Object.entries(next.breakdown)) {
         const bKey = key as ACTIVITY_TYPE
 
-        cur.breakdown[bKey].events = roundToTenth(cur.breakdown[bKey].events + value.events)
-        cur.breakdown[bKey].hours = roundToTenth(cur.breakdown[bKey].hours + value.hours)
-        cur.breakdown[bKey].miles = roundToTenth(cur.breakdown[bKey].miles + value.miles)
+        cur.breakdown[bKey].events = roundNumber(cur.breakdown[bKey].events + value.events)
+        cur.breakdown[bKey].hours = roundNumber(cur.breakdown[bKey].hours + value.hours)
+        cur.breakdown[bKey].miles = roundNumber(cur.breakdown[bKey].miles + value.miles)
       }
 
       return cur

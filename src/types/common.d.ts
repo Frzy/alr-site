@@ -28,8 +28,30 @@ export type Member = {
   rides?: number
   role: ROLE
   suffix?: string
-  yearsActive?: number
+  yearsActive: number | null
+  lastPaidDues?: number
   username: string
+}
+
+export type MemberGoogleRow = {
+  memberId?: string
+  office?: OFFICER_POSITION
+  role: ROLE
+  id?: string
+  phone?: string
+  email?: string
+  entity?: string
+  joinDate?: string
+  lastPaidDues?: string
+  lifttimeMember: string
+  pastPresident: string
+  rides: string
+  username: string
+  firstName: string
+  lastName: string
+  suffix?: string
+  nickname?: string
+  image?: string
 }
 
 export type Recurrence = {

@@ -1,16 +1,17 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      ACTIVITY_LOG_DATA_SHEET_KEY: string
+      ACTIVITY_LOG_DATA_SHEET_KEY: number
       ACTIVITY_LOG_SPREADSHEET_KEY: string
-      ACTIVITY_LOG_VAR_SHEET_KEY: string
+      ACTIVITY_LOG_VAR_SHEET_KEY: number
       GOOGLE_CALENDAR_ID: string
       GOOGLE_CLIENT_EMAIL: string
       GOOGLE_PRIVATE_KEY: string
+      ROSTER_SHEET_KEY: number
       LOG_SHEET_KEY: string
       NEXTAUTH_SECRET: string
       NEXTAUTH_URL: string
-      ROSTER_SHEET_KEY: string
+      ROSTER_SHEET_KEY: number
       ROSTER_SPREADSHEET_KEY: string
     }
   }

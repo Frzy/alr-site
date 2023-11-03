@@ -56,20 +56,26 @@ export default function MemberYearlyRequirments({
         (cur, next) => {
           return {
             rides: cur.rides + (next.activityType === ACTIVITY_TYPE.RIDE ? 1 : 0),
-            events: cur.events + 1,
+            events: cur.events + (next.activityType === ACTIVITY_TYPE.RIDE ? 0 : 1),
+            total: cur.total + 1,
           }
         },
-        { rides: 0, events: 0 },
+        { rides: 0, events: 0, total: 0 },
       )
   }, [logs, year])
+  const progress = isSupporter
+    ? (Math.min(counts.total, MIN_EVENTS) / MIN_EVENTS) * 100
+    : ((Math.min(counts.rides, MIN_RIDES) + Math.min(counts.events, MIN_EVENTS - MIN_RIDES)) /
+        MIN_EVENTS) *
+      100
 
   return (
     <Paper sx={{ p: 1 }}>
       <Stack spacing={1}>
         <Typography component={'h2'} variant='h4'>
-          {year} Membership Progress
+          {year + 1} Membership Progress
         </Typography>
-        <LinearProgressWithLabel value={(Math.min(counts.events, MIN_EVENTS) / MIN_EVENTS) * 100} />
+        <LinearProgressWithLabel value={progress} />
         <Box display='flex' justifyContent='space-around'>
           {!isSupporter && (
             <Box>
@@ -78,7 +84,7 @@ export default function MemberYearlyRequirments({
               </Typography>
 
               <Typography component='span'>
-                : {Math.min(counts.rides, MIN_RIDES)} of {MIN_RIDES}
+                : {counts.rides} of {MIN_RIDES}
               </Typography>
             </Box>
           )}
@@ -87,7 +93,7 @@ export default function MemberYearlyRequirments({
               Events
             </Typography>
             <Typography component='span'>
-              : {Math.min(counts.events, MIN_EVENTS)} of {MIN_EVENTS}
+              : {counts.events} of {MIN_EVENTS}
             </Typography>
           </Box>
         </Box>

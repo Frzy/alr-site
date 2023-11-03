@@ -31,6 +31,7 @@ type CalendarScheduleProps = {
   titleProps?: TypographyProps
   onCalendarChange?: (state: CalendarState) => void
   fetchOptions?: SWRConfiguration
+  editable?: boolean
 } & StackProps
 
 export default function CalendarSchedule({
@@ -40,6 +41,7 @@ export default function CalendarSchedule({
   title,
   titleProps,
   onCalendarChange,
+  editable,
   ...stackProps
 }: CalendarScheduleProps) {
   const [openEventViewer, setOpenEventViewer] = React.useState(false)
@@ -62,7 +64,7 @@ export default function CalendarSchedule({
     ...fetchOptions,
   })
   const { events, minDate } = React.useMemo(() => {
-    let minDate = moment()
+    let minDate = moment().endOf('year')
     let maxDate = moment()
 
     fetchedEvents.forEach((e) => {
@@ -77,10 +79,12 @@ export default function CalendarSchedule({
       fetchedEvents.forEach((e) => {
         const bucket = e.startDate.diff(minDate, 'days')
 
-        groupedEvents[bucket].push({
-          dayNumber: bucket + 1,
-          ...e,
-        })
+        for (let i = 0; i < e.dayTotal; i++) {
+          groupedEvents[bucket + i].push({
+            dayNumber: bucket + i + 1,
+            ...e,
+          })
+        }
       })
 
       return { minDate, events: groupedEvents.filter((g) => !!g.length) }
@@ -321,7 +325,7 @@ export default function CalendarSchedule({
               }}
               onDelete={handleDeleteCalendarEvent}
               onEdit={handleEditCalendarEvent}
-              editable
+              editable={editable}
             />
           )}
           {isValidating && (

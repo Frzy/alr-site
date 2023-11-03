@@ -1,5 +1,14 @@
 import * as React from 'react'
-import { Alert, Box, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Divider,
+  Paper,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { ENDPOINT, MEMBER_ROLES, RIDER_ROLES, ROLE } from '@/utils/constants'
 import { queryRequest } from '@/utils/api'
 import useSWR, { Fetcher } from 'swr'
@@ -50,12 +59,13 @@ export default function MembershipStats() {
     return members
   }, [stats])
 
-  if (error || !stats)
+  if (error) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
         <Alert severity='error'>There was a problem fetching the membership stats</Alert>
       </Box>
     )
+  }
 
   return (
     <Box>
@@ -87,7 +97,7 @@ export default function MembershipStats() {
             <Skeleton variant='rounded' animation='wave' width={48} height={48} />
           </Box>
         </Stack>
-      ) : (
+      ) : !!stats ? (
         <Stack sx={{ p: 1 }} spacing={1}>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>
             <RiderIcon sx={{ fontSize: 48 }} />
@@ -107,7 +117,7 @@ export default function MembershipStats() {
             <ProspectIcon sx={{ fontSize: 48 }} />
             <Typography variant='h5'>{ROLE.PROSPECT}s</Typography>
             <Typography variant='h5' flexGrow={1} fontWeight='fontWeightBold' textAlign='right'>
-              {stats[ROLE.PROSPECT]}
+              {stats[ROLE.PROSPECT] + stats[ROLE.CANIDATE_SUPPORTER]}
             </Typography>
           </Box>
           <Divider />
@@ -119,6 +129,10 @@ export default function MembershipStats() {
             </Typography>
           </Box>
         </Stack>
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+          <Alert severity='error'>There was a problem fetching the membership stats</Alert>
+        </Box>
       )}
     </Box>
   )

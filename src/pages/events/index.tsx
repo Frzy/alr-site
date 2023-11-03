@@ -6,8 +6,10 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { Box } from '@mui/material'
 import Header from '@/component/header'
 import Calendar from '@/component/calendar/calendar'
+import { useSession } from 'next-auth/react'
 
 export default function HomePage() {
+  const session = useSession()
   return (
     <>
       <Head>

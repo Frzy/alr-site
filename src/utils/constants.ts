@@ -24,13 +24,14 @@ export enum ROLE {
   PAST_MEMBER = 'Past Member',
   PAST_SUPPORTER = 'Past Supporter',
   PROSPECT = 'Canidate',
+  CANIDATE_SUPPORTER = 'Canidate Supporter',
   RETIRED = 'Retiree',
   SUPPORTER = 'Supporter',
 }
 export const ROLES = Object.values(ROLE)
 export const RIDER_ROLES = [ROLE.CHARTER, ROLE.MEMBER]
 export const MEMBER_ROLES = [...RIDER_ROLES, ROLE.SUPPORTER]
-export const ACTIVE_ROLES = [...MEMBER_ROLES, ROLE.PROSPECT]
+export const ACTIVE_ROLES = [...MEMBER_ROLES, ROLE.PROSPECT, ROLE.CANIDATE_SUPPORTER]
 export enum ENTITY {
   LEGION = 'AL',
   SAL = 'SAL',

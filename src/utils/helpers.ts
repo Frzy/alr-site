@@ -210,3 +210,10 @@ export function capitalizeAllWords(str: string) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
+export function roundNumber(num: number, decimail = 1) {
+  const dec = decimail * 10
+
+  if (dec) return Math.floor(num) + Math.round((num % 1) * dec) / dec
+
+  return Math.floor(num)
+}

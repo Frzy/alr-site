@@ -35,12 +35,14 @@ type CalendarTimelineProps = {
   date: Moment
   mode?: 'day' | 'week'
   onCalendarChange?: (state: CalendarState) => void
+  editable?: boolean
 } & BoxProps
 
 export default function CalendarTimeline({
   date,
   mode = 'week',
   onCalendarChange,
+  editable,
   ...boxProps
 }: CalendarTimelineProps) {
   const today = moment()
@@ -408,7 +410,11 @@ export default function CalendarTimeline({
         {mode === 'day' ? (
           <Box display='flex'>
             <Box width={55} sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }} />
-            <Box flexGrow={1} pr={3} onClick={handleAddNewAllDayCalendarEvent(date)}>
+            <Box
+              flexGrow={1}
+              pr={3}
+              onClick={editable ? handleAddNewAllDayCalendarEvent(date) : undefined}
+            >
               <Box pl={1}>
                 <Typography variant='body2' color='text.secondary' fontWeight='fontWeightBold'>
                   {date.format('dddd')}
@@ -454,7 +460,7 @@ export default function CalendarTimeline({
                   sx={{
                     borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   }}
-                  onClick={handleAddNewAllDayCalendarEvent(day)}
+                  onClick={editable ? handleAddNewAllDayCalendarEvent(day) : undefined}
                 >
                   <Typography component={'span'}>{day.format('ddd')}</Typography>
                   <IconButton
@@ -551,7 +557,7 @@ export default function CalendarTimeline({
                   flexGrow={1}
                   position='relative'
                   sx={{ borderRight: (theme) => `1px solid ${theme.palette.divider}` }}
-                  onClick={handleAddNewCalendarEvent(day)}
+                  onClick={editable ? handleAddNewCalendarEvent(day) : undefined}
                 >
                   {getCalendarEvents(day)}
                 </Box>
@@ -569,7 +575,7 @@ export default function CalendarTimeline({
         <CalendarEventDialog
           event={calendarEvent}
           open={true}
-          editable
+          editable={editable}
           onClose={handleCalendarEventDialogClose}
           onDelete={handleDeleteCalendarEvent}
           onEdit={handleEditCalendarEvent}
