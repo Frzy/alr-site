@@ -9,9 +9,9 @@ async function GetHandle(req: NextApiRequest, res: NextApiResponse) {
     const file = await downloadFile(!Array.isArray(fileId) ? fileId : fileId[0])
 
     if (file) {
-      const { data, mimeType } = file
+      const { data, details } = file
       res.status(200)
-      res.setHeader('Content-Type', mimeType ?? 'application/json')
+      res.setHeader('Content-Type', details.mimeType ?? 'application/json')
       res.setHeader('Content-Length', data.length)
 
       return res.end(data)

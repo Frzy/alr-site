@@ -12,7 +12,7 @@ async function GetHandle(req: NextApiRequest, res: NextApiResponse) {
       const { details, data } = file
 
       res.status(200)
-      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Type', details.mimeType)
       res.setHeader('Content-Disposition', `attachment; filename=${details?.name ?? 'file'}.pdf`)
       res.setHeader('Content-Length', data.length)
 
