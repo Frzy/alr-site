@@ -25,6 +25,29 @@ async function getRows() {
   return rows
 }
 
+function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>) {
+  const eNameOne: string = r.get('eNameOne')
+  const eNameTwo: string = r.get('eNameTwo')
+  const eNameThree: string = r.get('eNameThree')
+  const ePhoneOne: string = r.get('ePhoneOne')
+  const ePhoneTwo: string = r.get('ePhoneTwo')
+  const ePhoneThree: string = r.get('ePhoneThree')
+  const contacts = []
+
+  if (eNameOne || eNameTwo || eNameThree)
+    console.log({ eNameOne, eNameTwo, eNameThree, ePhoneOne, ePhoneTwo, ePhoneThree })
+
+  if (eNameOne && ePhoneOne) contacts.push({ name: eNameOne, phone: ePhoneOne })
+  if (eNameTwo && ePhoneTwo) contacts.push({ name: eNameTwo, phone: ePhoneTwo })
+  if (eNameThree && ePhoneThree) contacts.push({ name: eNameThree, phone: ePhoneThree })
+
+  for (let i = contacts.length - 1; i < 2; i++) {
+    contacts.push({ name: '', phone: '' })
+  }
+
+  return contacts
+}
+
 function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
   const paidYear = r.get('lastPaidDues') ? parseInt(r.get('lastPaidDues')) : null
   const joined = moment(r.get('joinDate')).year()
@@ -54,6 +77,7 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
     suffix: r.get('suffix') || '',
     username: r.get('username'),
     yearsActive,
+    emergencyContacts: getEmergencyContacts(r),
   }
 }
 export function memberToUnAuthMember(member: Member): Member {
@@ -100,7 +124,31 @@ export async function updateMember(m: Member) {
     rides: m.rides ? `${m.rides}` : '',
     image: m.image,
     username: m.username,
+    eNameOne: '',
+    ePhoneOne: '',
+    eNameTwo: '',
+    ePhoneTwo: '',
+    eNameThree: '',
+    ePhoneThree: '',
   }
+
+  m.emergencyContacts.forEach((contact, i) => {
+    switch (i) {
+      case 0:
+        data.eNameOne = contact.name
+        data.ePhoneOne = contact.phone
+        break
+      case 1:
+        data.eNameTwo = contact.name
+        data.ePhoneTwo = contact.phone
+        break
+      case 2:
+        data.eNameThree = contact.name
+        data.ePhoneThree = contact.phone
+        break
+    }
+  })
+
   if (r) {
     r.assign(data)
 

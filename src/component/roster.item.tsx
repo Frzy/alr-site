@@ -151,7 +151,7 @@ export default function RosterItem({ member, sx, ...paperProps }: RosterItemProp
               <Link
                 href={`tel:${member.phoneNumber?.replace(/\D/g, '')}`}
                 component={NextLink}
-                sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 <PhoneIcon />
                 <Typography component='span' noWrap>

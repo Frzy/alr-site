@@ -135,6 +135,26 @@ export default function Header() {
                 >
                   Stats
                 </Button>
+                <Button
+                  disabled={pathname === '/documents'}
+                  href='/documents'
+                  color='inherit'
+                  onClick={handleCloseNavMenu}
+                  size='small'
+                >
+                  Documents
+                </Button>
+                {!!session?.user.office && (
+                  <Button
+                    disabled={pathname === '/admin'}
+                    href='/admin'
+                    color='inherit'
+                    onClick={handleCloseNavMenu}
+                    size='small'
+                  >
+                    Admin
+                  </Button>
+                )}
               </Box>
             </Box>
 
@@ -199,9 +219,7 @@ export default function Header() {
               </Box>
             ) : (
               <Box display='flex' justifyContent='right' width={100}>
-                <Button color='inherit' onClick={() => signIn()}>
-                  Login
-                </Button>
+                <Button onClick={() => signIn()}>Login</Button>
               </Box>
             )}
           </Box>
@@ -255,6 +273,18 @@ export default function Header() {
                     <Typography textAlign='center'>Stats</Typography>
                   </Link>
                 </MenuItem>
+                <MenuItem onClick={handleCloseNavMenu}>
+                  <Link href='/documents'>
+                    <Typography textAlign='center'>Documents</Typography>
+                  </Link>
+                </MenuItem>
+                {!!session?.user.office && (
+                  <MenuItem onClick={handleCloseNavMenu}>
+                    <Link href='/admin'>
+                      <Typography textAlign='center'>Admin</Typography>
+                    </Link>
+                  </MenuItem>
+                )}
               </Menu>
             </Box>
             <Avatar
@@ -316,6 +346,16 @@ export default function Header() {
                 >
                   <MenuItem onClick={() => (window.location.href = `/member/${session.user.id}`)}>
                     <Typography textAlign='center'>Profile</Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setMode(mode === 'light' ? 'dark' : 'light')
+                      handleCloseUserMenu()
+                    }}
+                  >
+                    <Typography textAlign='center'>
+                      {mode === 'light' ? 'Use Dark Theme' : 'Use Light Theme'}
+                    </Typography>
                   </MenuItem>
                   <MenuItem onClick={() => signOut()}>
                     <Typography textAlign='center'>Logout</Typography>

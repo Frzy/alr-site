@@ -1,6 +1,7 @@
 import {
   ACTIVITY_TYPE,
   ENTITY,
+  GOOGLE_MIME_TYPE,
   OFFICER_POSITION,
   RECURRENCE_MODE,
   ROLE,
@@ -31,6 +32,10 @@ export type Member = {
   yearsActive: number | null
   lastPaidDues?: number
   username: string
+  emergencyContacts: {
+    name: string
+    phone: string
+  }[]
 }
 
 export type MemberGoogleRow = {
@@ -52,6 +57,12 @@ export type MemberGoogleRow = {
   suffix?: string
   nickname?: string
   image?: string
+  eNameOne?: string
+  eNameTwo?: string
+  eNameThree?: string
+  ePhoneOne?: string
+  ePhoneTwo?: string
+  ePhoneThree?: string
 }
 
 export type Recurrence = {
@@ -152,4 +163,22 @@ export type MembershipStats = ObjectFromList<typeof ROLES, number>
 
 export type ObjectFromList<T extends ReadonlyArray<string>, V = string> = {
   [K in T extends ReadonlyArray<infer U> ? U : never]: V
+}
+
+export type GoogleDriveFolderList = {
+  files: GoogleDriveItem[]
+  incompleteSearch: boolean
+  kind: string
+}
+
+export type GoogleDriveItem = {
+  id: string
+  kind: string
+  mimeType: GOOGLE_MIME_TYPE
+  name: string
+  iconLink: string
+  shortcutDetails?: {
+    targetId: string
+    targetMimeType: string
+  }
 }

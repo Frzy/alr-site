@@ -1,11 +1,15 @@
-import { test } from '@/lib/drive'
-import { getMembersBy, memberToUnAuthMember } from '@/lib/roster'
+import { getFolderContents } from '@/lib/drive'
+import { drive_v3 } from 'googleapis'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-async function GetHandle(req: NextApiRequest, res: NextApiResponse<boolean>) {
-  const roster = await test()
+async function GetHandle(
+  req: NextApiRequest,
+  res: NextApiResponse<drive_v3.Schema$FileList | undefined>,
+) {
+  const { fileId } = req.query
+  const folders = await getFolderContents(!Array.isArray(fileId) ? fileId : fileId[0])
 
-  return res.status(200).json(true)
+  return res.status(200).json(folders)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

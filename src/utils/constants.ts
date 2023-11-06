@@ -103,6 +103,12 @@ export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
   Chaplain: 9,
   'Past Director': 10,
 }
+
+export enum GOOGLE_MIME_TYPE {
+  FOLDER = 'application/vnd.google-apps.folder',
+  SHORTCUT = 'application/vnd.google-apps.shortcut',
+}
+
 export enum ENDPOINT {
   EVENT = '/api/calendar/event',
   EVENTS = '/api/calendar/events',
@@ -112,6 +118,9 @@ export enum ENDPOINT {
   OFFICERS = '/api/roster/officers',
   ROSTER = '/api/roster',
   ROSTER_STATS = '/api/roster/stats',
+  DRIVE = '/api/drive',
+  VIEW_FILE = '/api/drive/view',
+  DOWNLOAD_FILE = '/api/drive/download',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',

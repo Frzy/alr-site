@@ -26,6 +26,7 @@ import DateDisplay from './date.display'
 import moment, { Moment } from 'moment'
 import EditIcon from '@mui/icons-material/Edit'
 import { ENTITY, ROLE } from '@/utils/constants'
+import Link from './link'
 
 const enum Mode {
   Edit = 'edit',
@@ -81,6 +82,14 @@ export default function MemberInformation({
     const { name, checked } = event.target
 
     handleChange({ [name]: checked })
+  }
+  function handleEmergencyContactChange(event: React.ChangeEvent<HTMLInputElement>, index: number) {
+    const { value, name } = event.target
+    const emergencyContacts = [...member.emergencyContacts]
+
+    emergencyContacts[index] = { ...emergencyContacts[index], [name]: value }
+
+    handleChange({ emergencyContacts })
   }
   function handleChange(memberPart: Partial<Member>) {
     if (onChange) onChange(memberPart)
@@ -157,6 +166,47 @@ export default function MemberInformation({
             <Grid xs={12}>
               <EntityDisplay values={member.entity} size='medium' fullWidth />
             </Grid>
+            <Grid xs={12}>
+              <Typography component={'h3'} variant='h5'>
+                Emergency Contacts
+              </Typography>
+            </Grid>
+            {member.emergencyContacts.length === 0 ? (
+              <Grid xs={12}>
+                <Alert severity='warning'>
+                  We do not have an emergency contact for you.{' '}
+                  {(isMember || isOfficer) && (
+                    <Typography component='span'>
+                      Click{' '}
+                      <Button
+                        variant='text'
+                        sx={{ p: 0, minWidth: 0 }}
+                        onClick={() => setMode(Mode.Edit)}
+                      >
+                        Here
+                      </Button>{' '}
+                      to add one.
+                    </Typography>
+                  )}
+                </Alert>
+              </Grid>
+            ) : (
+              member.emergencyContacts.map((contact, index) => {
+                if (contact.name && contact.phone) {
+                  return (
+                    <React.Fragment key={index}>
+                      <Grid xs={6}>
+                        <TextDisplay label='Name' value={contact.name} />
+                      </Grid>
+                      <Grid xs={6}>
+                        <TextDisplay label='Phone Number' value={contact.phone} />
+                      </Grid>
+                    </React.Fragment>
+                  )
+                }
+                return null
+              })
+            )}
           </Grid>
         ) : (
           <Grid container spacing={2}>
@@ -244,6 +294,103 @@ export default function MemberInformation({
                 editing={isEditing}
                 size={isEditing ? 'medium' : 'small'}
                 onChange={handleEntityChange}
+                disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+            <Grid xs={12}>
+              <Typography component={'h3'} variant='h5'>
+                Emergency Contacts
+              </Typography>
+            </Grid>
+            <Grid xs={6}>
+              <TextDisplay
+                label='Name'
+                name='name'
+                value={member.emergencyContacts[0].name}
+                autoComplete='off'
+                editing={isEditing}
+                size={'medium'}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleEmergencyContactChange(event, 0)
+                }
+                disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+            <Grid xs={6}>
+              <PhoneField
+                label='Phone Number'
+                name='phone'
+                value={member.emergencyContacts[0].phone}
+                editing={isEditing}
+                size={'medium'}
+                autoComplete='off'
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleEmergencyContactChange(event, 0)
+                }
+                disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+
+            <Grid xs={6}>
+              <TextDisplay
+                label='Name'
+                name='name'
+                value={member.emergencyContacts[1].name}
+                autoComplete='off'
+                editing={isEditing}
+                size={'medium'}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleEmergencyContactChange(event, 1)
+                }
+                disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+            <Grid xs={6}>
+              <PhoneField
+                label='Phone Number'
+                name='phone'
+                value={member.emergencyContacts[1].phone}
+                editing={isEditing}
+                size={'medium'}
+                autoComplete='off'
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleEmergencyContactChange(event, 1)
+                }
+                disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+
+            <Grid xs={6}>
+              <TextDisplay
+                label='Name'
+                name='name'
+                value={member.emergencyContacts[2].name}
+                autoComplete='off'
+                editing={isEditing}
+                size={'medium'}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleEmergencyContactChange(event, 2)
+                }
+                disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+            <Grid xs={6}>
+              <PhoneField
+                label='Phone Number'
+                name='phone'
+                value={member.emergencyContacts[2].phone}
+                editing={isEditing}
+                size={'medium'}
+                autoComplete='off'
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  handleEmergencyContactChange(event, 2)
+                }
                 disabled={disabled || loading}
                 fullWidth
               />
