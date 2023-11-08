@@ -76,7 +76,10 @@ export async function downloadFile(fileId: string, mimeType = 'application/pdf')
     if (details?.mimeType?.indexOf('vnd.google-apps') === -1) {
       const res = await api.files.get({ fileId, alt: 'media' }, { responseType: 'arraybuffer' })
 
-      return { data: Buffer.from(res.data as any), details: { mimeType, name: details?.name } }
+      return {
+        data: Buffer.from(res.data as any),
+        details: { mimeType: details.mimeType, name: details?.name },
+      }
     } else {
       const res = await api.files.export(
         {
