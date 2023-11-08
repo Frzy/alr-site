@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type { AppProps } from 'next/app'
 import { CacheProvider, EmotionCache } from '@emotion/react'
-import { ThemeProvider, CssBaseline } from '@mui/material'
+import { CssBaseline } from '@mui/material'
 import { SessionProvider } from 'next-auth/react'
 import type {} from '@mui/material/themeCssVarsAugmentation'
 import { Experimental_CssVarsProvider as CssVarsProvider } from '@mui/material/styles'
@@ -42,8 +42,8 @@ const MyApp: React.FunctionComponent<MyAppProps> = ({
 
 export const getServerSideProps: GetServerSideProps<{
   session: Session | null
-}> = async (contex) => {
-  const { req, res } = contex
+}> = async (context) => {
+  const { req, res } = context
   return { props: { session: await getServerSession(req, res, authOptions) } }
 }
 

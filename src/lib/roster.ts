@@ -34,9 +34,6 @@ function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>) {
   const ePhoneThree: string = r.get('ePhoneThree')
   const contacts = []
 
-  if (eNameOne || eNameTwo || eNameThree)
-    console.log({ eNameOne, eNameTwo, eNameThree, ePhoneOne, ePhoneTwo, ePhoneThree })
-
   if (eNameOne && ePhoneOne) contacts.push({ name: eNameOne, phone: ePhoneOne })
   if (eNameTwo && ePhoneTwo) contacts.push({ name: eNameTwo, phone: ePhoneTwo })
   if (eNameThree && ePhoneThree) contacts.push({ name: eNameThree, phone: ePhoneThree })
@@ -50,7 +47,7 @@ function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>) {
 
 function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
   const paidYear = r.get('lastPaidDues') ? parseInt(r.get('lastPaidDues')) : null
-  const joined = moment(r.get('joinDate')).year()
+  const joined = !!r.get('joinDate') ? moment(r.get('joinDate'), 'M/D/YYYY').year() : null
   const yearsActive = paidYear && joined ? paidYear - joined : null
 
   return {

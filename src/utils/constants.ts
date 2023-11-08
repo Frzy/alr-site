@@ -112,7 +112,6 @@ export enum GOOGLE_MIME_TYPE {
 export enum ENDPOINT {
   EVENT = '/api/calendar/event',
   EVENTS = '/api/calendar/events',
-  LOG_NAMES = '/api/activity-log/names',
   LOGS_STATS = '/api/activity-log/stats',
   MEMBER = '/api/member/',
   OFFICERS = '/api/roster/officers',
@@ -121,6 +120,7 @@ export enum ENDPOINT {
   DRIVE = '/api/drive',
   VIEW_FILE = '/api/drive/view',
   DOWNLOAD_FILE = '/api/drive/download',
+  ACTIVITY_LOG = '/api/activity-log',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',

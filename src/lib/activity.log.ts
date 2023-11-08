@@ -69,14 +69,14 @@ function groupLogsByMemberInArray(logs: ActivityLog[]): LogsByMember[] {
 function rowToActivityLog(r: GoogleSpreadsheetRow, index: number): ActivityLog {
   const log = {
     id: index,
-    date: moment(r.get('finalDate')).format(),
+    date: moment(r.get('finalDate'), 'M/D/YYYY H:mm:ss').format(),
     name: r.get('Name'),
     activityName: r.get('Activity'),
     activityType: r.get('Activity Type'),
     hours: r.get('Hours') ? roundNumber(parseFloat(r.get('Hours'))) : 0,
     monies: r.get('Monies') ? roundNumber(parseFloat(r.get('Monies').replace('$', ''))) : undefined,
     miles: r.get('Miles') ? roundNumber(parseFloat(r.get('Miles'))) : undefined,
-    created: moment(r.get('Timestamp')).format(),
+    created: moment(r.get('Timestamp'), 'M/D/YYYY H:mm:ss').format(),
   }
 
   Object.keys(log).forEach(
@@ -90,31 +90,6 @@ export function convertToPublicActivityLog(log: ActivityLog) {
   const { monies, ...publicLog } = log
 
   return publicLog
-}
-
-export async function getActivityLogNames(filter?: (name: string) => boolean) {
-  const jwt = new JWT({
-    email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    scopes: SCOPES,
-  })
-  const doc = new GoogleSpreadsheet(process.env.ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
-
-  await doc.loadInfo()
-  const worksheet = doc.sheetsById[process.env.ACTIVITY_LOG_VAR_SHEET_KEY]
-
-  await worksheet.loadCells('A28:A')
-  const names: string[] = []
-  let index = 27
-  let cell = worksheet.getCell(index, 0)
-
-  while (cell.value) {
-    names.push(cell.value as string)
-    index += 1
-    cell = worksheet.getCell(index, 0)
-  }
-
-  return names
 }
 
 export async function getActivityLogEntries(filter?: (log: ActivityLog) => boolean) {
@@ -210,4 +185,19 @@ export async function getActivityLogStats(
     entriesByMember: groups,
     ...stats,
   }
+}
+
+export async function addActivityLogEntries(rows: any[]) {
+  const jwt = new JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    scopes: SCOPES,
+  })
+  const doc = new GoogleSpreadsheet(process.env.COMBINED_ACTIVITY_LOG_SPREADSHEET_KEY, jwt)
+
+  await doc.loadInfo()
+
+  const worksheet = doc.sheetsById[process.env.COMBINED_ACTIVITY_LOG_SHEET_KEY]
+
+  await worksheet.addRows(rows)
 }

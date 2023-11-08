@@ -144,6 +144,15 @@ export default function Header() {
                 >
                   Documents
                 </Button>
+                <Button
+                  disabled={pathname === '/log'}
+                  href='/log'
+                  color='inherit'
+                  onClick={handleCloseNavMenu}
+                  size='small'
+                >
+                  Activity Log
+                </Button>
                 {!!session?.user.office && (
                   <Button
                     disabled={pathname === '/admin'}
@@ -276,6 +285,11 @@ export default function Header() {
                 <MenuItem onClick={handleCloseNavMenu}>
                   <Link href='/documents'>
                     <Typography textAlign='center'>Documents</Typography>
+                  </Link>
+                </MenuItem>
+                <MenuItem onClick={handleCloseNavMenu}>
+                  <Link href='/log'>
+                    <Typography textAlign='center'>Activity Log</Typography>
                   </Link>
                 </MenuItem>
                 {!!session?.user.office && (

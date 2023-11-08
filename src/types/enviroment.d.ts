@@ -13,6 +13,8 @@ declare global {
       NEXTAUTH_URL: string
       ROSTER_SHEET_KEY: number
       ROSTER_SPREADSHEET_KEY: string
+      COMBINED_ACTIVITY_LOG_SPREADSHEET_KEY: string
+      COMBINED_ACTIVITY_LOG_SHEET_KEY: number
     }
   }
 }
