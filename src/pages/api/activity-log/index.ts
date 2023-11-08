@@ -53,7 +53,7 @@ async function PostHandle(req: NextApiRequest, res: NextApiResponse) {
 
   await addActivityLogEntries(rows)
 
-  return res.status(201).end()
+  return res.status(201).json({ success: true })
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
