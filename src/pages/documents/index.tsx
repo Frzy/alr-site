@@ -5,9 +5,11 @@ import {
   Breadcrumbs,
   Container,
   List,
+  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  LinearProgress,
   Paper,
   Stack,
   Typography,
@@ -16,8 +18,6 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import Link from '@/component/link'
 import { ENDPOINT, GOOGLE_MIME_TYPE } from '@/utils/constants'
 import { GoogleDriveFolderList, GoogleDriveItem } from '@/types/common'
-import FolderIcon from '@mui/icons-material/Folder'
-import PdfIcon from '@mui/icons-material/PictureAsPdf'
 import Image from 'next/image'
 
 type DocumentLink = { name: string; id?: string }
@@ -37,8 +37,6 @@ export default function DocumentsPage() {
   ])
   const [children, setChildren] = React.useState<GoogleDriveItem[]>([])
   const [fetching, setFetching] = React.useState(true)
-
-  console.log({ children })
 
   async function handleBreadcrumbClick(link: DocumentLink, index: number) {
     setFetching(true)
@@ -98,8 +96,6 @@ export default function DocumentsPage() {
     fetchRoot()
   }, [])
 
-  console.log({ children })
-
   return (
     <React.Fragment>
       <Head>
@@ -128,29 +124,39 @@ export default function DocumentsPage() {
               </Breadcrumbs>
             </Paper>
             <Paper>
-              <List>
-                {children.map((item, index) => (
-                  <ListItemButton
-                    key={index}
-                    onClick={
-                      item.mimeType === GOOGLE_MIME_TYPE.FOLDER
-                        ? (event) => handleGoogleItemClick(item, event)
-                        : undefined
+              {fetching ? (
+                <LinearProgress sx={{ m: 2 }} />
+              ) : (
+                <List>
+                  {children.map((item, index) => {
+                    if (item.mimeType === GOOGLE_MIME_TYPE.FOLDER) {
+                      return (
+                        <ListItemButton
+                          key={index}
+                          onClick={(event) => handleGoogleItemClick(item, event)}
+                        >
+                          <ListItemIcon>
+                            <Image src={item.iconLink} width={16} height={16} alt={item.mimeType} />
+                          </ListItemIcon>
+
+                          <ListItemText primary={item.name} />
+                        </ListItemButton>
+                      )
                     }
-                  >
-                    <ListItemIcon>
-                      <Image src={item.iconLink} width={16} height={16} alt={item.mimeType} />
-                    </ListItemIcon>
-                    {item.mimeType !== GOOGLE_MIME_TYPE.FOLDER ? (
-                      <Link href={`/api/drive/view?fileId=${item.id}`} target='_blank'>
-                        {item.name}
-                      </Link>
-                    ) : (
-                      <ListItemText primary={item.name} />
-                    )}
-                  </ListItemButton>
-                ))}
-              </List>
+
+                    return (
+                      <ListItem key={index}>
+                        <ListItemIcon>
+                          <Image src={item.iconLink} width={16} height={16} alt={item.mimeType} />
+                        </ListItemIcon>
+                        <Link href={`/api/drive/view?fileId=${item.id}`} target='_blank'>
+                          {item.name}
+                        </Link>
+                      </ListItem>
+                    )
+                  })}
+                </List>
+              )}
             </Paper>
           </Stack>
         </Container>
