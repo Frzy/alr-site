@@ -76,7 +76,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
       activityName: !activityName,
       activityType: !activityType,
       hours: !!(isNaN(hours as number) || (hours as number) <= 0),
-      miles: !!(isNaN(miles as number) || (miles as number) <= 0),
+      miles: miles !== undefined && !!isNaN(miles as number),
       monies: monies !== undefined && !!(isNaN(monies as number) || (monies as number) <= 0),
       date: !date || date.isAfter(moment().endOf('day')),
     }
@@ -92,6 +92,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
 
   async function handleSubmit() {
     if (isValid()) {
+      setLoading(true)
       const payload = {
         members: selectedMembers.map((m) => ({
           name: `${m.lastName}, ${m.firstName}`,
@@ -130,6 +131,8 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
         setDate(moment())
       } catch (error) {
         console.log(error)
+      } finally {
+        setLoading(false)
       }
     }
   }
@@ -184,6 +187,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   onChange={(event, values, reason, details) => {
                     setSelectedMembers(values)
                   }}
+                  disabled={loading}
                   getOptionLabel={(m) =>
                     `${m.name} [ ${[...(m?.entity ?? []), 'ALR'].sort().join(' | ')} ]`
                   }
@@ -197,6 +201,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                 <DatePicker
                   label='Date'
                   value={date}
+                  disabled={loading}
                   sx={{ width: '100%' }}
                   slotProps={{
                     textField: {
@@ -214,6 +219,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                 <TextField
                   label='Activity Name'
                   fullWidth
+                  disabled={loading}
                   value={activityName}
                   error={errors.activityName}
                   onFocus={() => setErrors((prev) => ({ ...prev, activityName: false }))}
@@ -229,6 +235,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   fullWidth
                   error={errors.activityType}
                   onFocus={() => setErrors((prev) => ({ ...prev, activityType: false }))}
+                  disabled={loading}
                 >
                   <InputLabel id='activity-log-type-label'>Activity Type</InputLabel>
                   <Select
@@ -258,6 +265,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   onFocus={() => setErrors((prev) => ({ ...prev, hours: false }))}
                   helperText={errors.hours ? 'Hours must be a NUMBER greater than ZERO' : undefined}
                   value={hours || ''}
+                  disabled={loading}
                   onChange={(event) => {
                     const { value } = event.target
                     const parsed = parseInt(value)
@@ -271,9 +279,10 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   label='Miles'
                   type='number'
                   error={errors.miles}
-                  helperText={errors.miles ? 'Miles must be a NUMBER greater than ZERO' : undefined}
+                  helperText={errors.miles ? 'Miles must be a NUMBER' : undefined}
                   fullWidth
                   value={miles || ''}
+                  disabled={loading}
                   onFocus={() => setErrors((prev) => ({ ...prev, miles: false }))}
                   onChange={(event) => {
                     const { value } = event.target
@@ -293,6 +302,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   }
                   fullWidth
                   value={monies || ''}
+                  disabled={loading}
                   onFocus={() => setErrors((prev) => ({ ...prev, monies: false }))}
                   onChange={(event) => {
                     const { value } = event.target
@@ -307,6 +317,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   control={
                     <Checkbox
                       checked={saveMembers}
+                      disabled={loading}
                       onChange={(event) => {
                         const { checked } = event.target
                         setSaveMember(checked)
@@ -321,7 +332,9 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   xs={6}
                   sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }}
                 >
-                  <Button onClick={() => store.remove('_savedLogMembers')}>Clear Remembered</Button>
+                  <Button onClick={() => store.remove('_savedLogMembers')} disabled={loading}>
+                    Clear Remembered
+                  </Button>
                 </Grid>
               )}
             </Grid>
