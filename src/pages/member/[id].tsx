@@ -1,23 +1,22 @@
 import * as React from 'react'
-import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { Alert, AlertTitle, Box, Container, Stack } from '@mui/material'
+import { authOptions } from '@/lib/auth'
+import { convertToPublicActivityLog, getActivityLogEntries } from '@/lib/activity.log'
+import { ENDPOINT } from '@/utils/constants'
+import { findMember } from '@/lib/roster'
+import { getServerSession } from 'next-auth'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { useSession } from 'next-auth/react'
+import ActivityLogViewer from '@/component/activity.log.viewer'
 import Head from 'next/head'
 import Header from '@/component/header'
-import { Alert, AlertTitle, Box, Container, Stack, Typography } from '@mui/material'
-import { convertToPublicActivityLog, getActivityLogEntries } from '@/lib/activity.log'
-import ActivityLogViewer from '@/component/activity.log.viewer'
-import { findMember } from '@/lib/roster'
 import MemberInformation from '@/component/member.information'
-
-import { authOptions } from '@/lib/auth'
-import { getServerSession } from 'next-auth'
+import MemberYearlyRequirments from '@/component/member.yearly.requirments'
+import moment from 'moment'
 
 import type { ActivityLog, Member } from '@/types/common'
 import type { GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { ENDPOINT } from '@/utils/constants'
-import MemberYearlyRequirments from '@/component/member.yearly.requirments'
-import moment from 'moment'
 
 export const getServerSideProps: GetServerSideProps<MemberPageProps> = async ({
   req,
@@ -79,6 +78,9 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
       const data = await response.json()
 
       setMember(data)
+      if (isCurrentlySignedIn) {
+        await session.update(data)
+      }
     } catch (e) {
       console.log(e)
     }
