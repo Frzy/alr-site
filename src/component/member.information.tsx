@@ -52,10 +52,13 @@ export default function MemberInformation({
   const [mode, setMode] = React.useState<Mode>(Mode.View)
   const session = useSession()
   const isOfficer = !!session.data?.user.office
-  const isLoggedIn = !!session.data?.user
-  const isEditing = mode === Mode.Edit && isLoggedIn
-  const isMember = session.data?.user.id === member.id
+  const isMember = !!session.data?.user
+  const isEditing = mode === Mode.Edit && isMember
+  const isCurrentlyLoggedIn = session.data?.user.id === member.id
   const [loading, setLoading] = React.useState(false)
+  const hasEmergencyContacts = React.useMemo(() => {
+    return member.emergencyContacts.some((e) => e.name)
+  }, [member])
 
   function handleCancel() {
     if (onReset) onReset()
@@ -109,7 +112,7 @@ export default function MemberInformation({
           <Typography component={'h2'} variant='h4' sx={{ flexGrow: 1 }} gutterBottom>
             Profile
           </Typography>
-          {(isMember || isOfficer) && mode === Mode.View && (
+          {(isCurrentlyLoggedIn || isOfficer) && mode === Mode.View && (
             <Button
               sx={{ px: 2, height: 36 }}
               onClick={() => setMode(Mode.Edit)}
@@ -124,7 +127,7 @@ export default function MemberInformation({
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Name' value={member.name} />
             </Grid>
-            {(isOfficer || isMember) && (
+            {(isOfficer || isCurrentlyLoggedIn) && (
               <Grid xs={6} md={4} lg={3}>
                 <TextDisplay label='Membership Id' value={member.membershipId || '{Empty}'} />
               </Grid>
@@ -154,12 +157,12 @@ export default function MemberInformation({
                 <TextDisplay label='Office' value={member.office} />
               </Grid>
             )}
-            {isLoggedIn && (
+            {isMember && (
               <Grid xs={12} sm={6} lg={3}>
                 <TextDisplay label='Email' value={member.email} />
               </Grid>
             )}
-            {isLoggedIn && (
+            {isMember && (
               <Grid xs={12} sm={6} lg={3}>
                 <TextDisplay label='Phone Number' value={member.phoneNumber} />
               </Grid>
@@ -170,31 +173,38 @@ export default function MemberInformation({
             <Grid xs={12}>
               <ImageDisplay member={member} value={member.image} />
             </Grid>
-            <Grid xs={12}>
-              <Typography component={'h3'} variant='h5'>
-                Emergency Contacts
-              </Typography>
-            </Grid>
-            {member.emergencyContacts.length === 0 ? (
+            {isMember && (
+              <Grid xs={12}>
+                <Typography component={'h3'} variant='h5'>
+                  Emergency Contacts
+                </Typography>
+              </Grid>
+            )}
+            {!hasEmergencyContacts && isCurrentlyLoggedIn && (
               <Grid xs={12}>
                 <Alert severity='warning'>
                   We do not have an emergency contact for you.{' '}
-                  {(isMember || isOfficer) && (
-                    <Typography component='span'>
-                      Click{' '}
-                      <Button
-                        variant='text'
-                        sx={{ p: 0, minWidth: 0 }}
-                        onClick={() => setMode(Mode.Edit)}
-                      >
-                        Here
-                      </Button>{' '}
-                      to add one.
-                    </Typography>
-                  )}
+                  <Typography component='span'>
+                    Click{' '}
+                    <Button
+                      variant='text'
+                      sx={{ p: 0, minWidth: 0 }}
+                      onClick={() => setMode(Mode.Edit)}
+                    >
+                      Here
+                    </Button>{' '}
+                    to add one.
+                  </Typography>
                 </Alert>
               </Grid>
-            ) : (
+            )}
+            {!hasEmergencyContacts && !isCurrentlyLoggedIn && isMember && (
+              <Grid xs={12}>
+                <Alert severity='warning'>There is no emergency contacts for this member.</Alert>
+              </Grid>
+            )}
+            {hasEmergencyContacts &&
+              isMember &&
               member.emergencyContacts.map((contact, index) => {
                 if (contact.name && contact.phone) {
                   return (
@@ -209,8 +219,7 @@ export default function MemberInformation({
                   )
                 }
                 return null
-              })
-            )}
+              })}
           </Grid>
         ) : (
           <Grid container spacing={2}>
