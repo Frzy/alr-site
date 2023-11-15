@@ -13,6 +13,15 @@ export function getSpeadsheetPhoneNumber(phoneNumber: string) {
 
   return pNumber.join('')
 }
+export function stringAvatar(member: Member) {
+  return {
+    sx: {
+      bgcolor: stringToColor(member.name),
+    },
+    children: `${member.firstName.slice(0, 1)}${member.lastName.slice(0, 1)}`,
+    alt: member.name,
+  }
+}
 export function stringToColor(string: string) {
   let hash = 0
   let i

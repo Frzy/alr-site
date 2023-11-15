@@ -27,6 +27,7 @@ import moment, { Moment } from 'moment'
 import EditIcon from '@mui/icons-material/Edit'
 import { ENTITY, ROLE } from '@/utils/constants'
 import Link from './link'
+import ImageDisplay from './image.display'
 
 const enum Mode {
   Edit = 'edit',
@@ -167,6 +168,9 @@ export default function MemberInformation({
               <EntityDisplay values={member.entity} size='medium' fullWidth />
             </Grid>
             <Grid xs={12}>
+              <ImageDisplay member={member} value={member.image} />
+            </Grid>
+            <Grid xs={12}>
               <Typography component={'h3'} variant='h5'>
                 Emergency Contacts
               </Typography>
@@ -295,6 +299,17 @@ export default function MemberInformation({
                 size={isEditing ? 'medium' : 'small'}
                 onChange={handleEntityChange}
                 disabled={disabled || loading}
+                fullWidth
+              />
+            </Grid>
+            <Grid xs={12}>
+              <ImageDisplay 
+                member={member} 
+                name='image'
+                value={member.image} 
+                editing={isEditing} 
+                disabled={disabled || loading}
+                onChange={handleTextChange}
                 fullWidth
               />
             </Grid>

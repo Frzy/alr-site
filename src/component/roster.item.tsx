@@ -11,7 +11,7 @@ import {
   Skeleton,
 } from '@mui/material'
 import { ENTITY, ENTITY_COLORS, ROLE } from '@/utils/constants'
-import { stringToColor } from '@/utils/helpers'
+import { stringAvatar } from '@/utils/helpers'
 import CharterMemberIcon from '@mui/icons-material/SportsMotorsports'
 import EmailIcon from '@mui/icons-material/Email'
 import Grid from '@mui/material/Unstable_Grid2'
@@ -28,15 +28,6 @@ interface RosterItemProps extends PaperProps {
   member: Member
 }
 
-function stringAvatar(member: Member) {
-  return {
-    sx: {
-      bgcolor: stringToColor(member.name),
-    },
-    children: `${member.firstName.slice(0, 1)}${member.lastName.slice(0, 1)}`,
-    alt: member.name,
-  }
-}
 function entityChip(entity: ENTITY) {
   return {
     label: entity,
