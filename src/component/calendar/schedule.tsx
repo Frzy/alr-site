@@ -32,6 +32,7 @@ type CalendarScheduleProps = {
   onCalendarChange?: (state: CalendarState) => void
   fetchOptions?: SWRConfiguration
   editable?: boolean
+  disableCurrentTimeTracker?: boolean
 } & StackProps
 
 export default function CalendarSchedule({
@@ -42,6 +43,7 @@ export default function CalendarSchedule({
   titleProps,
   onCalendarChange,
   editable,
+  disableCurrentTimeTracker,
   ...stackProps
 }: CalendarScheduleProps) {
   const [openEventViewer, setOpenEventViewer] = React.useState(false)
@@ -273,7 +275,7 @@ export default function CalendarSchedule({
                       </Box>
                       <Box flexGrow={1} className='schedule-event'>
                         {group.map((e, index) => {
-                          const renderIndicator = shouldRenderIndicator(group, index)
+                          const renderIndicator = !disableCurrentTimeTracker && shouldRenderIndicator(group, index)
 
                           if (renderIndicator) {
                             return renderIndicator === 'before'

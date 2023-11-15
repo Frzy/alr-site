@@ -165,7 +165,7 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
         <title>ALR 91 - Activity Log</title>
         <meta name='description' content='american legion riders chapter 91 activity log' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/favicon.ico' />
+        <link rel='icon' href='/images/alr-logo.png' />
       </Head>
       <Box component='main'>
         <Header />

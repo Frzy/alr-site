@@ -139,10 +139,10 @@ export default function RosterPage({
   return (
     <React.Fragment>
       <Head>
-        <title>ALR 91 - Logs</title>
-        <meta name='description' content='american legion riders chapter 91 activity logs' />
+        <title>ALR 91 - Stats</title>
+        <meta name='description' content='american legion riders chapter 91 activity log stats' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/favicon.ico' />
+        <link rel='icon' href='/images/alr-logo.png' />
       </Head>
       <Box component='main'>
         <Header />
@@ -276,7 +276,7 @@ export default function RosterPage({
             <Grid xs={12} sm={6}>
               <Paper sx={{ p: 1 }}>
                 <Typography variant='h4' align='center'>
-                  Top 5 in Events
+                  Top 5 in Participation
                 </Typography>
                 <Divider sx={{ my: 1 }} />
                 <List disablePadding dense>

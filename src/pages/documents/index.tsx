@@ -102,12 +102,12 @@ export default function DocumentsPage() {
         <title>ALR 91 - Documents</title>
         <meta name='description' content='American Legion Riders 91 Documents' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/favicon.ico' />
+        <link rel='icon' href='/images/alr-logo.png' />
       </Head>
       <main>
         <Header />
-        <Container maxWidth='xl'>
-          <Stack spacing={1} sx={{ pt: 1 }}>
+        <Container maxWidth='xl' sx={{ py: 1 }}>
+          <Stack spacing={1}>
             <Paper sx={{ p: 1 }}>
               <Breadcrumbs separator={<NavigateNextIcon fontSize='small' />}>
                 {links.map((link, index) => {
