@@ -268,9 +268,11 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   disabled={loading}
                   onChange={(event) => {
                     const { value } = event.target
-                    const parsed = parseInt(value)
+                    const parsed = parseFloat(value)
 
-                    setHours(isNaN(parsed) || parsed === 0 ? undefined : parsed)
+                    setHours(
+                      isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10,
+                    )
                   }}
                 />
               </Grid>
@@ -286,9 +288,11 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   onFocus={() => setErrors((prev) => ({ ...prev, miles: false }))}
                   onChange={(event) => {
                     const { value } = event.target
-                    const parsed = parseInt(value)
+                    const parsed = parseFloat(value)
 
-                    setMiles(isNaN(parsed) || parsed === 0 ? undefined : parsed)
+                    setMiles(
+                      isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10,
+                    )
                   }}
                 />
               </Grid>
@@ -306,9 +310,11 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
                   onFocus={() => setErrors((prev) => ({ ...prev, monies: false }))}
                   onChange={(event) => {
                     const { value } = event.target
-                    const parsed = parseInt(value)
+                    const parsed = parseFloat(value)
 
-                    setMonies(isNaN(parsed) || parsed === 0 ? undefined : parsed)
+                    setMonies(
+                      isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 100) / 100,
+                    )
                   }}
                 />
               </Grid>
