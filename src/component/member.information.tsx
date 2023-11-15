@@ -303,11 +303,11 @@ export default function MemberInformation({
               />
             </Grid>
             <Grid xs={12}>
-              <ImageDisplay 
-                member={member} 
+              <ImageDisplay
+                member={member}
                 name='image'
-                value={member.image} 
-                editing={isEditing} 
+                value={member.image}
+                editing={isEditing}
                 disabled={disabled || loading}
                 onChange={handleTextChange}
                 fullWidth
@@ -499,7 +499,7 @@ export default function MemberInformation({
                     />
                   </Grid>
                 )}
-                <Grid xs={6} md={4}>
+                <Grid xs={6} md={4} lg={3}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -512,7 +512,7 @@ export default function MemberInformation({
                     label='Lifetime Member'
                   />
                 </Grid>
-                <Grid xs={6} md={4}>
+                <Grid xs={6} md={4} lg={3}>
                   <FormControlLabel
                     control={
                       <Checkbox

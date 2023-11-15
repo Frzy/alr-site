@@ -48,7 +48,14 @@ export default function ImageDisplay({
       ) : (
         <Avatar {...stringAvatar(member)} />
       )}
-      <TextDisplay editing size={size} label={label} value={value} {...other} />
+      <TextDisplay
+        editing
+        size={size}
+        label={label}
+        value={value}
+        placeholder='Please enter URL to the image'
+        {...other}
+      />
     </Box>
   )
 }
