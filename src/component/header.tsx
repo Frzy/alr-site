@@ -228,7 +228,9 @@ export default function Header() {
               </Box>
             ) : (
               <Box display='flex' justifyContent='right' width={100}>
-                <Button onClick={() => signIn()}>Login</Button>
+                <Button color='inherit' onClick={() => signIn()}>
+                  Login
+                </Button>
               </Box>
             )}
           </Box>
@@ -380,7 +382,9 @@ export default function Header() {
               </Box>
             ) : (
               <Box display='flex' justifyContent='right' width={75}>
-                <Button onClick={() => signIn()}>Login</Button>
+                <Button color='inherit' onClick={() => signIn()}>
+                  Login
+                </Button>
               </Box>
             )}
           </Box>
