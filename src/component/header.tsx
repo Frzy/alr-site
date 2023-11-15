@@ -265,7 +265,9 @@ export default function Header() {
                 }}
               >
                 <MenuItem onClick={handleCloseNavMenu}>
-                  <Typography textAlign='center'>Home</Typography>
+                  <Link href='/'>
+                    <Typography textAlign='center'>Home</Typography>
+                  </Link>
                 </MenuItem>
                 <MenuItem>
                   <Link href='/roster'>
