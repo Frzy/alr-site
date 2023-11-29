@@ -243,7 +243,7 @@ export default function DuesPage() {
 
       const response = await fetch(`${ENDPOINT.LOGS_BY_MEMBER}?${queryParams.toString()}`)
       const newMembers = await response.json()
-      console.log(newMembers)
+
       setMembers(
         newMembers.map((entry: LogsByMember): DueMember => {
           const isSupporter = entry.member.role === ROLE.SUPPORTER
@@ -251,22 +251,12 @@ export default function DuesPage() {
 
           if (isSupporter) {
             eligible = entry.events >= MIN_EVENTS
-
-            console.log({ name: entry.member.name, events: entry.events, eligible, entry })
           } else {
             const rides = entry.breakdown.Ride.events
 
             eligible =
               rides >= MIN_RIDES &&
               Math.max(entry.events - Math.min(rides, MIN_RIDES), 0) >= MIN_EVENTS - MIN_RIDES
-
-            console.log({
-              name: entry.member.name,
-              rides,
-              hasMinRieds: rides >= MIN_RIDES,
-              eligible,
-              entry,
-            })
           }
 
           return { ...entry, eligible }

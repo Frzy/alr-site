@@ -277,8 +277,6 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
 
   logs.filter = dateFilter ? filter : undefined
 
-  console.log({ l: logs.entries })
-
   return (
     <Paper sx={{ p: 1 }}>
       <Stack spacing={1}>

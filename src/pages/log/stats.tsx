@@ -86,8 +86,6 @@ export default function StatsPage({
       .slice(0, 5)
   }, [stats])
 
-  console.log(stats)
-
   return (
     <React.Fragment>
       <Head>
