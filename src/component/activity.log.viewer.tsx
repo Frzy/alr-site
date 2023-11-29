@@ -27,6 +27,7 @@ import SearchIcon from '@mui/icons-material/Search'
 
 import type { ActivityLog } from '@/types/common'
 import { formatMoney } from '@/utils/helpers'
+import NoRowsOverlay from './data.grid.no.rows'
 
 enum TimeFrame {
   ALL = 'All',
@@ -129,6 +130,7 @@ declare module '@mui/x-data-grid' {
     isPublic: boolean
   }
 }
+
 type DateFilter = {
   minDate: Moment
   maxDate: Moment
@@ -275,6 +277,8 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
 
   logs.filter = dateFilter ? filter : undefined
 
+  console.log({ l: logs.entries })
+
   return (
     <Paper sx={{ p: 1 }}>
       <Stack spacing={1}>
@@ -320,7 +324,11 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
           />
         </Box>
         <DataGrid
+          autoHeight
           rows={logs.entries}
+          slots={{
+            noRowsOverlay: NoRowsOverlay,
+          }}
           columns={isPublic ? columns.slice(0, -1) : columns}
           initialState={{
             pagination: { paginationModel: { pageSize: 5 } },
@@ -328,8 +336,14 @@ export default function ActivityLogViewer({ logs: initialLogs, isPublic }: Activ
           }}
           pageSizeOptions={[5, 10, 25]}
           sx={{
+            '& .MuiDataGrid-main': {
+              height: logs.entries.length ? undefined : '230px',
+            },
             '& .MuiDataGrid-cell:focus-within': {
               outline: 'none',
+            },
+            '& .MuiDataGrid-overlayWrapperInner': {
+              height: '170px !important',
             },
           }}
           disableColumnMenu
