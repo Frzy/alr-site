@@ -90,6 +90,7 @@ export type GroupLogs = {
 
 export type LogsByMember = {
   name: string
+  member: Member
 } & LogStats
 
 export type LogStats = {

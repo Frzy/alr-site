@@ -1,24 +1,30 @@
 import { getActivityLogStats } from '@/lib/activity.log'
 import HttpError from '@/lib/http-error'
-import { ActivityLogStats } from '@/types/common'
+import { ActivityLogStats, Member } from '@/types/common'
 import moment from 'moment'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse<ActivityLogStats>) {
-  const { start, end } = req.query as {
+  const { start, end, includeInactive } = req.query as {
     [key: string]: string
+  }
+  const memberFilter = (m: Member) => {
+    return includeInactive ? true : m.isActive
   }
 
   if (start && end)
-    return await getActivityLogStats((log) =>
-      moment(log.date).isBetween(moment(start), moment(end)),
+    return await getActivityLogStats(
+      (log) => moment(log.date).isBetween(moment(start), moment(end)),
+      memberFilter,
     )
 
-  if (start) return await getActivityLogStats((log) => moment(log.date).isAfter(moment(start)))
+  if (start)
+    return await getActivityLogStats((log) => moment(log.date).isAfter(moment(start)), memberFilter)
 
-  if (end) return await getActivityLogStats((log) => moment(log.date).isBefore(moment(end)))
+  if (end)
+    return await getActivityLogStats((log) => moment(log.date).isBefore(moment(end)), memberFilter)
 
-  return await getActivityLogStats()
+  return await getActivityLogStats(undefined, memberFilter)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

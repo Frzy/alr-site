@@ -5,12 +5,14 @@ import {
   GroupLogs,
   LogStats,
   LogsByMember,
+  Member,
 } from '@/types/common'
 import { ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
 import { roundNumber } from '@/utils/helpers'
 import { JWT } from 'google-auth-library'
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
 import moment from 'moment'
+import { getMembersBy } from './roster'
 
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -55,15 +57,23 @@ function groupLogsByMember(logs: ActivityLog[]) {
   }, {} as GroupLogs)
 }
 
-function groupLogsByMemberInArray(logs: ActivityLog[]): LogsByMember[] {
+async function groupLogsByMemberInArray(
+  logs: ActivityLog[],
+  memberFilter?: (member: Member) => boolean,
+): Promise<LogsByMember[]> {
   const groups = groupLogsByMember(logs)
-  const groupArray = []
+  const members = await getMembersBy(memberFilter)
 
-  for (let [key, value] of Object.entries(groups)) {
-    groupArray.push({ ...value, name: key })
-  }
+  return members.map((member) => {
+    const name = `${member.lastName}, ${member.firstName}`
+    const stats = groups[name]
 
-  return groupArray
+    if (stats) {
+      return { ...stats, name, member }
+    }
+
+    return { ...getBaseGroupLog(), name, member }
+  })
 }
 
 function rowToActivityLog(r: GoogleSpreadsheetRow, index: number): ActivityLog {
@@ -146,9 +156,10 @@ export async function udpateActivityLogName(oldName: string, newName: string) {
 
 export async function getActivityLogStats(
   filter?: (log: ActivityLog) => boolean,
+  memberFilter?: (member: Member) => boolean,
 ): Promise<ActivityLogStats> {
   const logs = await getActivityLogEntries(filter)
-  const groups = groupLogsByMemberInArray(logs)
+  const groups = await groupLogsByMemberInArray(logs, memberFilter)
   const latestEntries = [...logs]
     .sort((a, b) => {
       const firstDate = moment(a.created)
@@ -189,7 +200,7 @@ export async function getActivityLogStats(
     } as LogStats,
   )
 
-  groups.sort((a, b) => a.name.localeCompare(b.name))
+  groups.sort((a, b) => a.member.name.localeCompare(b.member.name))
 
   return {
     latestEntries,

@@ -1,9 +1,14 @@
 import * as React from 'react'
+
+import { getActivityLogStats } from '@/lib/activity.log'
+import Grid from '@mui/material/Unstable_Grid2'
 import Head from 'next/head'
-import Header from '@/component/header'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import moment from 'moment'
+
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Divider,
@@ -20,80 +25,25 @@ import {
   IconButton,
   Collapse,
 } from '@mui/material'
-import Grid from '@mui/material/Unstable_Grid2'
 
-import { getActivityLogStats } from '@/lib/activity.log'
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 import type { ActivityLogStats, GroupLogs, LogsByMember } from '@/types/common'
-import moment from 'moment'
+import Link from '@/component/link'
 
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-
-function flattenBreakdown(breakdown: LogsByMember['breakdown']) {
-  const arr = []
-  for (let [key, value] of Object.entries(breakdown)) {
-    arr.push({ name: key, ...value })
-  }
-
-  return arr.sort((a, b) => a.name.localeCompare(b.name))
-}
-
-function MembershipLogRow({ row }: { row: LogsByMember }) {
-  const [open, setOpen] = React.useState(false)
-
-  return (
-    <React.Fragment>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <TableCell>
-          <IconButton aria-label='expand row' size='small' onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          {row.name}
-        </TableCell>
-        <TableCell align='right'>{row.events}</TableCell>
-        <TableCell align='right'>{row.breakdown.Ride.events}</TableCell>
-        <TableCell align='right'>{row.hours}</TableCell>
-        <TableCell align='right'>{row.miles}</TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Typography variant='h6' gutterBottom component='div'>
-                Breakdown
-              </Typography>
-
-              <Table size='small' aria-label='breakdown'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Attended</TableCell>
-                    <TableCell>Hours</TableCell>
-                    <TableCell>Miles</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {flattenBreakdown(row.breakdown).map((r, index) => (
-                    <TableRow key={index}>
-                      <TableCell component='th' scope='row'>
-                        {r.name}
-                      </TableCell>
-                      <TableCell>{r.events}</TableCell>
-                      <TableCell>{r.hours}</TableCell>
-                      <TableCell>{r.miles}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
+export const getServerSideProps: GetServerSideProps<{
+  stats: ActivityLogStats
+  startDate: string
+  endDate: string
+}> = async () => {
+  const now = moment()
+  const startDate = moment().startOf('year')
+  const endDate = moment().endOf('year')
+  const stats = await getActivityLogStats(
+    (l) => moment(l.date).isBetween(startDate, endDate),
+    (m) => m.isActive,
   )
+
+  return { props: { stats, startDate: startDate.format(), endDate: endDate.format() } }
 }
 
 export default function StatsPage({
@@ -135,6 +85,8 @@ export default function StatsPage({
       })
       .slice(0, 5)
   }, [stats])
+
+  console.log(stats)
 
   return (
     <React.Fragment>
@@ -362,15 +314,70 @@ export default function StatsPage({
   )
 }
 
-export const getServerSideProps: GetServerSideProps<{
-  stats: ActivityLogStats
-  startDate: string
-  endDate: string
-}> = async () => {
-  const now = moment()
-  const startDate = moment().startOf('year')
-  const endDate = moment().endOf('year')
-  const stats = await getActivityLogStats((l) => moment(l.date).isBetween(startDate, endDate))
+function flattenBreakdown(breakdown: LogsByMember['breakdown']) {
+  const arr = []
+  for (let [key, value] of Object.entries(breakdown)) {
+    arr.push({ name: key, ...value })
+  }
 
-  return { props: { stats, startDate: startDate.format(), endDate: endDate.format() } }
+  return arr.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function MembershipLogRow({ row }: { row: LogsByMember }) {
+  const [open, setOpen] = React.useState(false)
+
+  return (
+    <React.Fragment>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton aria-label='expand row' size='small' onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell component='th' scope='row'>
+          <Link href={`/member/${row.member.id}`} target='_blank'>
+            {row.member.name}
+          </Link>
+        </TableCell>
+        <TableCell align='right'>{row.events}</TableCell>
+        <TableCell align='right'>{row.breakdown.Ride.events}</TableCell>
+        <TableCell align='right'>{row.hours}</TableCell>
+        <TableCell align='right'>{row.miles}</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout='auto' unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Typography variant='h6' gutterBottom component='div'>
+                Breakdown
+              </Typography>
+
+              <Table size='small' aria-label='breakdown'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Attended</TableCell>
+                    <TableCell>Hours</TableCell>
+                    <TableCell>Miles</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {flattenBreakdown(row.breakdown).map((r, index) => (
+                    <TableRow key={index}>
+                      <TableCell component='th' scope='row'>
+                        {r.name}
+                      </TableCell>
+                      <TableCell>{r.events}</TableCell>
+                      <TableCell>{r.hours}</TableCell>
+                      <TableCell>{r.miles}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  )
 }
