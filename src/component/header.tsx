@@ -2,395 +2,524 @@ import * as React from 'react'
 import { useSession } from 'next-auth/react'
 import { signIn, signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
-
 import { useColorScheme } from '@mui/material/styles'
-
-import AppBar from '@mui/material/AppBar'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Menu from '@mui/material/Menu'
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  Drawer,
+  IconButton,
+  Menu,
+  MenuItem,
+  Link as MuiLink,
+  List,
+  ListItem,
+  ListSubheader,
+  Slide,
+  Toolbar,
+  Typography,
+  useScrollTrigger,
+  ToggleButtonGroup,
+  ToggleButton,
+} from '@mui/material'
+import Link from '@/component/link'
 import MenuIcon from '@mui/icons-material/Menu'
-import Avatar from '@mui/material/Avatar'
-import Button from '@mui/material/Button'
-import Tooltip from '@mui/material/Tooltip'
-import MenuItem from '@mui/material/MenuItem'
-import { Hidden, Toolbar } from '@mui/material'
-import Link from './link'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 
-const pages = ['Products', 'Pricing', 'Blog']
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
+interface Props {
+  children: React.ReactElement
+}
+
+const DRAWER_WIDTH = 240
+const HEADER_HEIGHT = 104
 
 export default function Header() {
   const { status, data: session } = useSession()
+  const [isAdmin, setIsAdmin] = React.useState(false)
   const { mode, setMode } = useColorScheme()
-  const pathname = usePathname()
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null)
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null)
+  const [activityLogMenuAnchor, setActivityLogMenuAnchor] = React.useState<null | HTMLElement>(null)
+  const [adminMenuAnchor, setAdminMenuAnchor] = React.useState<null | HTMLElement>(null)
+  const [profileMenuAnchor, setProfileMenuAnchor] = React.useState<null | HTMLElement>(null)
+  const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const activityLogOpen = Boolean(activityLogMenuAnchor)
+  const adminOpen = Boolean(adminMenuAnchor)
+  const profileOpen = Boolean(profileMenuAnchor)
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget)
+  function handleActivityMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
+    setActivityLogMenuAnchor(event.currentTarget)
   }
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget)
+  function handleActivityMenuClose() {
+    setActivityLogMenuAnchor(null)
+  }
+  function handleAdminMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
+    setAdminMenuAnchor(event.currentTarget)
+  }
+  function handleAdminMenuClose() {
+    setAdminMenuAnchor(null)
+  }
+  function handleProfileMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
+    setProfileMenuAnchor(event.currentTarget)
+  }
+  function handleProfileMenuClose() {
+    setProfileMenuAnchor(null)
+  }
+  function handleDrawerToggle() {
+    setDrawerOpen(!drawerOpen)
+  }
+  function handleThemeChange(
+    event: React.MouseEvent<HTMLElement>,
+    newMode: 'light' | 'dark' | 'system',
+  ) {
+    setMode(newMode)
+    event.stopPropagation()
   }
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null)
-  }
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null)
-  }
-
-  if (pathname === '/login') return null
+  React.useEffect(() => {
+    setIsAdmin(!!session?.user.office)
+  }, [session])
 
   return (
-    <React.Fragment>
-      <AppBar sx={{ px: 2 }}>
-        <Hidden smDown>
-          <Box display='flex' alignItems='center'>
-            <Link href='/'>
-              <Avatar
-                alt='American Legion Riders Logo'
-                src='/images/alr-logo.png'
-                sx={{ width: 'auto', height: 64 }}
-              />
-            </Link>
-            <Box
-              sx={{
-                display: 'flex',
-                flexGrow: 1,
-                alignItems: 'center',
-              }}
-            >
-              <Hidden mdDown>
-                <Link href='/' color='inherit' underline='none'>
-                  <Typography
-                    variant='h5'
-                    sx={{
-                      pl: 1,
-                      fontFamily: 'monospace',
-                      fontWeight: 700,
-                      letterSpacing: '.3rem',
-                      color: 'inherit',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    American Legion Riders 91
-                  </Typography>
-                </Link>
-              </Hidden>
-              <Hidden mdUp>
-                <Link href='/'>
-                  <Typography
-                    variant='h5'
-                    sx={{
-                      pl: 1,
-                      fontFamily: 'monospace',
-                      fontWeight: 700,
-                      letterSpacing: '.3rem',
-                      color: 'inherit',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    ALR 91
-                  </Typography>
-                </Link>
-              </Hidden>
-              <Box display='flex' columnGap={1}>
-                <Button
-                  disabled={pathname === '/'}
-                  href='/'
-                  color='inherit'
-                  onClick={handleCloseNavMenu}
-                  size='small'
-                >
-                  Home
-                </Button>
-                <Button
-                  disabled={pathname === '/roster'}
-                  href='/roster'
-                  color='inherit'
-                  onClick={handleCloseNavMenu}
-                  size='small'
-                >
-                  Roster
-                </Button>
-                <Button
-                  disabled={pathname === '/events'}
-                  href='/events'
-                  color='inherit'
-                  onClick={handleCloseNavMenu}
-                  size='small'
-                >
-                  Events
-                </Button>
-                <Button
-                  disabled={pathname === '/stats'}
-                  href='/stats'
-                  color='inherit'
-                  onClick={handleCloseNavMenu}
-                  size='small'
-                >
-                  Stats
-                </Button>
-                <Button
-                  disabled={pathname === '/documents'}
-                  href='/documents'
-                  color='inherit'
-                  onClick={handleCloseNavMenu}
-                  size='small'
-                >
-                  Documents
-                </Button>
-                <Button
-                  disabled={pathname === '/log'}
-                  href='/log'
-                  color='inherit'
-                  onClick={handleCloseNavMenu}
-                  size='small'
-                >
-                  Activity Log
-                </Button>
-                {!!session?.user.office && (
-                  <Button
-                    disabled={pathname === '/admin'}
-                    href='/admin'
-                    color='inherit'
-                    onClick={handleCloseNavMenu}
-                    size='small'
-                  >
-                    Admin
-                  </Button>
-                )}
-              </Box>
-            </Box>
-
-            {status === 'loading' ? (
-              <Box display='flex' justifyContent='right' width={100} />
-            ) : status === 'authenticated' ? (
-              <Box display='flex' justifyContent='right' width={100}>
-                <Tooltip title='Open settings'>
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    {session.user.image ? (
-                      <Avatar alt={session.user.name} src={session.user.image} />
-                    ) : (
-                      <Avatar alt={session.user.name}>
-                        {`${session.user.firstName[0]}${session.user.lastName[0]}`}
-                      </Avatar>
-                    )}
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  sx={{ mt: '45px' }}
-                  id='menu-appbar'
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
-                >
-                  <MenuItem
-                    onClick={() => {
-                      handleCloseUserMenu()
-                      window.location.href = `/member/${session.user.id}`
-                    }}
-                  >
-                    <Typography textAlign='center'>Profile</Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      setMode(mode === 'light' ? 'dark' : 'light')
-                      handleCloseUserMenu()
-                    }}
-                  >
-                    <Typography textAlign='center'>
-                      {mode === 'light' ? 'Use Dark Theme' : 'Use Light Theme'}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      signOut()
-                      handleCloseUserMenu()
-                    }}
-                  >
-                    <Typography textAlign='center'>Logout</Typography>
-                  </MenuItem>
-                </Menu>
-              </Box>
-            ) : (
-              <Box display='flex' justifyContent='right' width={100}>
-                <Button color='inherit' onClick={() => signIn()}>
-                  Login
-                </Button>
-              </Box>
-            )}
-          </Box>
-        </Hidden>
-        <Hidden smUp>
-          <Box display='flex' alignItems='center'>
-            <Box>
-              <IconButton
-                size='large'
-                aria-label='account of current user'
-                aria-controls='menu-appbar'
-                aria-haspopup='true'
-                onClick={handleOpenNavMenu}
-                color='inherit'
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                id='menu-appbar'
-                anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-                open={Boolean(anchorElNav)}
-                onClose={handleCloseNavMenu}
-                sx={{
-                  display: { xs: 'block', md: 'none' },
-                }}
-              >
-                <MenuItem onClick={handleCloseNavMenu}>
-                  <Link href='/'>
-                    <Typography textAlign='center'>Home</Typography>
-                  </Link>
-                </MenuItem>
-                <MenuItem>
-                  <Link href='/roster'>
-                    <Typography textAlign='center'>Roster</Typography>
-                  </Link>
-                </MenuItem>
-                <MenuItem>
-                  <Link href='/events'>
-                    <Typography textAlign='center'>Events</Typography>
-                  </Link>
-                </MenuItem>
-                <MenuItem onClick={handleCloseNavMenu}>
-                  <Link href='/stats'>
-                    <Typography textAlign='center'>Stats</Typography>
-                  </Link>
-                </MenuItem>
-                <MenuItem onClick={handleCloseNavMenu}>
-                  <Link href='/documents'>
-                    <Typography textAlign='center'>Documents</Typography>
-                  </Link>
-                </MenuItem>
-                <MenuItem onClick={handleCloseNavMenu}>
-                  <Link href='/log'>
-                    <Typography textAlign='center'>Activity Log</Typography>
-                  </Link>
-                </MenuItem>
-                {!!session?.user.office && (
-                  <MenuItem onClick={handleCloseNavMenu}>
-                    <Link href='/admin'>
-                      <Typography textAlign='center'>Admin</Typography>
-                    </Link>
-                  </MenuItem>
-                )}
-              </Menu>
-            </Box>
+    <Box
+      sx={{
+        bgcolor: (theme) => theme.vars.palette.background.default,
+        height: { xs: 56, md: (theme) => theme.gap(1) + HEADER_HEIGHT },
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: (theme) => theme.vars.zIndex.appBar,
+      }}
+    >
+      <AppBar
+        component='div'
+        sx={{
+          m: { xs: undefined, md: 1 },
+          left: { xs: undefined, md: 0 },
+          width: (theme) => ({ xs: undefined, md: `calc(100% - ${theme.spacing(2)})` }),
+          borderRadius: { xs: undefined, md: 4 },
+        }}
+      >
+        <Toolbar sx={{ minHeight: { xs: undefined, md: HEADER_HEIGHT }, px: { xs: 1, md: 2 } }}>
+          <Link href='/' sx={{ display: { xs: 'none', md: 'block' } }}>
             <Avatar
               alt='American Legion Riders Logo'
               src='/images/alr-logo.png'
-              sx={{ width: 'auto', height: 64 }}
+              sx={{ width: 'auto', height: 96 }}
             />
+          </Link>
+          <IconButton
+            sx={{ display: { xs: 'inline-flex', md: 'none' } }}
+            onClick={handleDrawerToggle}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Box
+            display='flex'
+            flexDirection='column'
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              flex: 1,
+              px: 1,
+            }}
+          >
+            <Typography
+              sx={{ display: { xs: 'none', md: 'inline-flex' } }}
+              variant='h4'
+              component='h1'
+              gutterBottom
+            >
+              American Legion Riders Chapter 91 Portal
+            </Typography>
+            <Typography
+              sx={{ display: { xs: 'inline-flex', md: 'none' }, fontSize: '1.75rem' }}
+              variant='h4'
+              component='h1'
+            >
+              ALR 91 Portal
+            </Typography>
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                flexGrow: 1,
+                display: { xs: 'none', md: 'flex' },
                 alignItems: 'center',
+                width: 'fit-content',
+                '& hr': {
+                  mx: 0.5,
+                },
+                columnGap: 4,
               }}
             >
-              <Typography
-                variant='h5'
+              <Button sx={{ color: 'headerLink' }} href='/'>
+                Home
+              </Button>
+              <Divider orientation='vertical' flexItem />
+              <Button
+                aria-controls={activityLogOpen ? 'activity-log-menu' : undefined}
+                aria-haspopup='true'
+                aria-expanded={activityLogOpen ? 'true' : undefined}
+                className={activityLogOpen ? 'open' : undefined}
+                id='activity-log-menu-button'
                 sx={{
-                  fontFamily: 'monospace',
-                  fontWeight: 700,
-                  letterSpacing: '.3rem',
-                  color: 'inherit',
-                  textDecoration: 'none',
+                  color: 'headerLink',
+                  '& .MuiButton-endIcon': {
+                    marginLeft: 0.5,
+                    marginTop: -0.5,
+                    transition: (theme) =>
+                      theme.transitions.create(['transform'], {
+                        duration: theme.transitions.duration.standard,
+                      }),
+                  },
+                  '&.open .MuiButton-endIcon': {
+                    transform: 'rotate(-180deg)',
+                  },
                 }}
+                onClick={handleActivityMenuOpen}
+                endIcon={<ExpandMoreIcon />}
               >
-                ALR 91
-              </Typography>
-            </Box>
-            {status === 'loading' ? (
-              <Box display='flex' justifyContent='right' width={75} />
-            ) : status === 'authenticated' ? (
-              <Box display='flex' justifyContent='right' width={75}>
-                <Tooltip title='Open settings'>
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    {session.user.image ? (
-                      <Avatar alt={session.user.name} src={session.user.image} />
-                    ) : (
-                      <Avatar alt={session.user.name}>
-                        {`${session.user.firstName[0]}${session.user.lastName[0]}`}
-                      </Avatar>
-                    )}
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  sx={{ mt: '45px' }}
-                  id='menu-appbar'
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
-                >
-                  <MenuItem onClick={() => (window.location.href = `/member/${session.user.id}`)}>
-                    <Typography textAlign='center'>Profile</Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      setMode(mode === 'light' ? 'dark' : 'light')
-                      handleCloseUserMenu()
+                Activity Log
+              </Button>
+              <Button sx={{ color: 'headerLink' }} href='/calendar'>
+                Calendar
+              </Button>
+              <Button sx={{ color: 'headerLink' }} href='/documents'>
+                Documents
+              </Button>
+              <Button sx={{ color: 'headerLink' }} href='/roster'>
+                Roster
+              </Button>
+              {isAdmin && (
+                <React.Fragment>
+                  <Divider orientation='vertical' flexItem />
+                  <Button
+                    aria-controls={adminOpen ? 'admin-menu' : undefined}
+                    aria-haspopup='true'
+                    aria-expanded={adminOpen ? 'true' : undefined}
+                    className={adminOpen ? 'open' : undefined}
+                    id='admin-menu-button'
+                    sx={{
+                      color: 'headerLink',
+                      '& .MuiButton-endIcon': {
+                        marginLeft: 0.5,
+                        marginTop: -0.5,
+                        transition: (theme) =>
+                          theme.transitions.create(['transform'], {
+                            duration: theme.transitions.duration.standard,
+                          }),
+                      },
+                      '&.open .MuiButton-endIcon': {
+                        transform: 'rotate(-180deg)',
+                      },
                     }}
+                    onClick={handleAdminMenuOpen}
+                    endIcon={<ExpandMoreIcon />}
                   >
-                    <Typography textAlign='center'>
-                      {mode === 'light' ? 'Use Dark Theme' : 'Use Light Theme'}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem onClick={() => signOut()}>
-                    <Typography textAlign='center'>Logout</Typography>
-                  </MenuItem>
-                </Menu>
-              </Box>
-            ) : (
-              <Box display='flex' justifyContent='right' width={75}>
-                <Button color='inherit' onClick={() => signIn()}>
-                  Login
+                    Admin
+                  </Button>
+                </React.Fragment>
+              )}
+            </Box>
+          </Box>
+          <Box>
+            {status === 'unauthenticated' && (
+              <Button sx={{ color: 'headerLink' }} onClick={() => signIn()}>
+                Login
+              </Button>
+            )}
+            {status === 'authenticated' && (
+              <React.Fragment>
+                <Button
+                  aria-controls={profileOpen ? 'profile-menu' : undefined}
+                  aria-haspopup='true'
+                  aria-expanded={profileOpen ? 'true' : undefined}
+                  className={profileOpen ? 'open' : undefined}
+                  id='profile-menu-button'
+                  startIcon={<Avatar src={session.user.image} alt={session.user.name} />}
+                  endIcon={<ExpandMoreIcon />}
+                  onClick={handleProfileMenuOpen}
+                  sx={{
+                    color: 'headerLink',
+                    display: { xs: 'none', md: 'inline-flex' },
+                    '& .MuiButton-endIcon': {
+                      marginTop: -0.5,
+                      transition: (theme) =>
+                        theme.transitions.create(['transform'], {
+                          duration: theme.transitions.duration.standard,
+                        }),
+                    },
+                    '&.open .MuiButton-endIcon': {
+                      transform: 'rotate(-180deg)',
+                    },
+                  }}
+                >
+                  {session.user.name}
                 </Button>
-              </Box>
+                <IconButton
+                  sx={{ display: { sx: 'inline', md: 'none' } }}
+                  onClick={handleDrawerToggle}
+                >
+                  <Avatar
+                    src={session.user.image}
+                    alt={session.user.name}
+                    sx={{ width: 32, height: 32 }}
+                  />
+                </IconButton>
+              </React.Fragment>
             )}
           </Box>
-        </Hidden>
+        </Toolbar>
+        <Menu
+          id='activity-log-menu'
+          anchorEl={activityLogMenuAnchor}
+          open={activityLogOpen}
+          onClose={handleActivityMenuClose}
+          MenuListProps={{
+            'aria-labelledby': 'activity-log-menu-button',
+          }}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0, 0, 0, 0.32))',
+            },
+          }}
+        >
+          <MenuItem href='/log/stats' component='a' onClick={handleActivityMenuClose}>
+            Yearly Stats
+          </MenuItem>
+          <MenuItem href='/log/by-member' component='a' onClick={handleActivityMenuClose}>
+            By Member
+          </MenuItem>
+          <Divider />
+          <MenuItem href='/log/entry' component='a' onClick={handleActivityMenuClose}>
+            Add Log Entry
+          </MenuItem>
+        </Menu>
+        <Menu
+          id='admin-menu'
+          anchorEl={adminMenuAnchor}
+          open={adminOpen}
+          onClose={handleAdminMenuClose}
+          MenuListProps={{
+            'aria-labelledby': 'admin-menu-button',
+          }}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0, 0, 0, 0.32))',
+            },
+          }}
+        >
+          <MenuItem href='/admin/add-member' component='a' onClick={handleAdminMenuClose}>
+            Add New Member
+          </MenuItem>
+          <MenuItem href='/admin/dues' component='a' onClick={handleAdminMenuClose}>
+            Dues
+          </MenuItem>
+          <MenuItem href='/admin/email-list' component='a' onClick={handleAdminMenuClose}>
+            Email List
+          </MenuItem>
+          <MenuItem href='/admin/roster' component='a' onClick={handleAdminMenuClose}>
+            Roster
+          </MenuItem>
+        </Menu>
+        <Menu
+          id='profile-menu'
+          anchorEl={profileMenuAnchor}
+          open={profileOpen}
+          onClose={handleProfileMenuClose}
+          MenuListProps={{
+            'aria-labelledby': 'profile-menu-button',
+          }}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0, 0, 0, 0.32))',
+            },
+          }}
+        >
+          <MenuItem
+            href={`/member/${session?.user.id}`}
+            component='a'
+            onClick={handleProfileMenuClose}
+          >
+            Profile
+          </MenuItem>
+          <MenuItem sx={{ gap: 2 }}>
+            <Typography>Theme</Typography>
+            <ToggleButtonGroup
+              sx={{ flex: 1 }}
+              color='primary'
+              value={mode}
+              exclusive
+              onChange={handleThemeChange}
+              aria-label='Theme'
+              size='small'
+            >
+              <ToggleButton value='light'>Light</ToggleButton>
+              <ToggleButton value='dark'>Dark</ToggleButton>
+            </ToggleButtonGroup>
+          </MenuItem>
+          <MenuItem component='a' onClick={handleProfileMenuClose}>
+            Add Log Entry
+          </MenuItem>
+          <Divider />
+          <MenuItem component='a' onClick={handleProfileMenuClose}>
+            Logout
+          </MenuItem>
+        </Menu>
       </AppBar>
-      <Toolbar sx={{ mb: { xs: 1, sm: 0 } }} />
-    </React.Fragment>
+      <Drawer
+        variant='temporary'
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+        }}
+      >
+        <Toolbar>
+          <Typography variant='h5' sx={{ flex: 1 }}>
+            Navigation
+          </Typography>
+          <IconButton sx={{ justifySelf: 'flex-end' }} onClick={handleDrawerToggle}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </Toolbar>
+        <Divider />
+        {status === 'authenticated' && (
+          <React.Fragment>
+            <Box sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Avatar
+                src={session?.user.image}
+                alt={session?.user.name}
+                sx={{ width: 32, height: 32 }}
+              />
+              <Typography>{session.user.name}</Typography>
+            </Box>
+            <Divider />
+            <List>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <Link href={`/member/${session?.user.id}`} underline='hover'>
+                  Profile
+                </Link>
+              </ListItem>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <Link href={`/member/${session?.user.id}`} underline='hover'>
+                  Profile
+                </Link>
+              </ListItem>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <MuiLink underline='none' component='button' onClick={() => signOut()}>
+                  Sign Out
+                </MuiLink>
+              </ListItem>
+              <ListItem
+                sx={{ pl: 3, gap: 2 }}
+                onClick={() => {
+                  setMode(mode === 'light' ? 'dark' : 'light')
+                  handleDrawerToggle()
+                }}
+              >
+                <Typography color='primary'>Theme</Typography>
+                <ToggleButtonGroup
+                  sx={{ flex: 1 }}
+                  color='primary'
+                  value={mode}
+                  exclusive
+                  onChange={handleThemeChange}
+                  aria-label='Theme'
+                  size='small'
+                >
+                  <ToggleButton value='light'>Light</ToggleButton>
+                  <ToggleButton value='dark'>Dark</ToggleButton>
+                </ToggleButtonGroup>
+              </ListItem>
+            </List>
+          </React.Fragment>
+        )}
+        <Divider />
+        <List>
+          <ListItem onClick={handleDrawerToggle}>
+            <Link href='/' underline='hover'>
+              Home
+            </Link>
+          </ListItem>
+          <ListItem onClick={handleDrawerToggle}>
+            <Link underline='none' href='/calendar'>
+              Calendar
+            </Link>
+          </ListItem>
+          <ListItem onClick={handleDrawerToggle}>
+            <Link underline='none' href='/documents'>
+              Documents
+            </Link>
+          </ListItem>
+          <ListItem onClick={handleDrawerToggle}>
+            <Link underline='none' href='/roster'>
+              Roster
+            </Link>
+          </ListItem>
+          <ListSubheader
+            sx={{ lineHeight: 3, backgroundColor: (theme) => theme.vars.palette.divider }}
+          >
+            Activity Log
+          </ListSubheader>
+          <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+            <Link underline='none' href='/log/stats'>
+              Yearly Stats
+            </Link>
+          </ListItem>
+          <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+            <Link underline='none' href='/log/by-member'>
+              By Member
+            </Link>
+          </ListItem>
+          <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+            <Link underline='none' href='/log/entry'>
+              Add New Entry
+            </Link>
+          </ListItem>
+          {!isAdmin && <Divider />}
+          {isAdmin && (
+            <React.Fragment>
+              <ListSubheader
+                sx={{ lineHeight: 3, backgroundColor: (theme) => theme.vars.palette.divider }}
+              >
+                Admin
+              </ListSubheader>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <Link underline='none' href='/admin/new-member'>
+                  Add New Member
+                </Link>
+              </ListItem>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <Link underline='none' href='/admin/dues'>
+                  Dues
+                </Link>
+              </ListItem>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <Link underline='none' href='/admin/email-list'>
+                  E-Mail List
+                </Link>
+              </ListItem>
+              <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
+                <Link underline='none' href='/log/entry'>
+                  Roster
+                </Link>
+              </ListItem>
+              <Divider />
+            </React.Fragment>
+          )}
+        </List>
+      </Drawer>
+    </Box>
   )
 }

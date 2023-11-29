@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type { AppProps } from 'next/app'
 import { CacheProvider, EmotionCache } from '@emotion/react'
-import { CssBaseline } from '@mui/material'
+import { Box, Container, CssBaseline, Toolbar } from '@mui/material'
 import { SessionProvider } from 'next-auth/react'
 import type {} from '@mui/material/themeCssVarsAugmentation'
 import { Experimental_CssVarsProvider as CssVarsProvider } from '@mui/material/styles'
@@ -16,6 +16,8 @@ import createEmotionCache from '@/utils/createEmotionCache'
 import { Session, getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { GetServerSideProps } from 'next'
+import { usePathname } from 'next/navigation'
+import Header from '@/component/header'
 
 interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache
@@ -28,12 +30,26 @@ const MyApp: React.FunctionComponent<MyAppProps> = ({
   emotionCache = clientSideEmotionCache,
   pageProps: { session, ...pageProps },
 }) => {
+  const pathname = usePathname()
+
   return (
     <CacheProvider value={emotionCache}>
-      <CssVarsProvider theme={theme}>
+      <CssVarsProvider defaultMode='dark' theme={theme}>
         <CssBaseline />
         <SessionProvider session={session}>
-          <Component {...pageProps} />
+          {pathname === '/login' ? (
+            <Box component='main'>
+              <Component {...pageProps} />
+            </Box>
+          ) : (
+            <Box component='main'>
+              <Header />
+              <Toolbar sx={{ mb: { xs: 2, md: 7 } }} />
+              <Container maxWidth='xl' sx={{ pb: 2 }}>
+                <Component {...pageProps} />
+              </Container>
+            </Box>
+          )}
         </SessionProvider>
       </CssVarsProvider>
     </CacheProvider>

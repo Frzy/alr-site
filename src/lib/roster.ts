@@ -9,7 +9,7 @@ const SCOPES = [
   'https://www.googleapis.com/auth/drive.file',
 ]
 
-async function getRows() {
+async function getRosterDoc() {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\n/g, '\n'),
@@ -18,6 +18,12 @@ async function getRows() {
 
   const doc = new GoogleSpreadsheet(process.env.ROSTER_SPREADSHEET_KEY, jwt)
   await doc.loadInfo()
+
+  return doc
+}
+
+async function getRosterRows() {
+  const doc = await getRosterDoc()
 
   const worksheet = doc.sheetsById[process.env.ROSTER_SHEET_KEY]
   const rows = await worksheet.getRows<MemberGoogleRow>()
@@ -44,11 +50,26 @@ function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>) {
 
   return contacts
 }
+function getLastPaidDues(lastPaidDues: string, isLifeTimeMember: boolean, isActive: boolean) {
+  const dueYear = parseInt(lastPaidDues)
+
+  if (isNaN(dueYear)) return null
+
+  if (isLifeTimeMember && isActive) {
+    const now = moment()
+
+    return now.year() + (now.month() >= 10 ? 1 : 0)
+  }
+
+  return dueYear
+}
 
 function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
-  const paidYear = r.get('lastPaidDues') ? parseInt(r.get('lastPaidDues')) : null
+  const isLifeTimeMember = r.get('lifttimeMember') === 'TRUE'
+  const isActive = MEMBER_ROLES.indexOf(r.get('role')) !== -1
+  const lastPaidDues = getLastPaidDues(r.get('lastPaidDues'), isLifeTimeMember, isActive)
   const joined = !!r.get('joinDate') ? moment(r.get('joinDate'), 'M/D/YYYY').year() : null
-  const yearsActive = paidYear && joined ? paidYear - joined : null
+  const yearsActive = lastPaidDues && joined ? lastPaidDues - joined : null
 
   return {
     id: r.get('id'),
@@ -56,11 +77,11 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
     entity: r.get('entity') ? r.get('entity').split(',') : r.get('entity'),
     firstName: r.get('firstName'),
     image: r.get('image') || '',
-    isActive: MEMBER_ROLES.indexOf(r.get('role')) !== -1,
-    isLifeTimeMember: r.get('lifttimeMember') === 'TRUE',
+    isActive,
+    isLifeTimeMember,
     isPastPresident: r.get('pastPresident') === 'TRUE',
     joined: r.get('joinDate'),
-    lastPaidDues: r.get('lastPaidDues') ? parseInt(r.get('lastPaidDues')) : r.get('lastPaidDues'),
+    lastPaidDues: lastPaidDues ? lastPaidDues : r.get('lastPaidDues'),
     lastName: r.get('lastName'),
     membershipId: r.get('memberId'),
     name: `${r.get('firstName')} ${r.get('lastName')}${
@@ -86,7 +107,7 @@ export async function getAllMembers() {
   return await getMembersBy()
 }
 export async function getMembersBy(filter?: (member: Member) => boolean) {
-  const rows = await getRows()
+  const rows = await getRosterRows()
   const members = rows.map(rowToMember)
 
   if (filter) return members.filter(filter)
@@ -94,13 +115,13 @@ export async function getMembersBy(filter?: (member: Member) => boolean) {
   return members
 }
 export async function findMember(filter: (row: Member) => boolean) {
-  const rows = await getRows()
+  const rows = await getRosterRows()
   const members: Member[] = rows.map(rowToMember)
 
   return members.find(filter)
 }
 export async function updateMember(m: Member) {
-  const rows = await getRows()
+  const rows = await getRosterRows()
 
   const r = rows.find((r) => r.get('id') === m.id)
 
@@ -116,6 +137,7 @@ export async function updateMember(m: Member) {
     memberId: m.membershipId,
     entity: m.entity ? m.entity?.join(',') : '',
     joinDate: m.joined,
+    lastPaidDues: m.lastPaidDues ? `${m.lastPaidDues}` : '',
     lifttimeMember: m.isLifeTimeMember ? 'TRUE' : '',
     pastPresident: m.isPastPresident ? 'TRUE' : '',
     rides: m.rides ? `${m.rides}` : '',
@@ -153,4 +175,15 @@ export async function updateMember(m: Member) {
 
     return rowToMember(r)
   }
+}
+
+export async function getNextAlrIDNumber() {
+  const doc = await getRosterDoc()
+  const sheet = doc.sheetsById[process.env.ROSTER_DATA_SHEET_KEY]
+
+  await sheet.loadCells('F1:F2')
+
+  const nextIdCell = sheet.getCellByA1('F2')
+
+  return nextIdCell.value as string
 }

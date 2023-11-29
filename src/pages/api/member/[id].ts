@@ -5,43 +5,58 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import type { Member } from '@/types/common'
 import type { Api } from '@/types/api'
+import HttpError from '@/lib/http-error'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse<Member | Api.Error>) {
   const session = await getServerSession(req, res, authOptions)
   const { id } = req.query
   const member = await findMember((m) => m.id === id)
 
-  if (!member) return res.status(404).json({ code: 404, message: 'member not found' })
+  if (!member) throw new HttpError(404, 'Member not found')
 
-  return res.status(200).json(session ? member : memberToUnAuthMember(member))
+  return session ? member : memberToUnAuthMember(member)
 }
 
 async function PutHandle(req: NextApiRequest, res: NextApiResponse<Member | Api.Error>) {
   const session = await getServerSession(req, res, authOptions)
-  const { body } = req
+  const body: Member = req.body
+
+  if (!session?.user) throw new HttpError(401, 'Unauthinticated')
+
+  if (body.id !== session.user.id && !session.user.office)
+    throw new HttpError(401, 'Permission Denied')
+
   try {
     const member = await updateMember(body)
 
-    if (member) {
-      res.status(200).json(member)
-    } else {
-      res.status(400).json({ code: 400, message: 'Unable to update member.' })
-    }
-    return
+    if (!member) throw new HttpError(400, 'Unable to update member')
+
+    return member
   } catch (e) {
-    res.status(400).json({ code: 400, message: 'Unable to update member.' })
+    throw new HttpError(400, 'Unable to update member')
   }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  switch (req.method) {
-    case 'GET':
-      GetHandle(req, res)
-      break
-    case 'PUT':
-      PutHandle(req, res)
-      break
-    default:
-      res.status(405).json(undefined)
+  try {
+    let response
+
+    switch (req.method) {
+      case 'GET':
+        response = await GetHandle(req, res)
+        break
+      case 'PUT':
+        response = await PutHandle(req, res)
+        break
+      default:
+        throw new HttpError(405, 'Method Not Allowed')
+    }
+
+    res.setHeader('Content-Type', 'application/json')
+    res.status(200)
+    res.end(JSON.stringify(response))
+  } catch (error) {
+    res.json(error)
+    res.status(error instanceof HttpError ? error.status : 400).end()
   }
 }

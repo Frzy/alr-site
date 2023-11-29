@@ -31,7 +31,7 @@ export default function Roster() {
   return (
     <Stack spacing={1}>
       <Paper sx={{ position: 'relative' }}>
-        <Toolbar sx={{ bgcolor: 'grey' }}>
+        <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
           <Typography variant='h5'>Executive Board</Typography>
         </Toolbar>
         {isLoading ? (
@@ -67,7 +67,7 @@ export default function Roster() {
         )}
       </Paper>
       <Paper sx={{ position: 'relative' }}>
-        <Toolbar sx={{ bgcolor: 'grey' }}>
+        <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
           <Typography variant='h5'>Active Roster</Typography>
         </Toolbar>
         {isLoading ? (
@@ -105,7 +105,7 @@ export default function Roster() {
       </Paper>
       {!!prospects.length && (
         <Paper sx={{ position: 'relative' }}>
-          <Toolbar sx={{ bgcolor: 'grey' }}>
+          <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
             <Typography variant='h5'>Canidates</Typography>
           </Toolbar>
           <Box

@@ -121,6 +121,7 @@ export enum ENDPOINT {
   VIEW_FILE = '/api/drive/view',
   DOWNLOAD_FILE = '/api/drive/download',
   ACTIVITY_LOG = '/api/activity-log',
+  NEXT_MEMBERSHIP_ID = '/api/member/next-id',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',

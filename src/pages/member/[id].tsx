@@ -65,6 +65,9 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
   function handleMemberChange(memberPart: Partial<Member>) {
     if (member) setMember({ ...member, ...memberPart })
   }
+  function handleMemberReset() {
+    setMember(initMember)
+  }
   async function handleUdpateMember(newMember: Member) {
     try {
       const response = await fetch(`${ENDPOINT.MEMBER}${newMember.id}`, {
@@ -90,38 +93,29 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
     <React.Fragment>
       <Head>
         <title>ALR 91 - Member</title>
-        <meta name='description' content='american legion riders chapter 91 member information' />
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/images/alr-logo.png' />
+        <meta name='description' content='american legion riders chapter 91 roster' />
       </Head>
-      <Box component='main'>
-        <Header />
-        <LocalizationProvider dateAdapter={AdapterMoment}>
-          <Container maxWidth='xl' sx={{ mt: 1, pb: 2 }}>
-            {member ? (
-              <Stack spacing={1}>
-                <MemberInformation
-                  member={member}
-                  onSave={handleUdpateMember}
-                  onChange={handleMemberChange}
-                />
-                {(isCurrentlySignedIn || isOfficer) && (
-                  <MemberYearlyRequirments
-                    logs={activityLogs}
-                    year={moment().year()}
-                    member={member}
-                  />
-                )}
-                <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
-              </Stack>
-            ) : (
-              <Alert severity='error' sx={{ mt: 3 }}>
-                <AlertTitle>Member Not Found</AlertTitle>
-              </Alert>
+
+      <LocalizationProvider dateAdapter={AdapterMoment}>
+        {member ? (
+          <Stack spacing={1}>
+            <MemberInformation
+              member={member}
+              onSave={handleUdpateMember}
+              onChange={handleMemberChange}
+              onReset={handleMemberReset}
+            />
+            {(isCurrentlySignedIn || isOfficer) && (
+              <MemberYearlyRequirments logs={activityLogs} year={moment().year()} member={member} />
             )}
-          </Container>
-        </LocalizationProvider>
-      </Box>
+            <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
+          </Stack>
+        ) : (
+          <Alert severity='error' sx={{ mt: 3 }}>
+            <AlertTitle>Member Not Found</AlertTitle>
+          </Alert>
+        )}
+      </LocalizationProvider>
     </React.Fragment>
   )
 }

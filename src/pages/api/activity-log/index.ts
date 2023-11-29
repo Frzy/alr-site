@@ -1,4 +1,5 @@
 import { addActivityLogEntries, getActivityLogStats } from '@/lib/activity.log'
+import HttpError from '@/lib/http-error'
 import { ActivityLogStats } from '@/types/common'
 import { ACTIVITY_TYPE } from '@/utils/constants'
 import moment from 'moment'
@@ -53,15 +54,26 @@ async function PostHandle(req: NextApiRequest, res: NextApiResponse) {
 
   await addActivityLogEntries(rows)
 
-  return res.status(201).json({ success: true })
+  return { success: true }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  switch (req.method) {
-    case 'POST':
-      PostHandle(req, res)
-      break
-    default:
-      res.status(405).json(undefined)
+  try {
+    let response
+
+    switch (req.method) {
+      case 'GET':
+        response = await PostHandle(req, res)
+        res.status(201)
+        break
+      default:
+        throw new HttpError(405, 'Method Not Allowed')
+    }
+
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(response))
+  } catch (error) {
+    res.json(error)
+    res.status(error instanceof HttpError ? error.status : 400).end()
   }
 }

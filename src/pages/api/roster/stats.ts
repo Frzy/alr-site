@@ -1,7 +1,7 @@
 import { getMembersBy, memberToUnAuthMember } from '@/lib/roster'
 import { NextApiRequest, NextApiResponse } from 'next'
-import type { Member, MembershipStats, ObjectFromList } from '@/types/common'
-import { ROLES } from '@/utils/constants'
+import type { MembershipStats } from '@/types/common'
+import HttpError from '@/lib/http-error'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse<MembershipStats>) {
   const roster = await getMembersBy()
@@ -17,15 +17,26 @@ async function GetHandle(req: NextApiRequest, res: NextApiResponse<MembershipSta
     return curr
   }, counts)
 
-  return res.status(200).json(counts)
+  return counts
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  switch (req.method) {
-    case 'GET':
-      GetHandle(req, res)
-      break
-    default:
-      res.status(405).json(undefined)
+  try {
+    let response
+
+    switch (req.method) {
+      case 'GET':
+        response = await GetHandle(req, res)
+        break
+      default:
+        throw new HttpError(405, 'Method Not Allowed')
+    }
+
+    res.status(200)
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(response))
+  } catch (error) {
+    res.json(error)
+    res.status(error instanceof HttpError ? error.status : 400).end()
   }
 }

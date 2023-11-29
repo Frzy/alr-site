@@ -1,5 +1,5 @@
-import { downloadFile, getFolderContents } from '@/lib/drive'
-import { drive_v3 } from 'googleapis'
+import { downloadFile } from '@/lib/drive'
+import HttpError from '@/lib/http-error'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse) {
@@ -8,25 +8,28 @@ async function GetHandle(req: NextApiRequest, res: NextApiResponse) {
   if (fileId) {
     const file = await downloadFile(!Array.isArray(fileId) ? fileId : fileId[0])
 
-    if (file) {
-      const { data, details } = file
-      res.status(200)
-      res.setHeader('Content-Type', details.mimeType ?? 'application/json')
-      res.setHeader('Content-Length', data.length)
-
-      return res.end(data)
-    }
+    if (file) return file
   }
 
-  return res.status(400).json({ errorCode: 400, message: 'Invalid fileId query parameter' })
+  throw new HttpError(400, 'Invalid fileId query parameter')
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  switch (req.method) {
-    case 'GET':
-      GetHandle(req, res)
-      break
-    default:
-      res.status(405).json(undefined)
+  try {
+    switch (req.method) {
+      case 'GET':
+        const { data, details } = await GetHandle(req, res)
+        res.setHeader('Content-Type', details.mimeType ?? 'application/json')
+        res.setHeader('Content-Length', data.length)
+        res.status(200)
+
+        res.end(data)
+        break
+      default:
+        throw new HttpError(405, 'Method Not Allowed')
+    }
+  } catch (error) {
+    res.json(error)
+    res.status(error instanceof HttpError ? error.status : 400).end()
   }
 }

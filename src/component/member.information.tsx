@@ -1,33 +1,38 @@
+import * as React from 'react'
+
+import { ENDPOINT, ENTITY, ROLE } from '@/utils/constants'
+import { LoadingButton } from '@mui/lab'
+import { useSession } from 'next-auth/react'
+import DateDisplay from './date.display'
+import EditIcon from '@mui/icons-material/Edit'
+import EntityDisplay from './entity.viewer'
+import Grid from '@mui/material/Unstable_Grid2'
+import ImageDisplay from './image.display'
+import moment, { Moment } from 'moment'
+import OfficeDisplay from './officer.display'
+import PhoneField from './phone.number.field'
+import RoleDisplay from './role.display'
+import TextDisplay from './text.display'
+import NumbersIcon from '@mui/icons-material/Numbers'
+
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
+  CircularProgress,
   Checkbox,
   Divider,
   FormControlLabel,
+  IconButton,
+  InputAdornment,
   Paper,
   SelectChangeEvent,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
-import Grid from '@mui/material/Unstable_Grid2'
-import { useSession } from 'next-auth/react'
-import * as React from 'react'
-import TextDisplay from './text.display'
-import EntityDisplay from './entity.viewer'
-import RoleDisplay from './role.display'
-import OfficeDisplay from './officer.display'
 
 import type { Member } from '@/types/common'
-import PhoneField from './phone.number.field'
-import DateDisplay from './date.display'
-import moment, { Moment } from 'moment'
-import EditIcon from '@mui/icons-material/Edit'
-import { ENTITY, ROLE } from '@/utils/constants'
-import Link from './link'
-import ImageDisplay from './image.display'
 
 const enum Mode {
   Edit = 'edit',
@@ -56,6 +61,7 @@ export default function MemberInformation({
   const isEditing = mode === Mode.Edit && isMember
   const isCurrentlyLoggedIn = session.data?.user.id === member.id
   const [loading, setLoading] = React.useState(false)
+  const [fetchingId, setFetchingId] = React.useState(false)
   const hasEmergencyContacts = React.useMemo(() => {
     return member.emergencyContacts.some((e) => e.name)
   }, [member])
@@ -103,6 +109,20 @@ export default function MemberInformation({
     if (onSave) await onSave({ ...member })
     setLoading(false)
     setMode(Mode.View)
+  }
+  async function getNextMembershipId() {
+    setFetchingId(true)
+    try {
+      const response = await fetch(ENDPOINT.NEXT_MEMBERSHIP_ID)
+
+      const data = await response.json()
+
+      handleChange({ membershipId: data.nextId })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setFetchingId(false)
+    }
   }
 
   return (
@@ -443,7 +463,30 @@ export default function MemberInformation({
                     editing={isEditing}
                     size={isEditing ? 'medium' : 'small'}
                     onChange={handleTextChange}
-                    disabled={disabled || loading}
+                    disabled={disabled || loading || fetchingId}
+                    InputProps={
+                      fetchingId
+                        ? {
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                <CircularProgress size={24} />
+                              </InputAdornment>
+                            ),
+                          }
+                        : !member.membershipId
+                        ? {
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                <Tooltip title='Get next MembershipId'>
+                                  <IconButton onClick={getNextMembershipId}>
+                                    <NumbersIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </InputAdornment>
+                            ),
+                          }
+                        : undefined
+                    }
                     fullWidth
                   />
                 </Grid>

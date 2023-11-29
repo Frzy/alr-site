@@ -7,26 +7,20 @@ import {
   updateFurtureRecurringEvents,
 } from '@/lib/calendar'
 import { RECURRENCE_MODE } from '@/utils/constants'
+import HttpError from '@/lib/http-error'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse) {
   const { eventId } = req.query as { [key: string]: string }
+  const event = await getSingleCalendarEvent({
+    eventId,
+  })
 
-  try {
-    const event = await getSingleCalendarEvent({
-      eventId,
-    })
+  if (!event) throw new HttpError(404, 'Not Found')
 
-    if (event) {
-      return res.status(200).json(event)
-    } else {
-      return res.status(404).json({})
-    }
-  } catch (error) {
-    return res.status(400).end(error)
-  }
+  return event
 }
 
-async function deleteHandle(req: NextApiRequest, res: NextApiResponse) {
+async function DeleteHandle(req: NextApiRequest, res: NextApiResponse) {
   const { eventId, mode, stopDate } = req.query as { [key: string]: string }
 
   if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
@@ -35,39 +29,44 @@ async function deleteHandle(req: NextApiRequest, res: NextApiResponse) {
     await deleteCalendarEvent({ eventId })
   }
 
-  return res.status(200).json(null)
+  return null
 }
 
-async function putHandle(req: NextApiRequest, res: NextApiResponse) {
+async function PutHandle(req: NextApiRequest, res: NextApiResponse) {
   const { eventId } = req.query as { [key: string]: string }
   const { mode, stopDate, event } = JSON.parse(req.body)
-  let response
 
-  try {
-    if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
-      response = await updateFurtureRecurringEvents(eventId, event, stopDate)
-    } else {
-      response = await updateCalendarEvent({ eventId, requestBody: event }, true)
-    }
-
-    return res.status(200).json(response)
-  } catch (error) {
-    return res.status(400).json(error)
+  if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
+    return await updateFurtureRecurringEvents(eventId, event, stopDate)
   }
+
+  return await updateCalendarEvent({ eventId, requestBody: event }, true)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  switch (req.method) {
-    case 'GET':
-      GetHandle(req, res)
-      break
-    case 'DELETE':
-      deleteHandle(req, res)
-      break
-    case 'PUT':
-      putHandle(req, res)
-      break
-    default:
-      res.status(405).end()
+  try {
+    let response
+    switch (req.method) {
+      case 'GET':
+        response = GetHandle(req, res)
+        res.status(200)
+        break
+      case 'DELETE':
+        response = DeleteHandle(req, res)
+        res.status(204)
+        break
+      case 'PUT':
+        response = PutHandle(req, res)
+        res.status(200)
+        break
+      default:
+        throw new HttpError(405, 'Method Not Allowed')
+    }
+
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(response))
+  } catch (error) {
+    res.json(error)
+    res.status(error instanceof HttpError ? error.status : 400).end()
   }
 }

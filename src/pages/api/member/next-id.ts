@@ -1,20 +1,24 @@
 import { authOptions } from '@/lib/auth'
-import { getMembersBy, memberToUnAuthMember } from '@/lib/roster'
-import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
+import { getNextAlrIDNumber } from '@/lib/roster'
+import { NextApiRequest, NextApiResponse } from 'next'
+
 import type { Member } from '@/types/common'
-import { officerSort } from '@/utils/helpers'
+import type { Api } from '@/types/api'
 import HttpError from '@/lib/http-error'
 
-async function GetHandle(req: NextApiRequest, res: NextApiResponse<Member[]>) {
+type NextIdResponse = {
+  nextId: string
+}
+
+async function GetHandle(req: NextApiRequest, res: NextApiResponse<NextIdResponse | Api.Error>) {
   const session = await getServerSession(req, res, authOptions)
-  const officers = await getMembersBy((member) => !!member.office)
 
-  officers.sort(officerSort)
+  if (!session) throw new HttpError(403, 'Not Authorized')
 
-  if (session) return officers
+  const nextId = await getNextAlrIDNumber()
 
-  return officers.map(memberToUnAuthMember)
+  return nextId
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

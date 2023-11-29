@@ -149,7 +149,18 @@ export async function getActivityLogStats(
 ): Promise<ActivityLogStats> {
   const logs = await getActivityLogEntries(filter)
   const groups = groupLogsByMemberInArray(logs)
-  const latestEntries = logs.slice(-5).reverse()
+  const latestEntries = [...logs]
+    .sort((a, b) => {
+      const firstDate = moment(a.created)
+      const secondDate = moment(b.created)
+
+      if (firstDate.isBefore(secondDate)) return -1
+
+      if (firstDate.isAfter(secondDate)) return 1
+
+      return 0
+    })
+    .slice(-5)
 
   const stats = groups.reduce(
     (cur, next) => {
