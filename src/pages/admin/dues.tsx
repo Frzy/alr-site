@@ -208,12 +208,13 @@ export default function DuesPage() {
         body: JSON.stringify({ ...member, lastPaidDues: `${dueYear}` }),
       })
       const data = (await response.json()) as Member
-      const index = members.findIndex((m) => m.id === data.id)
+      const index = members.findIndex((entry) => entry.member.id === data.id)
 
       if (index !== -1) {
         const newMemberList = [...members]
+        const newMember = { ...newMemberList[index], member: data }
 
-        newMemberList.splice(index, 1, data)
+        newMemberList.splice(index, 1, newMember)
         setMembers(newMemberList)
       }
     } catch (e) {
@@ -231,7 +232,6 @@ export default function DuesPage() {
     async function getMembers() {
       setFetching(true)
       setLoadingMap({})
-      const now = moment()
       const start = moment().startOf('year')
       const end = moment().endOf('year')
 
@@ -300,7 +300,9 @@ export default function DuesPage() {
         {isAdmin && (
           <LocalizationProvider dateAdapter={AdapterMoment}>
             <Paper sx={{ p: 1 }}>
-              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
+              <Box
+                sx={{ display: 'flex', gap: 2, pt: 1, flexDirection: { xs: 'column', md: 'row' } }}
+              >
                 <DateDisplay
                   value={moment(dueYear, 'YYYY')}
                   views={['year']}
@@ -308,11 +310,13 @@ export default function DuesPage() {
                   onChange={(value) => setDueYear(value ? value.year() : value)}
                   editing
                   fullWidth
+                  disabled={fetching}
                 />
                 <FormControlLabel
                   control={<Switch checked={showPastMembers} onChange={handlePastMemeberToggle} />}
                   label='Show Past Members'
                   sx={{ minWidth: 210 }}
+                  disabled={fetching}
                 />
               </Box>
             </Paper>
