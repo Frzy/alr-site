@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Alert, Box, Divider, Stack, Typography } from '@mui/material'
+import { Alert, Box, Toolbar, Typography } from '@mui/material'
 import { ENDPOINT } from '@/utils/constants'
 import RosterItem, { SkeletonRosterItem } from './roster.item'
 import useSWR, { Fetcher } from 'swr'
@@ -28,32 +28,33 @@ export default function Officers() {
 
   if (error)
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
-        <Alert severity='error'>There was a problem fetching the officers</Alert>
-      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}></Box>
     )
 
   return (
     <Box>
-      <Typography sx={{ p: 1 }} variant='h4'>
-        E-Board
-      </Typography>
-      <Divider />
-      <Grid container spacing={1} sx={{ p: 1 }}>
-        {isLoading
-          ? Array(10)
-              .fill(0)
-              .map((_, index) => (
-                <Grid key={index}>
-                  <SkeletonRosterItem />
+      <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
+        <Typography variant='h5'>Executive Board</Typography>
+      </Toolbar>
+      {error ? (
+        <Alert severity='error'>There was a problem fetching the offices</Alert>
+      ) : (
+        <Grid container spacing={1} sx={{ p: 1 }}>
+          {isLoading
+            ? Array(10)
+                .fill(0)
+                .map((_, index) => (
+                  <Grid key={index}>
+                    <SkeletonRosterItem />
+                  </Grid>
+                ))
+            : officers?.map((o, index) => (
+                <Grid key={index} xs={12} sm={6} lg={3}>
+                  <RosterItem member={o} />
                 </Grid>
-              ))
-          : officers?.map((o, index) => (
-              <Grid key={index} xs={12} sm={6} lg={3}>
-                <RosterItem member={o} />
-              </Grid>
-            ))}
-      </Grid>
+              ))}
+        </Grid>
+      )}
     </Box>
   )
 }

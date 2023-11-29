@@ -1,14 +1,5 @@
 import * as React from 'react'
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Divider,
-  Paper,
-  Skeleton,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Alert, Box, Divider, Skeleton, Stack, Toolbar, Typography } from '@mui/material'
 import { ENDPOINT, MEMBER_ROLES, RIDER_ROLES, ROLE } from '@/utils/constants'
 import { queryRequest } from '@/utils/api'
 import useSWR, { Fetcher } from 'swr'
@@ -69,10 +60,9 @@ export default function MembershipStats() {
 
   return (
     <Box>
-      <Typography sx={{ p: 1 }} variant='h4'>
-        Membership
-      </Typography>
-      <Divider />
+      <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
+        <Typography variant='h5'>Membership</Typography>
+      </Toolbar>
       {isLoading ? (
         <Stack sx={{ p: 1 }} spacing={1}>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>

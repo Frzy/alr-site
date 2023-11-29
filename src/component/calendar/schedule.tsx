@@ -6,6 +6,7 @@ import {
   Skeleton,
   Stack,
   StackProps,
+  Toolbar,
   Typography,
   TypographyProps,
 } from '@mui/material'
@@ -185,28 +186,30 @@ export default function CalendarSchedule({
   }
 
   return (
-    <Box position='relative' display='flex' flexGrow={1} height='calc(100% - 64px)' overflow='auto'>
+    <Box position='relative' flexGrow={1} height='calc(100% - 64px)' overflow='auto'>
       {isLoading ? (
-        <Stack spacing={1} flexGrow={1} {...stackProps}>
+        <React.Fragment>
           {!!title && (
-            <Typography variant='h4' {...titleProps}>
-              {title}
-            </Typography>
+            <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader, mb: 1 }}>
+              <Typography variant='h5'>{title}</Typography>
+            </Toolbar>
           )}
-          {Array(5)
-            .fill(1)
-            .map((_, index) => (
-              <SkeletonEvent key={index} />
-            ))}
-        </Stack>
+          <Stack spacing={1} flexGrow={1} {...stackProps}>
+            {Array(5)
+              .fill(1)
+              .map((_, index) => (
+                <SkeletonEvent key={index} />
+              ))}
+          </Stack>
+        </React.Fragment>
       ) : (
         <React.Fragment>
+          {!!title && (
+            <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader, mb: 1 }}>
+              <Typography variant='h5'>{title}</Typography>
+            </Toolbar>
+          )}
           <Stack spacing={1} flexGrow={1} {...stackProps}>
-            {!!title && (
-              <Typography variant='h4' {...titleProps}>
-                {title}
-              </Typography>
-            )}
             {events.map((group, dayIndex) => {
               const day = moment(date).startOf('day')
               const displayDate = moment(minDate).add(dayIndex, 'days')
@@ -275,7 +278,8 @@ export default function CalendarSchedule({
                       </Box>
                       <Box flexGrow={1} className='schedule-event'>
                         {group.map((e, index) => {
-                          const renderIndicator = !disableCurrentTimeTracker && shouldRenderIndicator(group, index)
+                          const renderIndicator =
+                            !disableCurrentTimeTracker && shouldRenderIndicator(group, index)
 
                           if (renderIndicator) {
                             return renderIndicator === 'before'

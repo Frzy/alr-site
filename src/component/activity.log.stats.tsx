@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Alert, Box, Divider, Skeleton, Stack, Typography } from '@mui/material'
+import { Alert, Box, Divider, Skeleton, Stack, Toolbar, Typography } from '@mui/material'
 import { ENDPOINT } from '@/utils/constants'
 import { queryRequest } from '@/utils/api'
 import useSWR, { Fetcher } from 'swr'
@@ -44,9 +44,10 @@ export default function ActivityLogStats() {
 
   return (
     <Box>
-      <Typography sx={{ p: 1 }} variant='h4'>
-        Log Stats
-      </Typography>
+      <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
+        <Typography variant='h5'>Log Stats</Typography>
+      </Toolbar>
+
       <Divider />
       {isLoading ? (
         <Stack sx={{ p: 1 }} spacing={1}>
