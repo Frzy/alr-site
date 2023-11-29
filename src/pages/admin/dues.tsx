@@ -19,11 +19,12 @@ import SearchIcon from '@mui/icons-material/Search'
 import {
   Alert,
   Box,
-  Button,
+  FormControlLabel,
   InputBase,
   LinearProgress,
   Paper,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -33,31 +34,28 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
-export const getServerSideProps: GetServerSideProps<DuesPageProps> = async ({ req, res }) => {
-  const session = await getServerSession(req, res, authOptions)
+// export const getServerSideProps: GetServerSideProps<DuesPageProps> = async ({ req, res }) => {
+//   const session = await getServerSession(req, res, authOptions)
 
-  if (!!session?.user && !!session.user.office) {
-    const members = await getMembersBy((m) => m.isActive)
+//   if (!!session?.user && !!session.user.office) {
+//     const members = await getMembersBy((m) => m.isActive)
 
-    members.sort((a, b) => {
-      if (a.name > b.name) return 1
-      if (a.name < b.name) return -1
+//     members.sort((a, b) => {
+//       if (a.name > b.name) return 1
+//       if (a.name < b.name) return -1
 
-      return 0
-    })
+//       return 0
+//     })
 
-    return { props: { members } }
-  }
+//     return { props: { members } }
+//   }
 
-  return {
-    props: { members: [] as Member[] },
-  }
-}
-
-type DuesPageProps = {
-  members: Member[]
-}
+//   return {
+//     props: { members: [] as Member[] },
+//   }
+// }
 
 type TableTitleProps = {
   title: string
@@ -67,7 +65,6 @@ type TableTitleProps = {
 }
 function TableTitle({ title, count, searchable, onSearchChange }: TableTitleProps) {
   const theme = useTheme()
-  const colorScheme = theme.colorSchemes[theme.palette.mode]
   const [searchTerm, setSearchTerm] = React.useState('')
 
   return (
@@ -75,10 +72,7 @@ function TableTitle({ title, count, searchable, onSearchChange }: TableTitleProp
       sx={{
         pl: { sm: 2 },
         pr: { xs: 1, sm: 1 },
-        bgcolor: alpha(
-          colorScheme.palette.primary.main,
-          colorScheme.palette.action.activatedOpacity,
-        ),
+        bgcolor: theme.vars.palette.rosterHeader,
         display: searchable ? 'flex' : undefined,
         flexDirection: searchable
           ? {
@@ -169,7 +163,7 @@ function TableTitle({ title, count, searchable, onSearchChange }: TableTitleProp
   )
 }
 
-export default function DuesPage({ members: initMembers }: DuesPageProps) {
+export default function DuesPage() {
   const { status, data } = useSession()
   const isAdmin = status === 'authenticated' && !!data.user.office
   const initialYear = React.useMemo(() => {
@@ -180,7 +174,9 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
   const [dueYear, setDueYear] = React.useState<number | null>(initialYear)
   const [unpaidSearchTerm, setUnpaidSearchTerm] = React.useState('')
   const [paidSearchTerm, setPaidSearchTerm] = React.useState('')
-  const [members, setMembers] = React.useState(initMembers)
+  const [members, setMembers] = React.useState([])
+  const [fetching, setFetching] = React.useState(false)
+  const [showPastMembers, setShowPastMembers] = React.useState(false)
   const paidMembers = React.useMemo(() => {
     if (!dueYear) return []
 
@@ -209,9 +205,11 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
   }, [paidSearchTerm, paidMembers])
   const unpaidList = unpaidSearchTerm ? fuzzyUnpaidMembers : unpaidMembers
   const paidList = paidSearchTerm ? fuzzyPaidMembers : paidMembers
+  const [loadingMap, setLoadingMap] = React.useState<{ [key: string]: boolean }>({})
 
   async function handlePaidClick(member: Member) {
     try {
+      setLoadingMap((prev) => ({ ...prev, [member.id]: true }))
       const response = await fetch(`${ENDPOINT.MEMBER}${member.id}`, {
         method: 'PUT',
         headers: {
@@ -231,8 +229,33 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
       }
     } catch (e) {
       console.log(e)
+    } finally {
+      setLoadingMap((prev) => ({ ...prev, [member.id]: false }))
     }
   }
+
+  async function handlePastMemeberToggle(event: React.ChangeEvent<HTMLInputElement>) {
+    setShowPastMembers(event.target.checked)
+  }
+
+  React.useEffect(() => {
+    async function getMembers() {
+      setFetching(true)
+      setLoadingMap({})
+
+      const response = await fetch(ENDPOINT.ROSTER)
+      const allMembers = await response.json()
+
+      if (showPastMembers) {
+        setMembers(allMembers)
+      } else {
+        setMembers(allMembers.filter((m: Member) => m.isActive))
+      }
+      setFetching(false)
+    }
+
+    getMembers()
+  }, [showPastMembers])
 
   return (
     <React.Fragment>
@@ -246,9 +269,9 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
           {status === 'loading' ? (
             <LinearProgress />
           ) : status === 'unauthenticated' || !isAdmin ? (
-            <h1>Not Authorized</h1>
+            <Alert severity='error'>Not Authorized</Alert>
           ) : (
-            <Typography component='h1' variant='h4' sx={{ flexGrow: 1 }}>
+            <Typography component='h1' variant='h5' sx={{ flexGrow: 1 }}>
               Membership Dues
             </Typography>
           )}
@@ -256,32 +279,46 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
         {isAdmin && (
           <LocalizationProvider dateAdapter={AdapterMoment}>
             <Paper sx={{ p: 1 }}>
-              <DateDisplay
-                value={moment(dueYear, 'YYYY')}
-                views={['year']}
-                label='Update Paid Dues To'
-                onChange={(value) => setDueYear(value ? value.year() : value)}
-                editing
-                fullWidth
-              />
+              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
+                <DateDisplay
+                  value={moment(dueYear, 'YYYY')}
+                  views={['year']}
+                  label='Update Paid Dues To'
+                  onChange={(value) => setDueYear(value ? value.year() : value)}
+                  editing
+                  fullWidth
+                />
+                <FormControlLabel
+                  control={<Switch checked={showPastMembers} onChange={handlePastMemeberToggle} />}
+                  label='Show Past Members'
+                  sx={{ minWidth: 210 }}
+                />
+              </Box>
             </Paper>
             {!dueYear && (
               <Alert severity='warning'>
                 Please select a year to update the membership dues to
               </Alert>
             )}
-            {unpaidMembers.length > 0 && (
-              <Paper>
-                <TableTitle
-                  title='Unpaid Members'
-                  count={
-                    unpaidSearchTerm
-                      ? `${fuzzyUnpaidMembers.length} of ${unpaidMembers.length}`
-                      : unpaidMembers.length
-                  }
-                  onSearchChange={(term) => setUnpaidSearchTerm(term)}
-                  searchable
-                />
+
+            <Paper>
+              <TableTitle
+                title='Unpaid Members'
+                count={
+                  fetching || unpaidMembers.length === 0
+                    ? undefined
+                    : unpaidSearchTerm
+                    ? `${fuzzyUnpaidMembers.length} of ${unpaidMembers.length}`
+                    : unpaidMembers.length
+                }
+                onSearchChange={(term) => setUnpaidSearchTerm(term)}
+                searchable={!fetching}
+              />
+              {fetching ? (
+                <Box p={2}>
+                  <LinearProgress />
+                </Box>
+              ) : (
                 <TableContainer>
                   <Table>
                     <TableHead>
@@ -311,7 +348,13 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
                               justifyContent='center'
                               width='100%'
                             >
-                              <Button onClick={() => handlePaidClick(member)}>Paid</Button>
+                              <LoadingButton
+                                loading={loadingMap[member.id]}
+                                variant='outlined'
+                                onClick={() => handlePaidClick(member)}
+                              >
+                                Paid
+                              </LoadingButton>
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -319,20 +362,27 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Paper>
-            )}
-            {paidMembers.length > 0 && (
-              <Paper>
-                <TableTitle
-                  title='Paid Members'
-                  count={
-                    paidSearchTerm
-                      ? `${fuzzyPaidMembers.length} of ${paidMembers.length}`
-                      : paidMembers.length
-                  }
-                  onSearchChange={(term) => setPaidSearchTerm(term)}
-                  searchable
-                />
+              )}
+            </Paper>
+
+            <Paper>
+              <TableTitle
+                title='Paid Members'
+                count={
+                  fetching || paidMembers.length === 0
+                    ? undefined
+                    : paidSearchTerm
+                    ? `${fuzzyPaidMembers.length} of ${paidMembers.length}`
+                    : paidMembers.length
+                }
+                onSearchChange={(term) => setPaidSearchTerm(term)}
+                searchable={!fetching}
+              />
+              {fetching ? (
+                <Box p={2}>
+                  <LinearProgress />
+                </Box>
+              ) : (
                 <TableContainer>
                   <Table>
                     <TableHead>
@@ -372,8 +422,8 @@ export default function DuesPage({ members: initMembers }: DuesPageProps) {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Paper>
-            )}
+              )}
+            </Paper>
           </LocalizationProvider>
         )}
       </Stack>
