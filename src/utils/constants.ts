@@ -113,6 +113,7 @@ export enum ENDPOINT {
   EVENT = '/api/calendar/event',
   EVENTS = '/api/calendar/events',
   LOGS_STATS = '/api/activity-log/stats',
+  LOGS_BY_MEMBER = '/api/activity-log/members',
   MEMBER = '/api/member/',
   OFFICERS = '/api/roster/officers',
   ROSTER = '/api/roster',
@@ -194,3 +195,5 @@ export const UPDATEABLE_PROPS: Array<keyof IRequestBodyCalendarEvent> = [
   'summary',
   'extendedProperties',
 ]
+export const MIN_RIDES = 4
+export const MIN_EVENTS = 12

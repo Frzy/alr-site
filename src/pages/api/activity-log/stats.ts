@@ -5,11 +5,11 @@ import moment from 'moment'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse<ActivityLogStats>) {
-  const { start, end, includeInactive } = req.query as {
+  const { start, end, includeInactiveMembers } = req.query as {
     [key: string]: string
   }
   const memberFilter = (m: Member) => {
-    return includeInactive ? true : m.isActive
+    return includeInactiveMembers === 'true' ? true : m.isActive
   }
 
   if (start && end)

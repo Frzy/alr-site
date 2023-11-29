@@ -34,7 +34,7 @@ function getBaseGroupLog() {
     ...BASE_STATS,
   }
 }
-function groupLogsByMember(logs: ActivityLog[]) {
+function groupLogsByMemberObject(logs: ActivityLog[]) {
   return logs.reduce((groups, log) => {
     if (!groups[log.name]) {
       groups[log.name] = getBaseGroupLog()
@@ -57,11 +57,11 @@ function groupLogsByMember(logs: ActivityLog[]) {
   }, {} as GroupLogs)
 }
 
-async function groupLogsByMemberInArray(
+export async function groupLogsByMember(
   logs: ActivityLog[],
   memberFilter?: (member: Member) => boolean,
 ): Promise<LogsByMember[]> {
-  const groups = groupLogsByMember(logs)
+  const groups = groupLogsByMemberObject(logs)
   const members = await getMembersBy(memberFilter)
 
   return members.map((member) => {
@@ -159,7 +159,7 @@ export async function getActivityLogStats(
   memberFilter?: (member: Member) => boolean,
 ): Promise<ActivityLogStats> {
   const logs = await getActivityLogEntries(filter)
-  const groups = await groupLogsByMemberInArray(logs, memberFilter)
+  const groups = await groupLogsByMember(logs, memberFilter)
   const latestEntries = [...logs]
     .sort((a, b) => {
       const firstDate = moment(a.created)

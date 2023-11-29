@@ -1,21 +1,19 @@
 import * as React from 'react'
 
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { alpha, useTheme } from '@mui/material/styles'
-import { authOptions } from '@/lib/auth'
-import { ENDPOINT } from '@/utils/constants'
-import { getMembersBy } from '@/lib/roster'
-import { getServerSession } from 'next-auth'
-import { GetServerSideProps } from 'next'
+import { ENDPOINT, MIN_EVENTS, MIN_RIDES, ROLE } from '@/utils/constants'
 import { LocalizationProvider } from '@mui/x-date-pickers'
-import { Member } from '@/types/common'
+import { LogsByMember, Member } from '@/types/common'
 import { useSession } from 'next-auth/react'
+import { useTheme } from '@mui/material/styles'
 import DateDisplay from '@/component/date.display'
 import FuzzySearch from 'fuzzy-search'
 import Head from 'next/head'
+import Link from '@/component/link'
 import moment from 'moment'
 import SearchIcon from '@mui/icons-material/Search'
 
+import { LoadingButton } from '@mui/lab'
 import {
   Alert,
   Box,
@@ -34,28 +32,6 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
-
-// export const getServerSideProps: GetServerSideProps<DuesPageProps> = async ({ req, res }) => {
-//   const session = await getServerSession(req, res, authOptions)
-
-//   if (!!session?.user && !!session.user.office) {
-//     const members = await getMembersBy((m) => m.isActive)
-
-//     members.sort((a, b) => {
-//       if (a.name > b.name) return 1
-//       if (a.name < b.name) return -1
-
-//       return 0
-//     })
-
-//     return { props: { members } }
-//   }
-
-//   return {
-//     props: { members: [] as Member[] },
-//   }
-// }
 
 type TableTitleProps = {
   title: string
@@ -63,6 +39,11 @@ type TableTitleProps = {
   searchable?: boolean
   onSearchChange?: (term: string) => void
 }
+
+type DueMember = {
+  eligible?: boolean
+} & LogsByMember
+
 function TableTitle({ title, count, searchable, onSearchChange }: TableTitleProps) {
   const theme = useTheme()
   const [searchTerm, setSearchTerm] = React.useState('')
@@ -174,30 +155,38 @@ export default function DuesPage() {
   const [dueYear, setDueYear] = React.useState<number | null>(initialYear)
   const [unpaidSearchTerm, setUnpaidSearchTerm] = React.useState('')
   const [paidSearchTerm, setPaidSearchTerm] = React.useState('')
-  const [members, setMembers] = React.useState([])
+  const [members, setMembers] = React.useState<DueMember[]>([])
   const [fetching, setFetching] = React.useState(false)
   const [showPastMembers, setShowPastMembers] = React.useState(false)
   const paidMembers = React.useMemo(() => {
     if (!dueYear) return []
 
     return members.filter(
-      (m) => m.isLifeTimeMember || (!!m.lastPaidDues ? m.lastPaidDues >= dueYear : false),
+      (entry) =>
+        entry.member.isLifeTimeMember ||
+        (!!entry.member.lastPaidDues ? entry.member.lastPaidDues >= dueYear : false),
     )
   }, [dueYear, members])
   const unpaidMembers = React.useMemo(() => {
     if (!dueYear) return []
 
-    return members.filter((m) => (!!m.lastPaidDues ? m.lastPaidDues < dueYear : true))
+    return members.filter((entry) =>
+      !!entry.member.lastPaidDues ? entry.member.lastPaidDues < dueYear : true,
+    )
   }, [dueYear, members])
   const fuzzyUnpaidMembers = React.useMemo(() => {
-    const searcher = new FuzzySearch(unpaidMembers, ['name', 'nickName'], { sort: true })
+    const searcher = new FuzzySearch(unpaidMembers, ['member.name', 'member.nickName'], {
+      sort: true,
+    })
 
     if (unpaidSearchTerm) return searcher.search(unpaidSearchTerm)
 
     return []
   }, [unpaidSearchTerm, unpaidMembers])
   const fuzzyPaidMembers = React.useMemo(() => {
-    const searcher = new FuzzySearch(paidMembers, ['name', 'nickName'], { sort: true })
+    const searcher = new FuzzySearch(paidMembers, ['member.name', 'member.nickName'], {
+      sort: true,
+    })
 
     if (paidSearchTerm) return searcher.search(paidSearchTerm)
 
@@ -242,15 +231,47 @@ export default function DuesPage() {
     async function getMembers() {
       setFetching(true)
       setLoadingMap({})
+      const now = moment()
+      const start = moment().startOf('year')
+      const end = moment().endOf('year')
 
-      const response = await fetch(ENDPOINT.ROSTER)
-      const allMembers = await response.json()
+      const queryParams = new URLSearchParams({
+        start: start.format(),
+        end: end.format(),
+        includeInactiveMembers: showPastMembers ? 'true' : 'false',
+      })
 
-      if (showPastMembers) {
-        setMembers(allMembers)
-      } else {
-        setMembers(allMembers.filter((m: Member) => m.isActive))
-      }
+      const response = await fetch(`${ENDPOINT.LOGS_BY_MEMBER}?${queryParams.toString()}`)
+      const newMembers = await response.json()
+      console.log(newMembers)
+      setMembers(
+        newMembers.map((entry: LogsByMember): DueMember => {
+          const isSupporter = entry.member.role === ROLE.SUPPORTER
+          let eligible = false
+
+          if (isSupporter) {
+            eligible = entry.events >= MIN_EVENTS
+
+            console.log({ name: entry.member.name, events: entry.events, eligible, entry })
+          } else {
+            const rides = entry.breakdown.Ride.events
+
+            eligible =
+              rides >= MIN_RIDES &&
+              Math.max(entry.events - Math.min(rides, MIN_RIDES), 0) >= MIN_EVENTS - MIN_RIDES
+
+            console.log({
+              name: entry.member.name,
+              rides,
+              hasMinRieds: rides >= MIN_RIDES,
+              eligible,
+              entry,
+            })
+          }
+
+          return { ...entry, eligible }
+        }),
+      )
       setFetching(false)
     }
 
@@ -324,6 +345,9 @@ export default function DuesPage() {
                     <TableHead>
                       <TableRow>
                         <TableCell>Name</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                          Status
+                        </TableCell>
                         <TableCell align='right' sx={{ width: '100px' }}>
                           Last Paid
                         </TableCell>
@@ -331,15 +355,34 @@ export default function DuesPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {unpaidList.map((member) => (
+                      {unpaidList.map((entry) => (
                         <TableRow
                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                          key={member.id}
+                          key={entry.member.id}
                         >
-                          <TableCell component='th' scope='row'>
-                            {member.name}
+                          <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
+                            <Box
+                              sx={{
+                                bgcolor: entry.eligible ? 'green' : 'red',
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                width: 15,
+                              }}
+                            />
+                            <Link
+                              href={`/member/${entry.member.id}`}
+                              target='_blank'
+                              sx={{ pl: 2 }}
+                            >
+                              {entry.member.name}
+                            </Link>
                           </TableCell>
-                          <TableCell align='right'>{member.lastPaidDues}</TableCell>
+                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            {entry.eligible ? 'Eligible' : 'Not Eligible'}
+                          </TableCell>
+                          <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
                           <TableCell align='right'>
                             <Box
                               display='flex'
@@ -349,9 +392,9 @@ export default function DuesPage() {
                               width='100%'
                             >
                               <LoadingButton
-                                loading={loadingMap[member.id]}
+                                loading={loadingMap[entry.member.id]}
                                 variant='outlined'
-                                onClick={() => handlePaidClick(member)}
+                                onClick={() => handlePaidClick(entry.member)}
                               >
                                 Paid
                               </LoadingButton>
@@ -394,15 +437,22 @@ export default function DuesPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {paidList.map((member) => (
+                      {paidList.map((entry) => (
                         <TableRow
                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                          key={member.id}
+                          key={entry.member.id}
                         >
                           <TableCell component='th' scope='row'>
                             <Box display='flex' alignItems='center' sx={{ gap: 1 }}>
-                              <Typography sx={{ minWidth: 200 }}>{member.name}</Typography>
-                              {member.isLifeTimeMember && (
+                              <Link
+                                sx={{ minWidth: 200 }}
+                                href={`/member/${entry.member.id}`}
+                                target='_blank'
+                              >
+                                {entry.member.name}
+                              </Link>
+
+                              {entry.member.isLifeTimeMember && (
                                 <Typography
                                   sx={{
                                     pr: { xs: 0, sm: 2, md: 4 },
@@ -416,7 +466,7 @@ export default function DuesPage() {
                               )}
                             </Box>
                           </TableCell>
-                          <TableCell align='right'>{member.lastPaidDues}</TableCell>
+                          <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

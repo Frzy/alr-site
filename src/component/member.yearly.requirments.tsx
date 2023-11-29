@@ -3,7 +3,6 @@ import moment from 'moment'
 import { Box, Paper, Stack, Typography, LinearProgress, LinearProgressProps } from '@mui/material'
 
 import type { ActivityLog, Member } from '@/types/common'
-import Image from 'next/image'
 import { ACTIVITY_TYPE, ROLE } from '@/utils/constants'
 
 interface MemberYearlyRequirmentsProps {
@@ -54,9 +53,13 @@ export default function MemberYearlyRequirments({
       })
       .reduce(
         (cur, next) => {
+          const nextRide = cur.rides + (next.activityType === ACTIVITY_TYPE.RIDE ? 1 : 0)
+          const nextEvent =
+            cur.events + (next.activityType !== ACTIVITY_TYPE.RIDE || nextRide > MIN_RIDES ? 1 : 0)
+
           return {
-            rides: cur.rides + (next.activityType === ACTIVITY_TYPE.RIDE ? 1 : 0),
-            events: cur.events + (next.activityType === ACTIVITY_TYPE.RIDE ? 0 : 1),
+            rides: nextRide,
+            events: nextEvent,
             total: cur.total + 1,
           }
         },
@@ -82,9 +85,8 @@ export default function MemberYearlyRequirments({
               <Typography component='span' fontWeight='fontWeightBold'>
                 Rides
               </Typography>
-
               <Typography component='span'>
-                : {counts.rides} of {MIN_RIDES}
+                : {Math.min(counts.rides, MIN_RIDES)} of {MIN_RIDES}
               </Typography>
             </Box>
           )}
@@ -93,7 +95,7 @@ export default function MemberYearlyRequirments({
               Events
             </Typography>
             <Typography component='span'>
-              : {counts.events} of {MIN_EVENTS}
+              : {Math.min(counts.events, MIN_EVENTS)} of {MIN_EVENTS}
             </Typography>
           </Box>
         </Box>

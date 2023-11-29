@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let response
 
     switch (req.method) {
-      case 'GET':
+      case 'POST':
         response = await PostHandle(req, res)
         res.status(201)
         break
