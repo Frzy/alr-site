@@ -117,7 +117,7 @@ export default function MemberInformation({
 
       const data = await response.json()
 
-      handleChange({ membershipId: data.nextId })
+      handleChange({ membershipId: data })
     } catch (error) {
       console.log(error)
     } finally {
