@@ -9,6 +9,8 @@ import {
   LinearProgress,
   Paper,
   Popover,
+  Stack,
+  Tooltip,
   Typography,
   Unstable_Grid2 as Grid,
 } from '@mui/material'
@@ -120,36 +122,53 @@ function EmailListView() {
           <Grid xs={12} sm={6} md={4}>
             <Paper sx={{ p: 1 }}>
               <Box sx={{ display: 'flex' }}>
-                <Typography variant='h4' sx={{ flex: 1 }}>
-                  {`Executive Board (${officers.length})`}
-                </Typography>
-                <IconButton onClick={handleCopyOfficers}>
-                  <CopyIcon />
-                </IconButton>
+                <Stack spacing={1} sx={{ flex: 1 }}>
+                  <Typography variant='h4'>{`Executive Board (${officers.length})`}</Typography>
+                  <Typography color='text.secondary' sx={{ flex: 1 }}>
+                    Only Executive Board officers
+                  </Typography>
+                </Stack>
+                <Tooltip title='Copy to Clipboard'>
+                  <IconButton onClick={handleCopyOfficers}>
+                    <CopyIcon />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </Paper>
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <Paper sx={{ p: 1 }}>
               <Box sx={{ display: 'flex' }}>
-                <Typography variant='h4' sx={{ flex: 1 }}>
-                  {`Members (${memebrs.length})`}
-                </Typography>
-                <IconButton onClick={handleCopyMembers}>
-                  <CopyIcon />
-                </IconButton>
+                <Stack spacing={1} sx={{ flex: 1 }}>
+                  <Typography variant='h4'>{`Members (${memebrs.length})`}</Typography>
+                  <Typography color='text.secondary' sx={{ flex: 1 }}>
+                    All Active Members
+                  </Typography>
+                </Stack>
+                <Tooltip title='Copy to Clipboard'>
+                  <IconButton onClick={handleCopyMembers}>
+                    <CopyIcon />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </Paper>
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <Paper sx={{ p: 1 }}>
               <Box sx={{ display: 'flex' }}>
-                <Typography variant='h4' sx={{ flex: 1 }}>
-                  {`Active Membership (${activeMember.length})`}
-                </Typography>
-                <IconButton onClick={handleCopyActiveMembers}>
-                  <CopyIcon />
-                </IconButton>
+                <Stack spacing={1} sx={{ flex: 1 }}>
+                  <Typography variant='h4'>
+                    {`Active Membership (${activeMember.length})`}
+                  </Typography>
+                  <Typography color='text.secondary' sx={{ flex: 1 }}>
+                    All Active Members and Canidates
+                  </Typography>
+                </Stack>
+                <Tooltip title='Copy to Clipboard'>
+                  <IconButton onClick={handleCopyActiveMembers}>
+                    <CopyIcon />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </Paper>
           </Grid>
