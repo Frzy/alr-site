@@ -121,7 +121,7 @@ function EmailListView() {
         <Grid spacing={2} container>
           <Grid xs={12} sm={6} md={4}>
             <Paper sx={{ p: 1 }}>
-              <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Stack spacing={1} sx={{ flex: 1 }}>
                   <Typography variant='h4'>{`Executive Board (${officers.length})`}</Typography>
                   <Typography color='text.secondary' sx={{ flex: 1 }}>
@@ -129,7 +129,7 @@ function EmailListView() {
                   </Typography>
                 </Stack>
                 <Tooltip title='Copy to Clipboard'>
-                  <IconButton onClick={handleCopyOfficers}>
+                  <IconButton sx={{ height: 40 }} onClick={handleCopyOfficers}>
                     <CopyIcon />
                   </IconButton>
                 </Tooltip>
@@ -138,7 +138,7 @@ function EmailListView() {
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <Paper sx={{ p: 1 }}>
-              <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Stack spacing={1} sx={{ flex: 1 }}>
                   <Typography variant='h4'>{`Members (${memebrs.length})`}</Typography>
                   <Typography color='text.secondary' sx={{ flex: 1 }}>
@@ -146,7 +146,7 @@ function EmailListView() {
                   </Typography>
                 </Stack>
                 <Tooltip title='Copy to Clipboard'>
-                  <IconButton onClick={handleCopyMembers}>
+                  <IconButton sx={{ height: 40 }} onClick={handleCopyMembers}>
                     <CopyIcon />
                   </IconButton>
                 </Tooltip>
@@ -155,7 +155,7 @@ function EmailListView() {
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <Paper sx={{ p: 1 }}>
-              <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Stack spacing={1} sx={{ flex: 1 }}>
                   <Typography variant='h4'>
                     {`Active Membership (${activeMember.length})`}
@@ -165,7 +165,7 @@ function EmailListView() {
                   </Typography>
                 </Stack>
                 <Tooltip title='Copy to Clipboard'>
-                  <IconButton onClick={handleCopyActiveMembers}>
+                  <IconButton sx={{ height: 40 }} onClick={handleCopyActiveMembers}>
                     <CopyIcon />
                   </IconButton>
                 </Tooltip>
