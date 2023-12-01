@@ -34,117 +34,11 @@ import {
   Typography,
 } from '@mui/material'
 import Header from '@/component/header'
-
-type TableTitleProps = {
-  title: string
-  count?: number | string
-  searchable?: boolean
-  onSearchChange?: (term: string) => void
-}
+import SearchToolbar from '@/component/search.toolbar'
 
 type DueMember = {
   eligible?: boolean
 } & LogsByMember
-
-function TableTitle({ title, count, searchable, onSearchChange }: TableTitleProps) {
-  const theme = useTheme()
-  const [searchTerm, setSearchTerm] = React.useState('')
-
-  return (
-    <Toolbar
-      sx={{
-        pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
-        bgcolor: theme.vars.palette.rosterHeader,
-        display: searchable ? 'flex' : undefined,
-        flexDirection: searchable
-          ? {
-              xs: 'column',
-              md: 'row',
-            }
-          : 'row',
-        paddingBottom: searchable
-          ? {
-              xs: theme.spacing(1),
-              md: 0,
-            }
-          : 0,
-        alignItems: searchable
-          ? {
-              xs: 'flex-start',
-              md: 'center',
-            }
-          : undefined,
-      }}
-    >
-      <Typography sx={{ flex: '1 1 100%', p: searchable ? 1 : undefined }} variant='h5'>
-        {title}
-        {count ? ` (${count})` : ''}
-      </Typography>
-      {searchable && (
-        <Box
-          sx={{
-            position: 'relative',
-            borderRadius: theme.shape.borderRadius,
-            backgroundColor: theme.vars.palette.headerSearch.main,
-            '&:hover': {
-              backgroundColor: theme.vars.palette.headerSearch.hover,
-            },
-            marginLeft: {
-              xs: 0,
-              md: theme.spacing(1),
-            },
-            width: {
-              xs: '100%',
-              md: 'auto',
-            },
-          }}
-        >
-          <Box
-            sx={{
-              padding: theme.spacing(0, 2),
-              height: '100%',
-              position: 'absolute',
-              pointerEvents: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <SearchIcon />
-          </Box>
-          <InputBase
-            sx={{
-              color: 'inherit',
-              '& .MuiInputBase-input': {
-                padding: theme.spacing(1, 1, 1, 0),
-                // vertical padding + font size from searchIcon
-                paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-                transition: theme.transitions.create('width'),
-                width: '100%',
-                [theme.breakpoints.up('sm')]: {
-                  width: '12ch',
-                  '&:focus': {
-                    width: '50ch',
-                  },
-                },
-              },
-            }}
-            placeholder='Search…'
-            inputProps={{ 'aria-label': 'search' }}
-            value={searchTerm}
-            onChange={(event) => {
-              const { value } = event.target
-
-              setSearchTerm(value)
-              if (onSearchChange) onSearchChange(value)
-            }}
-          />
-        </Box>
-      )}
-    </Toolbar>
-  )
-}
 
 export default function DuesPage() {
   const { status, data } = useSession()
@@ -197,6 +91,18 @@ export default function DuesPage() {
   const unpaidList = unpaidSearchTerm ? fuzzyUnpaidMembers : unpaidMembers
   const paidList = paidSearchTerm ? fuzzyPaidMembers : paidMembers
   const [loadingMap, setLoadingMap] = React.useState<{ [key: string]: boolean }>({})
+  const unpaidCount = React.useMemo(() => {
+    if (fetching || unpaidMembers.length === 0) return ''
+    if (unpaidSearchTerm.length) return `${fuzzyUnpaidMembers.length} of ${unpaidMembers.length}`
+
+    return unpaidMembers.length
+  }, [fetching, unpaidMembers, unpaidSearchTerm, fuzzyUnpaidMembers])
+  const paidCount = React.useMemo(() => {
+    if (fetching || paidMembers.length === 0) return ''
+    if (paidSearchTerm.length) return `${fuzzyPaidMembers.length} of ${paidMembers.length}`
+
+    return paidMembers.length
+  }, [fetching, paidMembers, paidSearchTerm, fuzzyPaidMembers])
 
   async function handlePaidClick(member: Member) {
     try {
@@ -327,17 +233,10 @@ export default function DuesPage() {
               )}
 
               <Paper>
-                <TableTitle
-                  title='Unpaid Members'
-                  count={
-                    fetching || unpaidMembers.length === 0
-                      ? undefined
-                      : unpaidSearchTerm
-                      ? `${fuzzyUnpaidMembers.length} of ${unpaidMembers.length}`
-                      : unpaidMembers.length
-                  }
+                <SearchToolbar
+                  title={`Unpaid Members ${unpaidCount}`}
                   onSearchChange={(term) => setUnpaidSearchTerm(term)}
-                  searchable={!fetching}
+                  hideSearch={fetching}
                 />
                 {fetching ? (
                   <Box p={2}>
@@ -413,17 +312,10 @@ export default function DuesPage() {
               </Paper>
 
               <Paper>
-                <TableTitle
-                  title='Paid Members'
-                  count={
-                    fetching || paidMembers.length === 0
-                      ? undefined
-                      : paidSearchTerm
-                      ? `${fuzzyPaidMembers.length} of ${paidMembers.length}`
-                      : paidMembers.length
-                  }
+                <SearchToolbar
+                  title={`Paid Members ${paidCount}`}
                   onSearchChange={(term) => setPaidSearchTerm(term)}
-                  searchable={!fetching}
+                  hideSearch={fetching}
                 />
                 {fetching ? (
                   <Box p={2}>

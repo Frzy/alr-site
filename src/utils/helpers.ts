@@ -1,7 +1,13 @@
 import type { calendar_v3 } from 'googleapis'
 import moment, { Moment } from 'moment'
 import { EVENT_TYPE, OFFICER_ORDER, CALENDAR_COLORS, DEFAULT_CALENDAR_COLOR } from './constants'
-import { ICalendarEvent, IServerCalendarEvent, Member, Recurrence } from '@/types/common'
+import {
+  ICalendarEvent,
+  IServerCalendarEvent,
+  LogsByMember,
+  Member,
+  Recurrence,
+} from '@/types/common'
 
 export function getPhoneLink(phoneNumber: string) {
   return phoneNumber.replace(/[^0-9]/gi, '')
@@ -225,4 +231,12 @@ export function roundNumber(num: number, decimail = 1) {
   if (dec) return Math.floor(num) + Math.round((num % 1) * dec) / dec
 
   return Math.floor(num)
+}
+export function flattenBreakdown(breakdown: LogsByMember['breakdown']) {
+  const arr = []
+  for (let [key, value] of Object.entries(breakdown)) {
+    arr.push({ name: key, ...value })
+  }
+
+  return arr.sort((a, b) => a.name.localeCompare(b.name))
 }

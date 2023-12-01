@@ -3,8 +3,6 @@ import * as React from 'react'
 import { getActivityLogStats } from '@/lib/activity.log'
 import Grid from '@mui/material/Unstable_Grid2'
 import Head from 'next/head'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import moment from 'moment'
 
 import {
@@ -22,15 +20,13 @@ import {
   TableCell,
   TableBody,
   Alert,
-  IconButton,
-  Collapse,
   Container,
 } from '@mui/material'
 
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
-import type { ActivityLogStats, GroupLogs, LogsByMember } from '@/types/common'
-import Link from '@/component/link'
+import type { ActivityLogStats } from '@/types/common'
 import Header from '@/component/header'
+import { flattenBreakdown } from '@/utils/helpers'
 
 export const getServerSideProps: GetServerSideProps<{
   stats: ActivityLogStats
@@ -161,17 +157,17 @@ export default function StatsPage({
               <Grid container>
                 <Grid xs={12} sm={6} md={4}>
                   <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
-                    Total Participation: {stats.events}
+                    Total Participation: {stats.events.toLocaleString()}
                   </Typography>
                 </Grid>
                 <Grid xs={12} sm={6} md={4}>
                   <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
-                    Total Hours: {stats.hours}
+                    Total Hours: {stats.hours.toLocaleString()}
                   </Typography>
                 </Grid>
                 <Grid xs={12} sm={6} md={4}>
                   <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
-                    Total Miles: {stats.miles}
+                    Total Miles: {stats.miles.toLocaleString()}
                   </Typography>
                 </Grid>
                 <Grid xs={12}>
@@ -193,9 +189,9 @@ export default function StatsPage({
                           <TableCell component='th' scope='row'>
                             {r.name}
                           </TableCell>
-                          <TableCell>{r.events}</TableCell>
-                          <TableCell>{r.hours}</TableCell>
-                          <TableCell>{r.miles}</TableCell>
+                          <TableCell>{r.events.toLocaleString()}</TableCell>
+                          <TableCell>{r.hours.toLocaleString()}</TableCell>
+                          <TableCell>{r.miles.toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -215,7 +211,7 @@ export default function StatsPage({
                   <ListItem key={index}>
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
-                      <Typography>{r.breakdown.Ride.events}</Typography>
+                      <Typography>{r.breakdown.Ride.events.toLocaleString()}</Typography>
                     </Box>
                   </ListItem>
                 ))}
@@ -233,7 +229,7 @@ export default function StatsPage({
                   <ListItem key={index}>
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
-                      <Typography>{r.events}</Typography>
+                      <Typography>{r.events.toLocaleString()}</Typography>
                     </Box>
                   </ListItem>
                 ))}
@@ -251,7 +247,7 @@ export default function StatsPage({
                   <ListItem key={index}>
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
-                      <Typography>{r.miles}</Typography>
+                      <Typography>{r.miles.toLocaleString()}</Typography>
                     </Box>
                   </ListItem>
                 ))}
@@ -269,116 +265,15 @@ export default function StatsPage({
                   <ListItem key={index}>
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
-                      <Typography>{r.hours}</Typography>
+                      <Typography>{r.hours.toLocaleString()}</Typography>
                     </Box>
                   </ListItem>
                 ))}
               </List>
             </Paper>
           </Grid>
-          <Grid xs={12}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4'>Membership Entries</Typography>
-              <Divider sx={{ mt: 1 }} />
-              <TableContainer>
-                <Table sx={{ minWidth: 750 }} aria-label='simple table'>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ width: 48 }}></TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell align='right' sx={{ minWidth: 125 }}>
-                        Total Events
-                      </TableCell>
-                      <TableCell align='right' sx={{ minWidth: 125 }}>
-                        Total Rides
-                      </TableCell>
-                      <TableCell align='right' sx={{ minWidth: 125 }}>
-                        Total Hours
-                      </TableCell>
-                      <TableCell align='right' sx={{ minWidth: 125 }}>
-                        Total Miles
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {stats.entriesByMember.map((entry, index) => (
-                      <MembershipLogRow key={index} row={entry} />
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Grid>
         </Grid>
       </Container>
-    </React.Fragment>
-  )
-}
-
-function flattenBreakdown(breakdown: LogsByMember['breakdown']) {
-  const arr = []
-  for (let [key, value] of Object.entries(breakdown)) {
-    arr.push({ name: key, ...value })
-  }
-
-  return arr.sort((a, b) => a.name.localeCompare(b.name))
-}
-
-function MembershipLogRow({ row }: { row: LogsByMember }) {
-  const [open, setOpen] = React.useState(false)
-
-  return (
-    <React.Fragment>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <TableCell>
-          <IconButton aria-label='expand row' size='small' onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Link href={`/member/${row.member.id}`} target='_blank'>
-            {row.member.name}
-          </Link>
-        </TableCell>
-        <TableCell align='right'>{row.events}</TableCell>
-        <TableCell align='right'>{row.breakdown.Ride.events}</TableCell>
-        <TableCell align='right'>{row.hours}</TableCell>
-        <TableCell align='right'>{row.miles}</TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Typography variant='h6' gutterBottom component='div'>
-                Breakdown
-              </Typography>
-
-              <Table size='small' aria-label='breakdown'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Attended</TableCell>
-                    <TableCell>Hours</TableCell>
-                    <TableCell>Miles</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {flattenBreakdown(row.breakdown).map((r, index) => (
-                    <TableRow key={index}>
-                      <TableCell component='th' scope='row'>
-                        {r.name}
-                      </TableCell>
-                      <TableCell>{r.events}</TableCell>
-                      <TableCell>{r.hours}</TableCell>
-                      <TableCell>{r.miles}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
     </React.Fragment>
   )
 }
