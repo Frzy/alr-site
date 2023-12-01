@@ -17,6 +17,7 @@ import { LoadingButton } from '@mui/lab'
 import {
   Alert,
   Box,
+  Container,
   FormControlLabel,
   InputBase,
   LinearProgress,
@@ -32,6 +33,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import Header from '@/component/header'
 
 type TableTitleProps = {
   title: string
@@ -274,203 +276,212 @@ export default function DuesPage() {
         <title>ALR 91 - Dues</title>
         <meta name='description' content='american legion riders chapter 91 membership dues' />
       </Head>
-
-      <Stack spacing={1}>
-        <Paper sx={{ p: 2 }}>
-          {status === 'loading' ? (
-            <LinearProgress />
-          ) : status === 'unauthenticated' || !isAdmin ? (
-            <Alert severity='error'>Not Authorized</Alert>
-          ) : (
-            <Typography component='h1' variant='h5' sx={{ flexGrow: 1 }}>
-              Membership Dues
-            </Typography>
-          )}
-        </Paper>
-        {isAdmin && (
-          <LocalizationProvider dateAdapter={AdapterMoment}>
-            <Paper sx={{ p: 1 }}>
-              <Box
-                sx={{ display: 'flex', gap: 2, pt: 1, flexDirection: { xs: 'column', md: 'row' } }}
-              >
-                <DateDisplay
-                  value={moment(dueYear, 'YYYY')}
-                  views={['year']}
-                  label='Update Paid Dues To'
-                  onChange={(value) => setDueYear(value ? value.year() : value)}
-                  editing
-                  fullWidth
-                  disabled={fetching}
-                />
-                <FormControlLabel
-                  control={<Switch checked={showPastMembers} onChange={handlePastMemeberToggle} />}
-                  label='Show Past Members'
-                  sx={{ minWidth: 210 }}
-                  disabled={fetching}
-                />
-              </Box>
-            </Paper>
-            {!dueYear && (
-              <Alert severity='warning'>
-                Please select a year to update the membership dues to
-              </Alert>
+      <Header />
+      <Container maxWidth='xl'>
+        <Stack spacing={1}>
+          <Paper sx={{ p: 2 }}>
+            {status === 'loading' ? (
+              <LinearProgress />
+            ) : status === 'unauthenticated' || !isAdmin ? (
+              <Alert severity='error'>Not Authorized</Alert>
+            ) : (
+              <Typography component='h1' variant='h5' sx={{ flexGrow: 1 }}>
+                Membership Dues
+              </Typography>
             )}
-
-            <Paper>
-              <TableTitle
-                title='Unpaid Members'
-                count={
-                  fetching || unpaidMembers.length === 0
-                    ? undefined
-                    : unpaidSearchTerm
-                    ? `${fuzzyUnpaidMembers.length} of ${unpaidMembers.length}`
-                    : unpaidMembers.length
-                }
-                onSearchChange={(term) => setUnpaidSearchTerm(term)}
-                searchable={!fetching}
-              />
-              {fetching ? (
-                <Box p={2}>
-                  <LinearProgress />
+          </Paper>
+          {isAdmin && (
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <Paper sx={{ p: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    pt: 1,
+                    flexDirection: { xs: 'column', md: 'row' },
+                  }}
+                >
+                  <DateDisplay
+                    value={moment(dueYear, 'YYYY')}
+                    views={['year']}
+                    label='Update Paid Dues To'
+                    onChange={(value) => setDueYear(value ? value.year() : value)}
+                    editing
+                    fullWidth
+                    disabled={fetching}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch checked={showPastMembers} onChange={handlePastMemeberToggle} />
+                    }
+                    label='Show Past Members'
+                    sx={{ minWidth: 210 }}
+                    disabled={fetching}
+                  />
                 </Box>
-              ) : (
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Name</TableCell>
-                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                          Status
-                        </TableCell>
-                        <TableCell align='right' sx={{ width: '100px' }}>
-                          Last Paid
-                        </TableCell>
-                        <TableCell sx={{ width: '100px' }}></TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {unpaidList.map((entry) => (
-                        <TableRow
-                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                          key={entry.member.id}
-                        >
-                          <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
-                            <Box
-                              sx={{
-                                bgcolor: entry.eligible ? 'green' : 'red',
-                                position: 'absolute',
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                width: 15,
-                              }}
-                            />
-                            <Link
-                              href={`/member/${entry.member.id}`}
-                              target='_blank'
-                              sx={{ pl: 2 }}
-                            >
-                              {entry.member.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                            {entry.eligible ? 'Eligible' : 'Not Eligible'}
-                          </TableCell>
-                          <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
-                          <TableCell align='right'>
-                            <Box
-                              display='flex'
-                              gap={1}
-                              alignItems='center'
-                              justifyContent='center'
-                              width='100%'
-                            >
-                              <LoadingButton
-                                loading={loadingMap[entry.member.id]}
-                                variant='outlined'
-                                onClick={() => handlePaidClick(entry.member)}
-                              >
-                                Paid
-                              </LoadingButton>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+              </Paper>
+              {!dueYear && (
+                <Alert severity='warning'>
+                  Please select a year to update the membership dues to
+                </Alert>
               )}
-            </Paper>
 
-            <Paper>
-              <TableTitle
-                title='Paid Members'
-                count={
-                  fetching || paidMembers.length === 0
-                    ? undefined
-                    : paidSearchTerm
-                    ? `${fuzzyPaidMembers.length} of ${paidMembers.length}`
-                    : paidMembers.length
-                }
-                onSearchChange={(term) => setPaidSearchTerm(term)}
-                searchable={!fetching}
-              />
-              {fetching ? (
-                <Box p={2}>
-                  <LinearProgress />
-                </Box>
-              ) : (
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Name</TableCell>
-                        <TableCell align='right' sx={{ width: '100px' }}>
-                          Last Paid
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {paidList.map((entry) => (
-                        <TableRow
-                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                          key={entry.member.id}
-                        >
-                          <TableCell component='th' scope='row'>
-                            <Box display='flex' alignItems='center' sx={{ gap: 1 }}>
+              <Paper>
+                <TableTitle
+                  title='Unpaid Members'
+                  count={
+                    fetching || unpaidMembers.length === 0
+                      ? undefined
+                      : unpaidSearchTerm
+                      ? `${fuzzyUnpaidMembers.length} of ${unpaidMembers.length}`
+                      : unpaidMembers.length
+                  }
+                  onSearchChange={(term) => setUnpaidSearchTerm(term)}
+                  searchable={!fetching}
+                />
+                {fetching ? (
+                  <Box p={2}>
+                    <LinearProgress />
+                  </Box>
+                ) : (
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            Status
+                          </TableCell>
+                          <TableCell align='right' sx={{ width: '100px' }}>
+                            Last Paid
+                          </TableCell>
+                          <TableCell sx={{ width: '100px' }}></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {unpaidList.map((entry) => (
+                          <TableRow
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                            key={entry.member.id}
+                          >
+                            <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
+                              <Box
+                                sx={{
+                                  bgcolor: entry.eligible ? 'green' : 'red',
+                                  position: 'absolute',
+                                  top: 0,
+                                  bottom: 0,
+                                  left: 0,
+                                  width: 15,
+                                }}
+                              />
                               <Link
-                                sx={{ minWidth: 200 }}
                                 href={`/member/${entry.member.id}`}
                                 target='_blank'
+                                sx={{ pl: 2 }}
                               >
                                 {entry.member.name}
                               </Link>
-
-                              {entry.member.isLifeTimeMember && (
-                                <Typography
-                                  sx={{
-                                    pr: { xs: 0, sm: 2, md: 4 },
-                                    fontFamily: 'monospace',
-                                    color: 'rgb(255, 100, 0)',
-                                    fontSize: '0.75rem',
-                                  }}
+                            </TableCell>
+                            <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                              {entry.eligible ? 'Eligible' : 'Not Eligible'}
+                            </TableCell>
+                            <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
+                            <TableCell align='right'>
+                              <Box
+                                display='flex'
+                                gap={1}
+                                alignItems='center'
+                                justifyContent='center'
+                                width='100%'
+                              >
+                                <LoadingButton
+                                  loading={loadingMap[entry.member.id]}
+                                  variant='outlined'
+                                  onClick={() => handlePaidClick(entry.member)}
                                 >
-                                  LIFETIME
-                                </Typography>
-                              )}
-                            </Box>
+                                  Paid
+                                </LoadingButton>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Paper>
+
+              <Paper>
+                <TableTitle
+                  title='Paid Members'
+                  count={
+                    fetching || paidMembers.length === 0
+                      ? undefined
+                      : paidSearchTerm
+                      ? `${fuzzyPaidMembers.length} of ${paidMembers.length}`
+                      : paidMembers.length
+                  }
+                  onSearchChange={(term) => setPaidSearchTerm(term)}
+                  searchable={!fetching}
+                />
+                {fetching ? (
+                  <Box p={2}>
+                    <LinearProgress />
+                  </Box>
+                ) : (
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell align='right' sx={{ width: '100px' }}>
+                            Last Paid
                           </TableCell>
-                          <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Paper>
-          </LocalizationProvider>
-        )}
-      </Stack>
+                      </TableHead>
+                      <TableBody>
+                        {paidList.map((entry) => (
+                          <TableRow
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                            key={entry.member.id}
+                          >
+                            <TableCell component='th' scope='row'>
+                              <Box display='flex' alignItems='center' sx={{ gap: 1 }}>
+                                <Link
+                                  sx={{ minWidth: 200 }}
+                                  href={`/member/${entry.member.id}`}
+                                  target='_blank'
+                                >
+                                  {entry.member.name}
+                                </Link>
+
+                                {entry.member.isLifeTimeMember && (
+                                  <Typography
+                                    sx={{
+                                      pr: { xs: 0, sm: 2, md: 4 },
+                                      fontFamily: 'monospace',
+                                      color: 'rgb(255, 100, 0)',
+                                      fontSize: '0.75rem',
+                                    }}
+                                  >
+                                    LIFETIME
+                                  </Typography>
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Paper>
+            </LocalizationProvider>
+          )}
+        </Stack>
+      </Container>
     </React.Fragment>
   )
 }

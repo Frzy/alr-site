@@ -73,21 +73,21 @@ export default function ActivityLogStats() {
             <EventIcon sx={{ fontSize: 48 }} />
             <Typography variant='h5'>Events</Typography>
             <Typography variant='h5' flexGrow={1} fontWeight='fontWeightBold' textAlign='right'>
-              {stats.events}
+              {stats.events.toLocaleString()}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>
             <HourIcon sx={{ fontSize: 48 }} />
             <Typography variant='h5'>Hours</Typography>
             <Typography variant='h5' flexGrow={1} fontWeight='fontWeightBold' textAlign='right'>
-              {stats.hours}
+              {stats.hours.toLocaleString()}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>
             <MileIcon sx={{ fontSize: 48 }} />
             <Typography variant='h5'>Miles</Typography>
             <Typography variant='h5' flexGrow={1} fontWeight='fontWeightBold' textAlign='right'>
-              {stats.miles}
+              {stats.miles.toLocaleString()}
             </Typography>
           </Box>
         </Stack>

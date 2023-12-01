@@ -2,10 +2,15 @@ import { getMembersBy, memberToUnAuthMember } from '@/lib/roster'
 import { NextApiRequest, NextApiResponse } from 'next'
 import type { MembershipStats } from '@/types/common'
 import HttpError from '@/lib/http-error'
+import { ROLES } from '@/utils/constants'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse<MembershipStats>) {
   const roster = await getMembersBy()
-  const counts = {} as MembershipStats
+  const counts = ROLES.reduce((curr, next) => {
+    curr[next] = 0
+
+    return curr
+  }, {} as MembershipStats)
 
   roster.reduce((curr, next) => {
     if (curr[next.role]) {

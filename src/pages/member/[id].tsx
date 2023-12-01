@@ -17,6 +17,7 @@ import moment from 'moment'
 
 import type { ActivityLog, Member } from '@/types/common'
 import type { GetServerSideProps } from 'next'
+import Header from '@/component/header'
 
 export const getServerSideProps: GetServerSideProps<MemberPageProps> = async ({
   req,
@@ -95,27 +96,33 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
         <title>ALR 91 - Member</title>
         <meta name='description' content='american legion riders chapter 91 roster' />
       </Head>
-
-      <LocalizationProvider dateAdapter={AdapterMoment}>
-        {member ? (
-          <Stack spacing={1}>
-            <MemberInformation
-              member={member}
-              onSave={handleUdpateMember}
-              onChange={handleMemberChange}
-              onReset={handleMemberReset}
-            />
-            {(isCurrentlySignedIn || isOfficer) && (
-              <MemberYearlyRequirments logs={activityLogs} year={moment().year()} member={member} />
-            )}
-            <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
-          </Stack>
-        ) : (
-          <Alert severity='error' sx={{ mt: 3 }}>
-            <AlertTitle>Member Not Found</AlertTitle>
-          </Alert>
-        )}
-      </LocalizationProvider>
+      <Header />
+      <Container maxWidth='xl'>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          {member ? (
+            <Stack spacing={1}>
+              <MemberInformation
+                member={member}
+                onSave={handleUdpateMember}
+                onChange={handleMemberChange}
+                onReset={handleMemberReset}
+              />
+              {(isCurrentlySignedIn || isOfficer) && (
+                <MemberYearlyRequirments
+                  logs={activityLogs}
+                  year={moment().year()}
+                  member={member}
+                />
+              )}
+              <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
+            </Stack>
+          ) : (
+            <Alert severity='error' sx={{ mt: 3 }}>
+              <AlertTitle>Member Not Found</AlertTitle>
+            </Alert>
+          )}
+        </LocalizationProvider>
+      </Container>
     </React.Fragment>
   )
 }

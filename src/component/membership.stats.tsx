@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Alert, Box, Divider, Skeleton, Stack, Toolbar, Typography } from '@mui/material'
-import { ENDPOINT, MEMBER_ROLES, RIDER_ROLES, ROLE } from '@/utils/constants'
+import { ENDPOINT, MEMBER_ROLES, RIDER_ROLES, ROLE, ROLES } from '@/utils/constants'
 import { queryRequest } from '@/utils/api'
 import useSWR, { Fetcher } from 'swr'
-import type { Member, MembershipStats as IMembershipStats } from '@/types/common'
+import type { MembershipStats as IMembershipStats } from '@/types/common'
 
 import RiderIcon from '@mui/icons-material/TwoWheeler'
 import SupporterIcon from '@mui/icons-material/VolunteerActivism'

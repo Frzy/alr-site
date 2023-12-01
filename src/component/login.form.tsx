@@ -75,7 +75,7 @@ export default function LoginForm(props: BoxProps) {
             fullWidth
           />
           <LoadingButton type='submit' loading={loading} variant='outlined'>
-            Sign In
+            Login
           </LoadingButton>
           <Button disabled={loading} href='/'>
             Cancel

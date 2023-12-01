@@ -17,7 +17,11 @@ import {
   Paper,
   Stack,
   Typography,
+  Container,
+  Alert,
 } from '@mui/material'
+import Header from '@/component/header'
+import { useSession } from 'next-auth/react'
 
 type DocumentLink = { name: string; id?: string }
 
@@ -29,6 +33,7 @@ function sortByName(a: GoogleDriveItem, b: GoogleDriveItem) {
 }
 
 export default function DocumentsPage() {
+  const { status, data: session } = useSession()
   const [links, setLinks] = React.useState([
     {
       name: 'Home',
@@ -92,8 +97,9 @@ export default function DocumentsPage() {
       setChildren(data.files.sort(sortByName))
     }
 
-    fetchRoot()
-  }, [])
+    if (status === 'authenticated') fetchRoot()
+    if (status === 'unauthenticated') setFetching(false)
+  }, [status])
 
   return (
     <React.Fragment>
@@ -101,59 +107,68 @@ export default function DocumentsPage() {
         <title>ALR 91 - Documents</title>
         <meta name='description' content='American Legion Riders 91 Documents' />
       </Head>
+      <Header />
+      <Container maxWidth='xl'>
+        <Stack spacing={1}>
+          {status === 'authenticated' && (
+            <Paper sx={{ p: 1 }}>
+              <Breadcrumbs separator={<NavigateNextIcon fontSize='small' />}>
+                {links.map((link, index) => {
+                  if (links.length - 1 === index) {
+                    return <Typography key={index}>{link.name}</Typography>
+                  }
 
-      <Stack spacing={1}>
-        <Paper sx={{ p: 1 }}>
-          <Breadcrumbs separator={<NavigateNextIcon fontSize='small' />}>
-            {links.map((link, index) => {
-              if (links.length - 1 === index) {
-                return <Typography key={index}>{link.name}</Typography>
-              }
-
-              return (
-                <Link href='' onClick={() => handleBreadcrumbClick(link, index)} key={index}>
-                  {link.name}
-                </Link>
-              )
-            })}
-          </Breadcrumbs>
-        </Paper>
-        <Paper>
-          {fetching ? (
-            <LinearProgress sx={{ m: 2 }} />
-          ) : (
-            <List>
-              {children.map((item, index) => {
-                if (item.mimeType === GOOGLE_MIME_TYPE.FOLDER) {
                   return (
-                    <ListItemButton
-                      key={index}
-                      onClick={(event) => handleGoogleItemClick(item, event)}
-                    >
+                    <Link href='' onClick={() => handleBreadcrumbClick(link, index)} key={index}>
+                      {link.name}
+                    </Link>
+                  )
+                })}
+              </Breadcrumbs>
+            </Paper>
+          )}
+          <Paper>
+            {status === 'loading' || fetching ? (
+              <LinearProgress sx={{ m: 2 }} />
+            ) : status === 'authenticated' ? (
+              <List>
+                {children.map((item, index) => {
+                  if (item.mimeType === GOOGLE_MIME_TYPE.FOLDER) {
+                    return (
+                      <ListItemButton
+                        key={index}
+                        onClick={(event) => handleGoogleItemClick(item, event)}
+                      >
+                        <ListItemIcon>
+                          <Image src={item.iconLink} width={16} height={16} alt={item.mimeType} />
+                        </ListItemIcon>
+
+                        <ListItemText primary={item.name} />
+                      </ListItemButton>
+                    )
+                  }
+
+                  return (
+                    <ListItem key={index}>
                       <ListItemIcon>
                         <Image src={item.iconLink} width={16} height={16} alt={item.mimeType} />
                       </ListItemIcon>
-
-                      <ListItemText primary={item.name} />
-                    </ListItemButton>
+                      <Link href={`/api/drive/view?fileId=${item.id}`} target='_blank'>
+                        {item.name}
+                      </Link>
+                    </ListItem>
                   )
-                }
-
-                return (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <Image src={item.iconLink} width={16} height={16} alt={item.mimeType} />
-                    </ListItemIcon>
-                    <Link href={`/api/drive/view?fileId=${item.id}`} target='_blank'>
-                      {item.name}
-                    </Link>
-                  </ListItem>
-                )
-              })}
-            </List>
-          )}
-        </Paper>
-      </Stack>
+                })}
+              </List>
+            ) : (
+              <Alert severity='error'>
+                You must be logged in to view this page. Please click{' '}
+                <Link href='/login'>here</Link> to login.
+              </Alert>
+            )}
+          </Paper>
+        </Stack>
+      </Container>
     </React.Fragment>
   )
 }

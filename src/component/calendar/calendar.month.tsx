@@ -228,7 +228,7 @@ export default function MonthCalendar({
       display='flex'
       flexDirection='column'
       position='relative'
-      sx={{ minHeight: 500, ...sx }}
+      sx={{ minHeight: 550, ...sx }}
       {...boxProps}
     >
       <Grid container columns={7}>

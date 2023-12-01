@@ -164,185 +164,192 @@ export default function ActivityLogPage({ members }: ActivityLogPageProps) {
       <Head>
         <title>ALR 91 - Activity Log</title>
         <meta name='description' content='american legion riders chapter 91 activity log' />
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/images/alr-logo.png' />
       </Head>
-      <LocalizationProvider dateAdapter={AdapterMoment}>
-        <Paper sx={{ p: 2 }}>
-          <Typography variant='h4' gutterBottom>
-            Activity Log Form
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid xs={12} md={10}>
-              <Autocomplete
-                options={members}
-                multiple
-                isOptionEqualToValue={(member, value) => {
-                  return member.id === value.id
-                }}
-                value={selectedMembers}
-                onFocus={() => setErrors((prev) => ({ ...prev, selectedMembers: false }))}
-                onChange={(event, values, reason, details) => {
-                  setSelectedMembers(values)
-                }}
-                disabled={loading}
-                getOptionLabel={(m) =>
-                  `${m.name} [ ${[...(m?.entity ?? []), 'ALR'].sort().join(' | ')} ]`
-                }
-                groupBy={(m) => m.name[0].toUpperCase()}
-                renderInput={(params) => (
-                  <TextField {...params} label='Member(s)' error={errors.selectedMembers} />
-                )}
-              />
-            </Grid>
-            <Grid xs={12} md={2}>
-              <DatePicker
-                label='Date'
-                value={date}
-                disabled={loading}
-                sx={{ width: '100%' }}
-                slotProps={{
-                  textField: {
-                    onFocus: () => setErrors((prev) => ({ ...prev, date: false })),
-                    error: errors.date ? true : undefined,
-                  },
-                }}
-                disableFuture
-                onChange={(value) => {
-                  setDate(value)
-                }}
-              />
-            </Grid>
-            <Grid xs={12} md={6}>
-              <TextField
-                label='Activity Name'
-                fullWidth
-                disabled={loading}
-                value={activityName}
-                error={errors.activityName}
-                onFocus={() => setErrors((prev) => ({ ...prev, activityName: false }))}
-                onChange={(event) => {
-                  const { value } = event.target
-
-                  setActivityName(value)
-                }}
-              />
-            </Grid>
-            <Grid xs={12} md={6}>
-              <FormControl
-                fullWidth
-                error={errors.activityType}
-                onFocus={() => setErrors((prev) => ({ ...prev, activityType: false }))}
-                disabled={loading}
-              >
-                <InputLabel id='activity-log-type-label'>Activity Type</InputLabel>
-                <Select
-                  labelId='activity-log-type-label'
-                  id='activity-log-type'
-                  label='Activity Type'
-                  value={activityType}
+      <Header />
+      <Container maxWidth='xl'>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant='h4' gutterBottom>
+              Activity Log Form
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid xs={12} md={10}>
+                <Autocomplete
+                  options={members}
+                  multiple
+                  isOptionEqualToValue={(member, value) => {
+                    return member.id === value.id
+                  }}
+                  value={selectedMembers}
+                  onFocus={() => setErrors((prev) => ({ ...prev, selectedMembers: false }))}
+                  onChange={(event, values, reason, details) => {
+                    setSelectedMembers(values)
+                  }}
+                  disabled={loading}
+                  getOptionLabel={(m) =>
+                    `${m.name} [ ${[...(m?.entity ?? []), 'ALR'].sort().join(' | ')} ]`
+                  }
+                  groupBy={(m) => m.name[0].toUpperCase()}
+                  renderInput={(params) => (
+                    <TextField {...params} label='Member(s)' error={errors.selectedMembers} />
+                  )}
+                />
+              </Grid>
+              <Grid xs={12} md={2}>
+                <DatePicker
+                  label='Date'
+                  value={date}
+                  disabled={loading}
+                  sx={{ width: '100%' }}
+                  slotProps={{
+                    textField: {
+                      onFocus: () => setErrors((prev) => ({ ...prev, date: false })),
+                      error: errors.date ? true : undefined,
+                    },
+                  }}
+                  disableFuture
+                  onChange={(value) => {
+                    setDate(value)
+                  }}
+                />
+              </Grid>
+              <Grid xs={12} md={6}>
+                <TextField
+                  label='Activity Name'
+                  fullWidth
+                  disabled={loading}
+                  value={activityName}
+                  error={errors.activityName}
+                  onFocus={() => setErrors((prev) => ({ ...prev, activityName: false }))}
                   onChange={(event) => {
                     const { value } = event.target
 
-                    setActivityType(value)
+                    setActivityName(value)
                   }}
-                >
-                  <MenuItem value='Event'>Event</MenuItem>
-                  <MenuItem value='Meeting'>Meeting</MenuItem>
-                  <MenuItem value='Ride'>Ride</MenuItem>
-                  <MenuItem value='Other'>Other</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid xs={12} md={4}>
-              <TextField
-                label='Hours'
-                type='number'
-                fullWidth
-                error={errors.hours}
-                onFocus={() => setErrors((prev) => ({ ...prev, hours: false }))}
-                helperText={errors.hours ? 'Hours must be a NUMBER greater than ZERO' : undefined}
-                value={hours || ''}
-                disabled={loading}
-                onChange={(event) => {
-                  const { value } = event.target
-                  const parsed = parseFloat(value)
-
-                  setHours(isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10)
-                }}
-              />
-            </Grid>
-            <Grid xs={12} md={4}>
-              <TextField
-                label='Miles'
-                type='number'
-                error={errors.miles}
-                helperText={errors.miles ? 'Miles must be a NUMBER' : undefined}
-                fullWidth
-                value={miles || ''}
-                disabled={loading}
-                onFocus={() => setErrors((prev) => ({ ...prev, miles: false }))}
-                onChange={(event) => {
-                  const { value } = event.target
-                  const parsed = parseFloat(value)
-
-                  setMiles(isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10)
-                }}
-              />
-            </Grid>
-            <Grid xs={12} md={4}>
-              <TextField
-                label='Monies'
-                type='number'
-                error={errors.monies}
-                helperText={errors.monies ? 'Monies must be a NUMBER greater than ZERO' : undefined}
-                fullWidth
-                value={monies || ''}
-                disabled={loading}
-                onFocus={() => setErrors((prev) => ({ ...prev, monies: false }))}
-                onChange={(event) => {
-                  const { value } = event.target
-                  const parsed = parseFloat(value)
-
-                  setMonies(
-                    isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 100) / 100,
-                  )
-                }}
-              />
-            </Grid>
-            <Grid xs={hasLocalStorage ? 6 : 12}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={saveMembers}
-                    disabled={loading}
-                    onChange={(event) => {
-                      const { checked } = event.target
-                      setSaveMember(checked)
-                    }}
-                  />
-                }
-                label='Remember selected members'
-              />
-            </Grid>
-            {hasLocalStorage && (
-              <Grid
-                xs={6}
-                sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }}
-              >
-                <Button onClick={() => store.remove('_savedLogMembers')} disabled={loading}>
-                  Clear Remembered
-                </Button>
+                />
               </Grid>
-            )}
-          </Grid>
-        </Paper>
-        <Box mt={1}>
-          <LoadingButton fullWidth variant='contained' loading={loading} onClick={handleSubmit}>
-            Submit
-          </LoadingButton>
-        </Box>
-      </LocalizationProvider>
+              <Grid xs={12} md={6}>
+                <FormControl
+                  fullWidth
+                  error={errors.activityType}
+                  onFocus={() => setErrors((prev) => ({ ...prev, activityType: false }))}
+                  disabled={loading}
+                >
+                  <InputLabel id='activity-log-type-label'>Activity Type</InputLabel>
+                  <Select
+                    labelId='activity-log-type-label'
+                    id='activity-log-type'
+                    label='Activity Type'
+                    value={activityType}
+                    onChange={(event) => {
+                      const { value } = event.target
+
+                      setActivityType(value)
+                    }}
+                  >
+                    <MenuItem value='Event'>Event</MenuItem>
+                    <MenuItem value='Meeting'>Meeting</MenuItem>
+                    <MenuItem value='Ride'>Ride</MenuItem>
+                    <MenuItem value='Other'>Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid xs={12} md={4}>
+                <TextField
+                  label='Hours'
+                  type='number'
+                  fullWidth
+                  error={errors.hours}
+                  onFocus={() => setErrors((prev) => ({ ...prev, hours: false }))}
+                  helperText={errors.hours ? 'Hours must be a NUMBER greater than ZERO' : undefined}
+                  value={hours || ''}
+                  disabled={loading}
+                  onChange={(event) => {
+                    const { value } = event.target
+                    const parsed = parseFloat(value)
+
+                    setHours(
+                      isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10,
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid xs={12} md={4}>
+                <TextField
+                  label='Miles'
+                  type='number'
+                  error={errors.miles}
+                  helperText={errors.miles ? 'Miles must be a NUMBER' : undefined}
+                  fullWidth
+                  value={miles || ''}
+                  disabled={loading}
+                  onFocus={() => setErrors((prev) => ({ ...prev, miles: false }))}
+                  onChange={(event) => {
+                    const { value } = event.target
+                    const parsed = parseFloat(value)
+
+                    setMiles(
+                      isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10,
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid xs={12} md={4}>
+                <TextField
+                  label='Monies'
+                  type='number'
+                  error={errors.monies}
+                  helperText={
+                    errors.monies ? 'Monies must be a NUMBER greater than ZERO' : undefined
+                  }
+                  fullWidth
+                  value={monies || ''}
+                  disabled={loading}
+                  onFocus={() => setErrors((prev) => ({ ...prev, monies: false }))}
+                  onChange={(event) => {
+                    const { value } = event.target
+                    const parsed = parseFloat(value)
+
+                    setMonies(
+                      isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 100) / 100,
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid xs={hasLocalStorage ? 6 : 12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={saveMembers}
+                      disabled={loading}
+                      onChange={(event) => {
+                        const { checked } = event.target
+                        setSaveMember(checked)
+                      }}
+                    />
+                  }
+                  label='Remember selected members'
+                />
+              </Grid>
+              {hasLocalStorage && (
+                <Grid
+                  xs={6}
+                  sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }}
+                >
+                  <Button onClick={() => store.remove('_savedLogMembers')} disabled={loading}>
+                    Clear Remembered
+                  </Button>
+                </Grid>
+              )}
+            </Grid>
+          </Paper>
+          <Box mt={1}>
+            <LoadingButton fullWidth variant='contained' loading={loading} onClick={handleSubmit}>
+              Submit
+            </LoadingButton>
+          </Box>
+        </LocalizationProvider>
+      </Container>
     </React.Fragment>
   )
 }

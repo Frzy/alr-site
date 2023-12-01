@@ -24,11 +24,13 @@ import {
   Alert,
   IconButton,
   Collapse,
+  Container,
 } from '@mui/material'
 
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 import type { ActivityLogStats, GroupLogs, LogsByMember } from '@/types/common'
 import Link from '@/component/link'
+import Header from '@/component/header'
 
 export const getServerSideProps: GetServerSideProps<{
   stats: ActivityLogStats
@@ -91,223 +93,224 @@ export default function StatsPage({
       <Head>
         <title>ALR 91 - Stats</title>
         <meta name='description' content='american legion riders chapter 91 activity log stats' />
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/images/alr-logo.png' />
       </Head>
-      <Grid container spacing={1}>
-        <Grid xs={12}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4'>Latest Log Entries</Typography>
-            <Divider sx={{ my: 1 }} />
-            <TableContainer>
-              <Table sx={{ minWidth: 650 }} aria-label='simple table'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Activity Name
-                    </TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Activity Type
-                    </TableCell>
-                    <TableCell align='right'>Hours</TableCell>
-                    <TableCell align='right'>Miles</TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Entered
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {stats.latestEntries.map((entry, index) => (
-                    <TableRow
-                      key={index}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell component='th' scope='row'>
-                        {entry.name}
-                      </TableCell>
-                      <TableCell align='right'>{entry.activityName}</TableCell>
-                      <TableCell align='right'>{entry.activityType}</TableCell>
-                      <TableCell align='right'>{entry.hours}</TableCell>
-                      <TableCell align='right'>{entry.miles}</TableCell>
-                      <TableCell align='right'>
-                        <Tooltip title={entry.created}>
-                          <Typography variant='caption' color='text.seconday'>
-                            {moment(entry.created).from(moment())}
-                          </Typography>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-        <Grid xs={12}>
-          <Alert severity='info'>
-            <Typography component='div' variant='body2' color='text.secodary'>
-              All Stats gathered from logs between{' '}
-              {`${start.format('MMM YYYY')} through ${end.format('MMM YYYY')}`}
-            </Typography>
-          </Alert>
-        </Grid>
-        <Grid xs={12}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4'>Chapter Stats</Typography>
-            <Divider sx={{ my: 1 }} />
-            <Grid container>
-              <Grid xs={12} sm={6} md={4}>
-                <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
-                  Total Participation: {stats.events}
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={6} md={4}>
-                <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
-                  Total Hours: {stats.hours}
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={6} md={4}>
-                <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
-                  Total Miles: {stats.miles}
-                </Typography>
-              </Grid>
-              <Grid xs={12}>
-                <Divider sx={{ my: 1 }} />
-                <Typography variant='h6'>Breakdown</Typography>
-                <Divider sx={{ mt: 1 }} />
-                <Table size='small' aria-label='breakdown'>
+      <Header />
+      <Container maxWidth='xl'>
+        <Grid container spacing={1}>
+          <Grid xs={12}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4'>Latest Log Entries</Typography>
+              <Divider sx={{ my: 1 }} />
+              <TableContainer>
+                <Table sx={{ minWidth: 650 }} aria-label='simple table'>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Attended</TableCell>
-                      <TableCell>Hours</TableCell>
-                      <TableCell>Miles</TableCell>
+                      <TableCell>Name</TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Activity Name
+                      </TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Activity Type
+                      </TableCell>
+                      <TableCell align='right'>Hours</TableCell>
+                      <TableCell align='right'>Miles</TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Entered
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {flattenBreakdown(stats.breakdown).map((r, index) => (
-                      <TableRow key={index}>
+                    {stats.latestEntries.map((entry, index) => (
+                      <TableRow
+                        key={index}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
                         <TableCell component='th' scope='row'>
-                          {r.name}
+                          {entry.name}
                         </TableCell>
-                        <TableCell>{r.events}</TableCell>
-                        <TableCell>{r.hours}</TableCell>
-                        <TableCell>{r.miles}</TableCell>
+                        <TableCell align='right'>{entry.activityName}</TableCell>
+                        <TableCell align='right'>{entry.activityType}</TableCell>
+                        <TableCell align='right'>{entry.hours}</TableCell>
+                        <TableCell align='right'>{entry.miles}</TableCell>
+                        <TableCell align='right'>
+                          <Tooltip title={entry.created}>
+                            <Typography variant='caption' color='text.seconday'>
+                              {moment(entry.created).from(moment())}
+                            </Typography>
+                          </Tooltip>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
+          <Grid xs={12}>
+            <Alert severity='info'>
+              <Typography component='div' variant='body2' color='text.secodary'>
+                All Stats gathered from logs between{' '}
+                {`${start.format('MMM YYYY')} through ${end.format('MMM YYYY')}`}
+              </Typography>
+            </Alert>
+          </Grid>
+          <Grid xs={12}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4'>Chapter Stats</Typography>
+              <Divider sx={{ my: 1 }} />
+              <Grid container>
+                <Grid xs={12} sm={6} md={4}>
+                  <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
+                    Total Participation: {stats.events}
+                  </Typography>
+                </Grid>
+                <Grid xs={12} sm={6} md={4}>
+                  <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
+                    Total Hours: {stats.hours}
+                  </Typography>
+                </Grid>
+                <Grid xs={12} sm={6} md={4}>
+                  <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
+                    Total Miles: {stats.miles}
+                  </Typography>
+                </Grid>
+                <Grid xs={12}>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant='h6'>Breakdown</Typography>
+                  <Divider sx={{ mt: 1 }} />
+                  <Table size='small' aria-label='breakdown'>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Attended</TableCell>
+                        <TableCell>Hours</TableCell>
+                        <TableCell>Miles</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {flattenBreakdown(stats.breakdown).map((r, index) => (
+                        <TableRow key={index}>
+                          <TableCell component='th' scope='row'>
+                            {r.name}
+                          </TableCell>
+                          <TableCell>{r.events}</TableCell>
+                          <TableCell>{r.hours}</TableCell>
+                          <TableCell>{r.miles}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Grid>
               </Grid>
-            </Grid>
-          </Paper>
+            </Paper>
+          </Grid>
+          <Grid xs={12} sm={6}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4' align='center'>
+                Top 5 in Rides
+              </Typography>
+              <Divider sx={{ my: 1 }} />
+              <List disablePadding dense>
+                {topRiders.map((r, index) => (
+                  <ListItem key={index}>
+                    <Box display='flex' width='100%'>
+                      <Typography flexGrow={1}>{r.name}</Typography>
+                      <Typography>{r.breakdown.Ride.events}</Typography>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+          <Grid xs={12} sm={6}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4' align='center'>
+                Top 5 in Participation
+              </Typography>
+              <Divider sx={{ my: 1 }} />
+              <List disablePadding dense>
+                {topActive.map((r, index) => (
+                  <ListItem key={index}>
+                    <Box display='flex' width='100%'>
+                      <Typography flexGrow={1}>{r.name}</Typography>
+                      <Typography>{r.events}</Typography>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+          <Grid xs={12} sm={6}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4' align='center'>
+                Top 5 in Miles
+              </Typography>
+              <Divider sx={{ my: 1 }} />
+              <List disablePadding dense>
+                {topMiles.map((r, index) => (
+                  <ListItem key={index}>
+                    <Box display='flex' width='100%'>
+                      <Typography flexGrow={1}>{r.name}</Typography>
+                      <Typography>{r.miles}</Typography>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+          <Grid xs={12} sm={6}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4' align='center'>
+                Top 5 in Hours
+              </Typography>
+              <Divider sx={{ my: 1 }} />
+              <List disablePadding dense>
+                {topHours.map((r, index) => (
+                  <ListItem key={index}>
+                    <Box display='flex' width='100%'>
+                      <Typography flexGrow={1}>{r.name}</Typography>
+                      <Typography>{r.hours}</Typography>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+          <Grid xs={12}>
+            <Paper sx={{ p: 1 }}>
+              <Typography variant='h4'>Membership Entries</Typography>
+              <Divider sx={{ mt: 1 }} />
+              <TableContainer>
+                <Table sx={{ minWidth: 750 }} aria-label='simple table'>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ width: 48 }}></TableCell>
+                      <TableCell>Name</TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Total Events
+                      </TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Total Rides
+                      </TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Total Hours
+                      </TableCell>
+                      <TableCell align='right' sx={{ minWidth: 125 }}>
+                        Total Miles
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {stats.entriesByMember.map((entry, index) => (
+                      <MembershipLogRow key={index} row={entry} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
         </Grid>
-        <Grid xs={12} sm={6}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4' align='center'>
-              Top 5 in Rides
-            </Typography>
-            <Divider sx={{ my: 1 }} />
-            <List disablePadding dense>
-              {topRiders.map((r, index) => (
-                <ListItem key={index}>
-                  <Box display='flex' width='100%'>
-                    <Typography flexGrow={1}>{r.name}</Typography>
-                    <Typography>{r.breakdown.Ride.events}</Typography>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-        <Grid xs={12} sm={6}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4' align='center'>
-              Top 5 in Participation
-            </Typography>
-            <Divider sx={{ my: 1 }} />
-            <List disablePadding dense>
-              {topActive.map((r, index) => (
-                <ListItem key={index}>
-                  <Box display='flex' width='100%'>
-                    <Typography flexGrow={1}>{r.name}</Typography>
-                    <Typography>{r.events}</Typography>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-        <Grid xs={12} sm={6}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4' align='center'>
-              Top 5 in Miles
-            </Typography>
-            <Divider sx={{ my: 1 }} />
-            <List disablePadding dense>
-              {topMiles.map((r, index) => (
-                <ListItem key={index}>
-                  <Box display='flex' width='100%'>
-                    <Typography flexGrow={1}>{r.name}</Typography>
-                    <Typography>{r.miles}</Typography>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-        <Grid xs={12} sm={6}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4' align='center'>
-              Top 5 in Hours
-            </Typography>
-            <Divider sx={{ my: 1 }} />
-            <List disablePadding dense>
-              {topHours.map((r, index) => (
-                <ListItem key={index}>
-                  <Box display='flex' width='100%'>
-                    <Typography flexGrow={1}>{r.name}</Typography>
-                    <Typography>{r.hours}</Typography>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-        <Grid xs={12}>
-          <Paper sx={{ p: 1 }}>
-            <Typography variant='h4'>Membership Entries</Typography>
-            <Divider sx={{ mt: 1 }} />
-            <TableContainer>
-              <Table sx={{ minWidth: 750 }} aria-label='simple table'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ width: 48 }}></TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Total Events
-                    </TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Total Rides
-                    </TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Total Hours
-                    </TableCell>
-                    <TableCell align='right' sx={{ minWidth: 125 }}>
-                      Total Miles
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {stats.entriesByMember.map((entry, index) => (
-                    <MembershipLogRow key={index} row={entry} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-      </Grid>
+      </Container>
     </React.Fragment>
   )
 }

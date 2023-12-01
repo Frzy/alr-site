@@ -18,6 +18,7 @@ import { authOptions } from '@/lib/auth'
 import { GetServerSideProps } from 'next'
 import { usePathname } from 'next/navigation'
 import Header from '@/component/header'
+import { useRouter } from 'next/router'
 
 interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache
@@ -30,26 +31,40 @@ const MyApp: React.FunctionComponent<MyAppProps> = ({
   emotionCache = clientSideEmotionCache,
   pageProps: { session, ...pageProps },
 }) => {
-  const pathname = usePathname()
+  const router = useRouter()
+  const { route } = router
+
+  console.log()
 
   return (
     <CacheProvider value={emotionCache}>
       <CssVarsProvider defaultMode='dark' theme={theme}>
         <CssBaseline />
         <SessionProvider session={session}>
-          {pathname === '/login' ? (
+          {/* <Component {...pageProps} /> */}
+          <Container maxWidth='xl' sx={{ pb: 2 }}>
+            <Component {...pageProps} />
+          </Container>
+
+          {/* {route === '/login' ? (
             <Box component='main'>
+            </Box>
+          ) : route === '/calendar' ? (
+            <Box
+              component='main'
+              sx={{ height: { xs: 'calc(100vh - 80px)', lg: 'calc(100vh - 120px)' } }}
+            >
+              <Header />
+              <Toolbar sx={{ mb: { xs: 2, lg: 7 } }} />
               <Component {...pageProps} />
             </Box>
           ) : (
             <Box component='main'>
               <Header />
-              <Toolbar sx={{ mb: { xs: 2, md: 7 } }} />
-              <Container maxWidth='xl' sx={{ pb: 2 }}>
-                <Component {...pageProps} />
-              </Container>
+              <Toolbar sx={{ mb: { xs: 2, lg: 7 } }} />
+              
             </Box>
-          )}
+          )} */}
         </SessionProvider>
       </CssVarsProvider>
     </CacheProvider>
