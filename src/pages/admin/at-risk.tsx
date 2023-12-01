@@ -21,12 +21,13 @@ import {
 import { useSession } from 'next-auth/react'
 import SearchToolbar from '@/component/search.toolbar'
 import useSWR, { Fetcher } from 'swr'
-import { ENDPOINT, MIN_EVENTS, MIN_RIDES, RIDER_ROLES } from '@/utils/constants'
+import { ENDPOINT, MAX_MAILTO, MIN_EVENTS, MIN_RIDES, RIDER_ROLES } from '@/utils/constants'
 import { AtRiskMember } from '@/types/common'
 import moment from 'moment'
 import FuzzySearch from 'fuzzy-search'
 import Link from '@/component/link'
 import CopyIcon from '@mui/icons-material/ContentCopy'
+import EmailIcon from '@mui/icons-material/Email'
 
 const fetcher: Fetcher<AtRiskMember[], string> = async function fetcher(url) {
   const response = await fetch(url)
@@ -73,7 +74,6 @@ function AtRiskView() {
     fallbackData: [],
   })
   const [atRiskSearchTerm, setAtRiskSearchTerm] = React.useState('')
-  const [eligibleSearchTerm, setEligibleSearchTerm] = React.useState('')
   const [copyEl, setCopyEl] = React.useState<HTMLButtonElement | null>(null)
   const atRiskMembers = React.useMemo(() => {
     const atRisk = data.filter((m) => !m.eligible)
@@ -87,19 +87,17 @@ function AtRiskView() {
 
     return atRisk
   }, [data, atRiskSearchTerm])
-  const eligibleMembers = React.useMemo(() => {
-    const eligible = data.filter((m) => m.eligible)
+  const atRiskEmails = React.useMemo(() => {
+    const emails = atRiskMembers.filter((m) => !!m.member.email)
 
-    if (eligibleSearchTerm) {
-      const searcher = new FuzzySearch(eligible, ['member.name', 'member.nickName'], {
-        sort: true,
-      })
+    const longEmails = emails.map((m) => `${m.member.name} <${m.member.email}>`).join(',')
+    if (longEmails.length < MAX_MAILTO) return longEmails
 
-      return searcher.search(eligibleSearchTerm)
-    }
+    const shortEmails = emails.map((m) => m.member.email).join(',')
+    if (shortEmails.length < MAX_MAILTO) return shortEmails
 
-    return eligible
-  }, [data, eligibleSearchTerm])
+    return ''
+  }, [atRiskMembers])
   const copyOpen = Boolean(copyEl)
 
   async function handleCopyEmailToClipboard(event: React.MouseEvent<HTMLButtonElement>) {
@@ -135,8 +133,13 @@ function AtRiskView() {
                   <TableCell sx={{ minWidth: 200 }}>Name</TableCell>
                   <TableCell>Role</TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography sx={{ flex: 1 }}>Email</Typography>
+                      <Tooltip title='Open Email'>
+                        <IconButton size='small' href={`mailto:${atRiskEmails}`}>
+                          <EmailIcon />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title='Copy emails to clipboard'>
                         <IconButton size='small' onClick={handleCopyEmailToClipboard}>
                           <CopyIcon />

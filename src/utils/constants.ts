@@ -197,4 +197,4 @@ export const UPDATEABLE_PROPS: Array<keyof IRequestBodyCalendarEvent> = [
 ]
 export const MIN_RIDES = 4
 export const MIN_EVENTS = 12
-export const MAX_MAILTO = 2000
+export const MAX_MAILTO = 1500
