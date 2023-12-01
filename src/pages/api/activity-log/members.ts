@@ -8,7 +8,7 @@ async function GetHandle(req: NextApiRequest, res: NextApiResponse<LogsByMember[
   const { start, end, includeInactiveMembers } = req.query as {
     [key: string]: string
   }
-  let logs = await getActivityLogEntries()
+  let logs
   const memberFilter = (m: Member) => {
     return includeInactiveMembers === 'true' ? true : m.isActive
   }

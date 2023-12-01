@@ -24,6 +24,7 @@ import HelmetIcon from '@mui/icons-material/SportsMotorsports'
 import moment, { Moment } from 'moment'
 import useSWR, { SWRConfiguration } from 'swr'
 import Notifier from '../notifier'
+import SearchToolbar from '../search.toolbar'
 
 type CalendarScheduleProps = {
   date: Moment
@@ -187,13 +188,9 @@ export default function CalendarSchedule({
 
   return (
     <Box position='relative' flexGrow={1} height='calc(100% - 64px)' overflow='auto'>
+      {!!title && <SearchToolbar title={title} hideSearch />}
       {isLoading ? (
         <React.Fragment>
-          {!!title && (
-            <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader, mb: 1 }}>
-              <Typography variant='h5'>{title}</Typography>
-            </Toolbar>
-          )}
           <Stack spacing={1} flexGrow={1} {...stackProps}>
             {Array(5)
               .fill(1)
@@ -204,11 +201,6 @@ export default function CalendarSchedule({
         </React.Fragment>
       ) : (
         <React.Fragment>
-          {!!title && (
-            <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader, mb: 1 }}>
-              <Typography variant='h5'>{title}</Typography>
-            </Toolbar>
-          )}
           <Stack spacing={1} flexGrow={1} {...stackProps}>
             {events.map((group, dayIndex) => {
               const day = moment(date).startOf('day')

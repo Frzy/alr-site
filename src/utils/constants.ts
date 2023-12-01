@@ -1,5 +1,4 @@
 import { IRequestBodyCalendarEvent } from '@/types/common'
-import { orange, teal, cyan } from '@mui/material/colors'
 
 export enum OFFICER_POSITION {
   DIRECTOR = 'Director',
@@ -123,6 +122,7 @@ export enum ENDPOINT {
   DOWNLOAD_FILE = '/api/drive/download',
   ACTIVITY_LOG = '/api/activity-log',
   NEXT_MEMBERSHIP_ID = '/api/member/next-id',
+  AT_RISK_MEMBERS = '/api/members/at-risk',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',

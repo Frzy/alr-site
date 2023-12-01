@@ -183,3 +183,10 @@ export type GoogleDriveItem = {
     targetMimeType: string
   }
 }
+
+export type AtRiskMember = {
+  eligible: boolean
+  events: number
+  member: Member
+  rides: number
+}

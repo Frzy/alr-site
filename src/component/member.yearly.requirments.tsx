@@ -3,16 +3,13 @@ import moment from 'moment'
 import { Box, Paper, Stack, Typography, LinearProgress, LinearProgressProps } from '@mui/material'
 
 import type { ActivityLog, Member } from '@/types/common'
-import { ACTIVITY_TYPE, ROLE } from '@/utils/constants'
+import { ACTIVITY_TYPE, MIN_EVENTS, MIN_RIDES, ROLE } from '@/utils/constants'
 
 interface MemberYearlyRequirmentsProps {
   member: Member
   logs?: ActivityLog[]
   year?: number
 }
-
-const MIN_RIDES = 4
-const MIN_EVENTS = 12
 
 function LinearProgressWithLabel({
   label,

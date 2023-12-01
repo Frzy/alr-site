@@ -93,7 +93,6 @@ export default function Header() {
         }}
       >
         <AppBar
-          component='div'
           sx={{
             m: { xs: undefined, lg: 1 },
             left: { xs: undefined, lg: 0 },
@@ -313,17 +312,17 @@ export default function Header() {
               },
             }}
           >
-            <MenuItem href='/admin/add-member' component='a' onClick={handleAdminMenuClose}>
-              Add New Member
+            <MenuItem href='/admin/at-risk' component='a' onClick={handleAdminMenuClose}>
+              At Risk Members
             </MenuItem>
             <MenuItem href='/admin/dues' component='a' onClick={handleAdminMenuClose}>
               Dues
             </MenuItem>
-            <MenuItem href='/admin/email-list' component='a' onClick={handleAdminMenuClose}>
-              Email List
+            <MenuItem href='/admin/email-lists' component='a' onClick={handleAdminMenuClose}>
+              Email Lists
             </MenuItem>
-            <MenuItem href='/admin/roster' component='a' onClick={handleAdminMenuClose}>
-              Roster
+            <MenuItem href='/admin/membership' component='a' onClick={handleAdminMenuClose}>
+              Membership
             </MenuItem>
           </Menu>
           <Menu
@@ -501,8 +500,8 @@ export default function Header() {
                   Admin
                 </ListSubheader>
                 <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
-                  <Link underline='none' href='/admin/new-member'>
-                    Add New Member
+                  <Link underline='none' href='/admin/at-risk'>
+                    At Risk
                   </Link>
                 </ListItem>
                 <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
@@ -511,13 +510,13 @@ export default function Header() {
                   </Link>
                 </ListItem>
                 <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
-                  <Link underline='none' href='/admin/email-list'>
-                    E-Mail List
+                  <Link underline='none' href='/admin/email-lists'>
+                    E-Mail Lists
                   </Link>
                 </ListItem>
                 <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
-                  <Link underline='none' href='/log/entry'>
-                    Roster
+                  <Link underline='none' href='/admin/membership'>
+                    Membership
                   </Link>
                 </ListItem>
                 <Divider />

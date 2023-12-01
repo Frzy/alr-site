@@ -31,40 +31,12 @@ const MyApp: React.FunctionComponent<MyAppProps> = ({
   emotionCache = clientSideEmotionCache,
   pageProps: { session, ...pageProps },
 }) => {
-  const router = useRouter()
-  const { route } = router
-
-  console.log()
-
   return (
     <CacheProvider value={emotionCache}>
       <CssVarsProvider defaultMode='dark' theme={theme}>
         <CssBaseline />
         <SessionProvider session={session}>
-          {/* <Component {...pageProps} /> */}
-          <Container maxWidth='xl' sx={{ pb: 2 }}>
-            <Component {...pageProps} />
-          </Container>
-
-          {/* {route === '/login' ? (
-            <Box component='main'>
-            </Box>
-          ) : route === '/calendar' ? (
-            <Box
-              component='main'
-              sx={{ height: { xs: 'calc(100vh - 80px)', lg: 'calc(100vh - 120px)' } }}
-            >
-              <Header />
-              <Toolbar sx={{ mb: { xs: 2, lg: 7 } }} />
-              <Component {...pageProps} />
-            </Box>
-          ) : (
-            <Box component='main'>
-              <Header />
-              <Toolbar sx={{ mb: { xs: 2, lg: 7 } }} />
-              
-            </Box>
-          )} */}
+          <Component {...pageProps} />
         </SessionProvider>
       </CssVarsProvider>
     </CacheProvider>

@@ -5,13 +5,11 @@ import { ENDPOINT, MIN_EVENTS, MIN_RIDES, ROLE } from '@/utils/constants'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { LogsByMember, Member } from '@/types/common'
 import { useSession } from 'next-auth/react'
-import { useTheme } from '@mui/material/styles'
 import DateDisplay from '@/component/date.display'
 import FuzzySearch from 'fuzzy-search'
 import Head from 'next/head'
 import Link from '@/component/link'
 import moment from 'moment'
-import SearchIcon from '@mui/icons-material/Search'
 
 import { LoadingButton } from '@mui/lab'
 import {
@@ -19,7 +17,6 @@ import {
   Box,
   Container,
   FormControlLabel,
-  InputBase,
   LinearProgress,
   Paper,
   Stack,
@@ -30,7 +27,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Toolbar,
   Typography,
 } from '@mui/material'
 import Header from '@/component/header'
