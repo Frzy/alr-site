@@ -1,6 +1,16 @@
 import * as React from 'react'
 import SearchIcon from '@mui/icons-material/Search'
-import { Box, InputBase, Toolbar, ToolbarProps, Typography, useTheme } from '@mui/material'
+import {
+  Box,
+  InputBase,
+  IconButton,
+  InputAdornment,
+  Toolbar,
+  ToolbarProps,
+  Typography,
+  useTheme,
+} from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 
 type SearchToolbarProps = {
   title?: string
@@ -101,6 +111,21 @@ export default function SearchToolbar({
                 },
               },
             }}
+            endAdornment={
+              searchTerm.length ? (
+                <InputAdornment position='start'>
+                  <IconButton
+                    onClick={() => {
+                      setSearchTerm('')
+                      if (onSearchChange) onSearchChange('')
+                    }}
+                    size='small'
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </InputAdornment>
+              ) : undefined
+            }
             placeholder='Search…'
             inputProps={{ 'aria-label': 'search' }}
             value={searchTerm}
