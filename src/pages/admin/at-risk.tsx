@@ -178,6 +178,18 @@ function AtRiskView() {
                     </TableCell>
                   </TableRow>
                 ))}
+
+                {atRiskMembers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Alert severity={!!atRiskSearchTerm ? 'warning' : 'success'}>
+                        {!!atRiskSearchTerm
+                          ? `No Members match ${atRiskSearchTerm}`
+                          : 'No Members are at Risk'}
+                      </Alert>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
