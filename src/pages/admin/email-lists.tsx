@@ -18,8 +18,9 @@ import { useSession } from 'next-auth/react'
 import CopyIcon from '@mui/icons-material/ContentCopy'
 import { Member } from '@/types/common'
 import useSWR, { Fetcher } from 'swr'
-import { ACTIVE_ROLES, ENDPOINT, MEMBER_ROLES } from '@/utils/constants'
+import { ACTIVE_ROLES, ENDPOINT, MAX_MAILTO, MEMBER_ROLES } from '@/utils/constants'
 import SearchToolbar from '@/component/search.toolbar'
+import Link from '@/component/link'
 
 const fetcher: Fetcher<Member[], string> = async function fetcher(url) {
   const response = await fetch(url)
@@ -69,6 +70,25 @@ function EmailListView() {
   const activeMember = React.useMemo(() => {
     return data.filter((m) => ACTIVE_ROLES.indexOf(m.role) !== -1)
   }, [data])
+  const officersEmails = React.useMemo(() => {
+    return officers.filter((m) => m.email).map((m) => `${m.name} <${m.email}>`)
+  }, [officers])
+  const memebrsEmails = React.useMemo(() => {
+    return memebrs.filter((m) => m.email).map((m) => `${m.name} <${m.email}>`)
+  }, [memebrs])
+  const activeMemberEmails = React.useMemo(() => {
+    return activeMember.filter((m) => m.email).map((m) => `${m.name} <${m.email}>`)
+  }, [activeMember])
+  const officersEmailsShort = React.useMemo(() => {
+    return officers.filter((m) => m.email).map((m) => m.email)
+  }, [officers])
+  const memebrsEmailsShort = React.useMemo(() => {
+    return memebrs.filter((m) => m.email).map((m) => m.email)
+  }, [memebrs])
+  const activeMemberEmailsShort = React.useMemo(() => {
+    return activeMember.filter((m) => m.email).map((m) => m.email)
+  }, [activeMember])
+
   const [officeEl, setOfficeEl] = React.useState<HTMLButtonElement | null>(null)
   const [memberEl, setMemberEl] = React.useState<HTMLButtonElement | null>(null)
   const [activeEl, setActiveEl] = React.useState<HTMLButtonElement | null>(null)
@@ -77,33 +97,27 @@ function EmailListView() {
   const activeOpen = Boolean(activeEl)
 
   async function handleCopyOfficers(event: React.MouseEvent<HTMLButtonElement>) {
-    const emails = officers.filter((m) => m.email).map((m) => `${m.name} <${m.email}>`)
-
     setOfficeEl(event.currentTarget)
 
-    await navigator.clipboard.writeText(emails.join(',\n'))
+    await navigator.clipboard.writeText(officersEmails.join(',\n'))
 
     setTimeout(() => {
       setOfficeEl(null)
     }, 1000)
   }
   async function handleCopyMembers(event: React.MouseEvent<HTMLButtonElement>) {
-    const emails = memebrs.filter((m) => m.email).map((m) => `${m.name} <${m.email}>`)
-
     setMemberEl(event.currentTarget)
 
-    await navigator.clipboard.writeText(emails.join(',\n'))
+    await navigator.clipboard.writeText(memebrsEmails.join(',\n'))
 
     setTimeout(() => {
       setMemberEl(null)
     }, 1000)
   }
   async function handleCopyActiveMembers(event: React.MouseEvent<HTMLButtonElement>) {
-    const emails = activeMember.filter((m) => m.email).map((m) => `${m.name} <${m.email}>`)
-
     setActiveEl(event.currentTarget)
 
-    await navigator.clipboard.writeText(emails.join(',\n'))
+    await navigator.clipboard.writeText(activeMemberEmails.join(',\n'))
 
     setTimeout(() => {
       setActiveEl(null)
@@ -123,7 +137,17 @@ function EmailListView() {
             <Paper sx={{ p: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Stack spacing={1} sx={{ flex: 1 }}>
-                  <Typography variant='h4'>{`Executive Board (${officers.length})`}</Typography>
+                  <Link
+                    href={`mailto:${
+                      officersEmails.join(',').length < MAX_MAILTO
+                        ? officersEmails.join(',')
+                        : officersEmailsShort.join(',').length < 2000
+                        ? officersEmailsShort.join(',')
+                        : ''
+                    }`}
+                  >
+                    <Typography variant='h4'>{`Executive Board (${officers.length})`}</Typography>
+                  </Link>
                   <Typography color='text.secondary' sx={{ flex: 1 }}>
                     Only Executive Board officers
                   </Typography>
@@ -140,7 +164,17 @@ function EmailListView() {
             <Paper sx={{ p: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Stack spacing={1} sx={{ flex: 1 }}>
-                  <Typography variant='h4'>{`Members (${memebrs.length})`}</Typography>
+                  <Link
+                    href={`mailto:${
+                      memebrsEmails.join(',').length < MAX_MAILTO
+                        ? memebrsEmails.join(',')
+                        : memebrsEmailsShort.join(',').length < MAX_MAILTO
+                        ? memebrsEmailsShort.join(',')
+                        : ''
+                    }`}
+                  >
+                    <Typography variant='h4'>{`Members (${memebrs.length})`}</Typography>
+                  </Link>
                   <Typography color='text.secondary' sx={{ flex: 1 }}>
                     All Active Members
                   </Typography>
@@ -157,9 +191,19 @@ function EmailListView() {
             <Paper sx={{ p: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Stack spacing={1} sx={{ flex: 1 }}>
-                  <Typography variant='h4'>
-                    {`Active Membership (${activeMember.length})`}
-                  </Typography>
+                  <Link
+                    href={`mailto:${
+                      activeMemberEmails.join(',').length < MAX_MAILTO
+                        ? activeMemberEmails.join(',')
+                        : activeMemberEmailsShort.join(',').length < MAX_MAILTO
+                        ? activeMemberEmailsShort.join(',')
+                        : ''
+                    }`}
+                  >
+                    <Typography variant='h4'>
+                      {`Active Membership (${activeMember.length})`}
+                    </Typography>
+                  </Link>
                   <Typography color='text.secondary' sx={{ flex: 1 }}>
                     All Active Members and Canidates
                   </Typography>
