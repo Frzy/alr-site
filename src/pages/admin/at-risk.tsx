@@ -107,7 +107,6 @@ function AtRiskView() {
       .filter((m) => m.member.email)
       .map((m) => `${m.member.name} <${m.member.email}>`)
 
-    console.log({ target: event.currentTarget })
     setCopyEl(event.currentTarget)
 
     await navigator.clipboard.writeText(emails.join(',\n'))
@@ -116,8 +115,6 @@ function AtRiskView() {
       setCopyEl(null)
     }, 1000)
   }
-
-  console.log({ copyEl, copyOpen })
 
   return (
     <React.Fragment>
