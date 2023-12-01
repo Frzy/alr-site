@@ -8,15 +8,23 @@ type SearchToolbarProps = {
   onSearchChange?: (term: string) => void
 } & ToolbarProps
 
-export default function SearchToolbar({ title, hideSearch, onSearchChange }: SearchToolbarProps) {
+export default function SearchToolbar({
+  title,
+  hideSearch,
+  onSearchChange,
+  ...toolbarProps
+}: SearchToolbarProps) {
   const theme = useTheme()
   const [searchTerm, setSearchTerm] = React.useState('')
 
   return (
     <Toolbar
+      variant='rounded'
+      {...toolbarProps}
       sx={{
         pl: { sm: 2 },
         pr: 1,
+        ...toolbarProps.sx,
         bgcolor: theme.vars.palette.rosterHeader,
         display: !hideSearch ? 'flex' : undefined,
         flexDirection: !hideSearch

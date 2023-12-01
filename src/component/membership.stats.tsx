@@ -9,6 +9,7 @@ import RiderIcon from '@mui/icons-material/TwoWheeler'
 import SupporterIcon from '@mui/icons-material/VolunteerActivism'
 import ProspectIcon from '@mui/icons-material/Moped'
 import MemberIcon from '@mui/icons-material/SportsMotorsports'
+import SearchToolbar from './search.toolbar'
 
 const fetcher: Fetcher<IMembershipStats, string> = async (url: string) => {
   const response = await queryRequest('GET', url)
@@ -60,9 +61,7 @@ export default function MembershipStats() {
 
   return (
     <Box>
-      <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
-        <Typography variant='h5'>Membership</Typography>
-      </Toolbar>
+      <SearchToolbar title='Membership' hideSearch />
       {isLoading ? (
         <Stack sx={{ p: 1 }} spacing={1}>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>

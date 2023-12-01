@@ -37,6 +37,32 @@ const extendedTheme: CssVarsThemeOptions = {
         color: blue['A200'],
       },
     },
+    MuiTableHead: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: `rgba(${theme.vars.palette.secondary.mainChannel} / 0.20)`,
+        }),
+      },
+    },
+    MuiToolbar: {
+      styleOverrides: {
+        root: ({ ownerState, theme }) =>
+          theme.unstable_sx({
+            ...(ownerState.variant === 'rounded' && {
+              minHeight: { xs: 56, md: 64 },
+            }),
+          }),
+      },
+      variants: [
+        {
+          props: { variant: 'rounded' },
+          style: {
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px',
+          },
+        },
+      ],
+    },
   },
 }
 

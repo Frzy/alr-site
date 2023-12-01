@@ -132,10 +132,10 @@ function MembershipLogRow({ row }: { row: LogsByMember }) {
             {row.member.name}
           </Link>
         </TableCell>
-        <TableCell align='right'>{row.events}</TableCell>
-        <TableCell align='right'>{row.breakdown.Ride.events}</TableCell>
-        <TableCell align='right'>{row.hours}</TableCell>
-        <TableCell align='right'>{row.miles}</TableCell>
+        <TableCell align='right'>{row.events.toLocaleString()}</TableCell>
+        <TableCell align='right'>{row.breakdown.Ride.events.toLocaleString()}</TableCell>
+        <TableCell align='right'>{row.hours.toLocaleString()}</TableCell>
+        <TableCell align='right'>{row.miles.toLocaleString()}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell sx={{ py: 0 }} colSpan={6}>
@@ -160,9 +160,9 @@ function MembershipLogRow({ row }: { row: LogsByMember }) {
                       <TableCell component='th' scope='row'>
                         {r.name}
                       </TableCell>
-                      <TableCell>{r.events}</TableCell>
-                      <TableCell>{r.hours}</TableCell>
-                      <TableCell>{r.miles}</TableCell>
+                      <TableCell>{r.events.toLocaleString()}</TableCell>
+                      <TableCell>{r.hours.toLocaleString()}</TableCell>
+                      <TableCell>{r.miles.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

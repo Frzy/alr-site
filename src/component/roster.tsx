@@ -1,11 +1,13 @@
 import * as React from 'react'
 import useSWR, { Fetcher } from 'swr'
-import { ENDPOINT, MEMBER_ROLES, ROLE } from '@/utils/constants'
-import { Box, Paper, LinearProgress, Stack, Toolbar, Tooltip, Typography } from '@mui/material'
+import { ENDPOINT, ROLE } from '@/utils/constants'
+import { Box, Paper, LinearProgress, Stack, Toolbar, Typography } from '@mui/material'
 import RosterItem from './roster.item'
 
 import type { Member } from '@/types/common'
 import { officerSort } from '@/utils/helpers'
+import SearchToolbar from './search.toolbar'
+import FuzzySearch from 'fuzzy-search'
 
 const fetcher: Fetcher<Member[], string[]> = async (args) => {
   const [url] = args
@@ -22,18 +24,43 @@ export default function Roster() {
     fallbackData: [],
     revalidateOnFocus: false,
   })
-  const officers = roster.filter((m) => !!m.office).sort(officerSort)
-  const members = roster.filter((m) => !m.office && m.isActive)
-  const prospects = roster.filter(
-    (m) => m.role === ROLE.PROSPECT || m.role === ROLE.CANIDATE_SUPPORTER,
-  )
+  const initOfficers = React.useMemo(() => {
+    return roster.filter((m) => !!m.office).sort(officerSort)
+  }, [roster])
+  const activeMembers = React.useMemo(() => {
+    return roster.filter((m) => !m.office && m.isActive)
+  }, [roster])
+  const prospects = React.useMemo(() => {
+    return roster.filter((m) => m.role === ROLE.PROSPECT || m.role === ROLE.CANIDATE_SUPPORTER)
+  }, [roster])
+  const [activeSearchTerm, setActiveSearchTerm] = React.useState('')
+  const activeSearcher = React.useMemo(() => {
+    return new FuzzySearch(activeMembers, ['name', 'nickName'], {
+      sort: true,
+    })
+  }, [activeMembers])
+  const members = React.useMemo(() => {
+    if (activeSearchTerm) return activeSearcher.search(activeSearchTerm)
+
+    return activeMembers
+  }, [activeSearcher, activeSearchTerm, activeMembers])
+
+  const [officerSearchTerm, setOfficerSearchTerm] = React.useState('')
+  const officerSearcher = React.useMemo(() => {
+    return new FuzzySearch(initOfficers, ['name', 'nickName'], {
+      sort: true,
+    })
+  }, [initOfficers])
+  const officers = React.useMemo(() => {
+    if (officerSearchTerm) return officerSearcher.search(officerSearchTerm)
+
+    return initOfficers
+  }, [officerSearcher, officerSearchTerm, initOfficers])
 
   return (
     <Stack spacing={1}>
       <Paper sx={{ position: 'relative' }}>
-        <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
-          <Typography variant='h5'>Executive Board</Typography>
-        </Toolbar>
+        <SearchToolbar title='Executive Board' onSearchChange={setOfficerSearchTerm} />
         {isLoading ? (
           <LinearProgress color='primary' />
         ) : officers.length ? (
@@ -62,14 +89,16 @@ export default function Roster() {
           </Box>
         ) : (
           <Box display='flex' justifyContent='center' alignItems='center' p={3}>
-            <Typography variant='h5'>No Officers Currently Availible</Typography>
+            {officerSearchTerm ? (
+              <Typography variant='h5'>No Matches Found</Typography>
+            ) : (
+              <Typography variant='h5'>No Officers Currently Availible</Typography>
+            )}
           </Box>
         )}
       </Paper>
       <Paper sx={{ position: 'relative' }}>
-        <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
-          <Typography variant='h5'>Active Roster</Typography>
-        </Toolbar>
+        <SearchToolbar title='Active Roster' onSearchChange={setActiveSearchTerm} />
         {isLoading ? (
           <LinearProgress color='primary' />
         ) : members.length ? (
@@ -99,7 +128,11 @@ export default function Roster() {
           </Box>
         ) : (
           <Box display='flex' justifyContent='center' alignItems='center' p={3}>
-            <Typography variant='h5'>No Members Currently Availible </Typography>
+            {activeSearchTerm ? (
+              <Typography variant='h5'>No Matches Found</Typography>
+            ) : (
+              <Typography variant='h5'>No Members Currently Availible</Typography>
+            )}
           </Box>
         )}
       </Paper>

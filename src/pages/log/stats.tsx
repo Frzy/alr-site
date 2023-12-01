@@ -27,6 +27,7 @@ import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 import type { ActivityLogStats } from '@/types/common'
 import Header from '@/component/header'
 import { flattenBreakdown } from '@/utils/helpers'
+import SearchToolbar from '@/component/search.toolbar'
 
 export const getServerSideProps: GetServerSideProps<{
   stats: ActivityLogStats
@@ -94,11 +95,10 @@ export default function StatsPage({
       <Container maxWidth='xl'>
         <Grid container spacing={1}>
           <Grid xs={12}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4'>Latest Log Entries</Typography>
-              <Divider sx={{ my: 1 }} />
+            <Paper>
+              <SearchToolbar title='Latest Log Entries' hideSearch />
               <TableContainer>
-                <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+                <Table sx={{ minWidth: 650 }} aria-label='latest log entries'>
                   <TableHead>
                     <TableRow>
                       <TableCell>Name</TableCell>
@@ -119,7 +119,13 @@ export default function StatsPage({
                     {stats.latestEntries.map((entry, index) => (
                       <TableRow
                         key={index}
-                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        sx={{
+                          '&:last-child td, &:last-child th': { border: 0 },
+                          '&:hover': {
+                            bgcolor: (theme) =>
+                              `rgba(${theme.vars.palette.primary.mainChannel} / .1)`,
+                          },
+                        }}
                       >
                         <TableCell component='th' scope='row'>
                           {entry.name}
@@ -151,10 +157,9 @@ export default function StatsPage({
             </Alert>
           </Grid>
           <Grid xs={12}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4'>Chapter Stats</Typography>
-              <Divider sx={{ my: 1 }} />
-              <Grid container>
+            <Paper sx={{ mb: 1 }}>
+              <SearchToolbar title='Chapter Stats' hideSearch />
+              <Grid container spacing={2} sx={{ pt: 1 }}>
                 <Grid xs={12} sm={6} md={4}>
                   <Typography variant='h6' sx={{ textAlign: { xs: 'left', md: 'center' } }}>
                     Total Participation: {stats.events.toLocaleString()}
@@ -170,10 +175,7 @@ export default function StatsPage({
                     Total Miles: {stats.miles.toLocaleString()}
                   </Typography>
                 </Grid>
-                <Grid xs={12}>
-                  <Divider sx={{ my: 1 }} />
-                  <Typography variant='h6'>Breakdown</Typography>
-                  <Divider sx={{ mt: 1 }} />
+                <Grid xs={12} sx={{ pb: 0 }}>
                   <Table size='small' aria-label='breakdown'>
                     <TableHead>
                       <TableRow>
@@ -185,7 +187,16 @@ export default function StatsPage({
                     </TableHead>
                     <TableBody>
                       {flattenBreakdown(stats.breakdown).map((r, index) => (
-                        <TableRow key={index}>
+                        <TableRow
+                          key={index}
+                          sx={{
+                            '&:hover': {
+                              bgcolor: (theme) =>
+                                `rgba(${theme.vars.palette.primary.mainChannel} / .1)`,
+                            },
+                            '&:last-child td, &:last-child th': { border: 0 },
+                          }}
+                        >
                           <TableCell component='th' scope='row'>
                             {r.name}
                           </TableCell>
@@ -201,14 +212,18 @@ export default function StatsPage({
             </Paper>
           </Grid>
           <Grid xs={12} sm={6}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4' align='center'>
-                Top 5 in Rides
-              </Typography>
-              <Divider sx={{ my: 1 }} />
+            <Paper>
+              <SearchToolbar title='Top 5 in Rides' hideSearch />
               <List disablePadding dense>
                 {topRiders.map((r, index) => (
-                  <ListItem key={index}>
+                  <ListItem
+                    key={index}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: (theme) => `rgba(${theme.vars.palette.primary.mainChannel} / .1)`,
+                      },
+                    }}
+                  >
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
                       <Typography>{r.breakdown.Ride.events.toLocaleString()}</Typography>
@@ -219,14 +234,18 @@ export default function StatsPage({
             </Paper>
           </Grid>
           <Grid xs={12} sm={6}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4' align='center'>
-                Top 5 in Participation
-              </Typography>
-              <Divider sx={{ my: 1 }} />
+            <Paper>
+              <SearchToolbar title='Top 5 in Participation' hideSearch />
               <List disablePadding dense>
                 {topActive.map((r, index) => (
-                  <ListItem key={index}>
+                  <ListItem
+                    key={index}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: (theme) => `rgba(${theme.vars.palette.primary.mainChannel} / .1)`,
+                      },
+                    }}
+                  >
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
                       <Typography>{r.events.toLocaleString()}</Typography>
@@ -237,14 +256,18 @@ export default function StatsPage({
             </Paper>
           </Grid>
           <Grid xs={12} sm={6}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4' align='center'>
-                Top 5 in Miles
-              </Typography>
-              <Divider sx={{ my: 1 }} />
+            <Paper>
+              <SearchToolbar title='Top 5 in Miles' hideSearch />
               <List disablePadding dense>
                 {topMiles.map((r, index) => (
-                  <ListItem key={index}>
+                  <ListItem
+                    key={index}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: (theme) => `rgba(${theme.vars.palette.primary.mainChannel} / .1)`,
+                      },
+                    }}
+                  >
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
                       <Typography>{r.miles.toLocaleString()}</Typography>
@@ -255,14 +278,18 @@ export default function StatsPage({
             </Paper>
           </Grid>
           <Grid xs={12} sm={6}>
-            <Paper sx={{ p: 1 }}>
-              <Typography variant='h4' align='center'>
-                Top 5 in Hours
-              </Typography>
-              <Divider sx={{ my: 1 }} />
+            <Paper>
+              <SearchToolbar title='Top 5 in Hours' hideSearch />
               <List disablePadding dense>
                 {topHours.map((r, index) => (
-                  <ListItem key={index}>
+                  <ListItem
+                    key={index}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: (theme) => `rgba(${theme.vars.palette.primary.mainChannel} / .1)`,
+                      },
+                    }}
+                  >
                     <Box display='flex' width='100%'>
                       <Typography flexGrow={1}>{r.name}</Typography>
                       <Typography>{r.hours.toLocaleString()}</Typography>

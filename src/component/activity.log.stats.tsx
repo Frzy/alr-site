@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Alert, Box, Divider, Skeleton, Stack, Toolbar, Typography } from '@mui/material'
+import { Alert, Box, Skeleton, Stack, Typography } from '@mui/material'
 import { ENDPOINT } from '@/utils/constants'
 import { queryRequest } from '@/utils/api'
 import useSWR, { Fetcher } from 'swr'
@@ -9,6 +9,7 @@ import HourIcon from '@mui/icons-material/AccessTime'
 import EventIcon from '@mui/icons-material/Event'
 import MileIcon from '@mui/icons-material/SocialDistance'
 import moment from 'moment'
+import SearchToolbar from './search.toolbar'
 
 const fetcher: Fetcher<ActivityLogStats, string> = async (url: string) => {
   const now = moment()
@@ -44,11 +45,7 @@ export default function ActivityLogStats() {
 
   return (
     <Box>
-      <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
-        <Typography variant='h5'>Log Stats</Typography>
-      </Toolbar>
-
-      <Divider />
+      <SearchToolbar title='Log Stats' hideSearch />
       {isLoading ? (
         <Stack sx={{ p: 1 }} spacing={1}>
           <Box sx={{ display: 'flex', gap: 3, p: 2, alignItems: 'center' }}>

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Alert, Box, Toolbar, Typography } from '@mui/material'
+import { Alert, Box } from '@mui/material'
 import { ENDPOINT } from '@/utils/constants'
 import RosterItem, { SkeletonRosterItem } from './roster.item'
 import useSWR, { Fetcher } from 'swr'
@@ -7,6 +7,7 @@ import useSWR, { Fetcher } from 'swr'
 import type { Member } from '@/types/common'
 import { queryRequest } from '@/utils/api'
 import Grid from '@mui/material/Unstable_Grid2'
+import SearchToolbar from './search.toolbar'
 
 const fetcher: Fetcher<Member[], string> = async (url: string) => {
   const response = await queryRequest('GET', url)
@@ -33,9 +34,7 @@ export default function Officers() {
 
   return (
     <Box>
-      <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
-        <Typography variant='h5'>Executive Board</Typography>
-      </Toolbar>
+      <SearchToolbar title='Executive Board' hideSearch />
       {error ? (
         <Alert severity='error'>There was a problem fetching the offices</Alert>
       ) : (
