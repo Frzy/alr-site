@@ -244,6 +244,7 @@ export default function DuesPage() {
                       <TableHead>
                         <TableRow>
                           <TableCell>Name</TableCell>
+                          <TableCell>Email</TableCell>
                           <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                             Status
                           </TableCell>
@@ -259,7 +260,7 @@ export default function DuesPage() {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                             key={entry.member.id}
                           >
-                            <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
+                            <TableCell sx={{ position: 'relative' }}>
                               <Box
                                 sx={{
                                   bgcolor: entry.eligible ? 'green' : 'red',
@@ -278,6 +279,7 @@ export default function DuesPage() {
                                 {entry.member.name}
                               </Link>
                             </TableCell>
+                            <TableCell>{entry.member.email}</TableCell>
                             <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                               {entry.eligible ? 'Eligible' : 'Not Eligible'}
                             </TableCell>
@@ -301,6 +303,17 @@ export default function DuesPage() {
                             </TableCell>
                           </TableRow>
                         ))}
+                        {unpaidList.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={6}>
+                              <Alert severity={!!unpaidSearchTerm ? 'warning' : 'success'}>
+                                {!!unpaidSearchTerm
+                                  ? `No Members match ${unpaidSearchTerm}`
+                                  : 'No Unpaid Members'}
+                              </Alert>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -361,6 +374,17 @@ export default function DuesPage() {
                             <TableCell align='right'>{entry.member.lastPaidDues}</TableCell>
                           </TableRow>
                         ))}
+                        {paidList.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={6}>
+                              <Alert severity={!!paidSearchTerm ? 'warning' : 'error'}>
+                                {!!paidSearchTerm
+                                  ? `No Members match ${paidSearchTerm}`
+                                  : 'No Paid Members'}
+                              </Alert>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </TableContainer>
