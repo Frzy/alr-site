@@ -29,11 +29,12 @@ export default function SearchToolbar({
 
   return (
     <Toolbar
-      variant='rounded'
       {...toolbarProps}
       sx={{
         pl: { sm: 2 },
         pr: 1,
+        borderTopLeftRadius: '4px',
+        borderTopRightRadius: '4px',
         ...toolbarProps.sx,
         bgcolor: theme.vars.palette.rosterHeader,
         display: !hideSearch ? 'flex' : undefined,
