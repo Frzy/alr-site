@@ -68,4 +68,10 @@ const extendedTheme: CssVarsThemeOptions = {
 
 const theme = extendTheme(extendedTheme)
 
+declare module '@mui/material/toolbar' {
+  interface ToolbarPropsVariantOverrides {
+    rounded: true
+  }
+}
+
 export default theme

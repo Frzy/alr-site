@@ -27,10 +27,4 @@ declare module '@mui/material/styles' {
   interface ThemeOptions extends ExtendedTheme {}
 }
 
-declare module '@mui/material/toolbar' {
-  interface ToolbarPropsVariantOverrides {
-    rounded: true
-  }
-}
-
 export {}
