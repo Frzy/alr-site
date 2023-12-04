@@ -9,6 +9,7 @@ import {
   LinearProgress,
   Paper,
   Popover,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -28,17 +29,21 @@ import FuzzySearch from 'fuzzy-search'
 import Link from '@/component/link'
 import CopyIcon from '@mui/icons-material/ContentCopy'
 import EmailIcon from '@mui/icons-material/Email'
+import DateDisplay from '@/component/date.display'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
-const fetcher: Fetcher<AtRiskMember[], string> = async function fetcher(url) {
-  const response = await fetch(url)
-  const data = await response.json()
+const fetcher: Fetcher<AtRiskMember[], [string, URLSearchParams | undefined]> =
+  async function fetcher([url, queryParams]) {
+    const response = await fetch(queryParams ? `${url}?${queryParams.toString()}` : url)
 
-  return data
-}
+    return (await response.json()) as AtRiskMember[]
+  }
 
 export default function AdminAtRiskPage() {
   const { status, data: session } = useSession()
   const isAdmin = !!session?.user.office && status === 'authenticated'
+  const [year, setYear] = React.useState(moment().year() + 1)
 
   return (
     <React.Fragment>
@@ -62,15 +67,48 @@ export default function AdminAtRiskPage() {
             </Paper>
           </Paper>
         ) : (
-          <AtRiskView />
+          <LocalizationProvider dateAdapter={AdapterMoment}>
+            <Stack spacing={1} sx={{ mb: 2 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography gutterBottom>
+                  Below is a list of members that have not met the participtation requirments for
+                  the club. Use the dropdown below to pick year to check.
+                </Typography>
+                <Alert severity='info' sx={{ mb: 2 }}>
+                  Please note that after choosing a year, the tool will check the activity log
+                  entries for the previous year to check for eligibility.
+                </Alert>
+                <DateDisplay
+                  label='Eligibility Year'
+                  value={moment(year, 'YYYY')}
+                  views={['year']}
+                  minDate={moment('2021', 'YYYY').startOf('year')}
+                  maxDate={moment().add(1, 'year').startOf('year')}
+                  onChange={(date) => {
+                    if (date) {
+                      setYear(date.year())
+                    } else {
+                      setYear(moment().year() + 1)
+                    }
+                  }}
+                  fullWidth
+                  editing
+                />
+              </Paper>
+              <AtRiskView year={year.toString()} />
+            </Stack>
+          </LocalizationProvider>
         )}
       </Container>
     </React.Fragment>
   )
 }
 
-function AtRiskView() {
-  const { data, isLoading } = useSWR(ENDPOINT.AT_RISK_MEMBERS, fetcher, {
+function AtRiskView({ year }: { year: string }) {
+  const queryParams = React.useMemo(() => {
+    return new URLSearchParams({ year })
+  }, [year])
+  const { data, isLoading } = useSWR([ENDPOINT.AT_RISK_MEMBERS, queryParams], fetcher, {
     fallbackData: [],
   })
   const [atRiskSearchTerm, setAtRiskSearchTerm] = React.useState('')
@@ -115,17 +153,18 @@ function AtRiskView() {
   }
 
   return (
-    <React.Fragment>
+    <Box>
       <SearchToolbar
-        title={`At Risk Members for ${moment().year() + 1}`}
+        title={`At Risk Members for ${year}`}
         onSearchChange={setAtRiskSearchTerm}
+        hideSearch={isLoading}
       />
       {isLoading ? (
         <Paper sx={{ p: 2 }}>
           <LinearProgress />
         </Paper>
       ) : (
-        <Box>
+        <Paper>
           <TableContainer>
             <Table>
               <TableHead>
@@ -170,7 +209,7 @@ function AtRiskView() {
                     <TableCell>
                       {RIDER_ROLES.indexOf(entry.member.role) !== -1
                         ? `${entry.rides} of ${MIN_RIDES}`
-                        : entry.rides}
+                        : 'N/A'}
                     </TableCell>
                     <TableCell>{`${entry.events} of ${MIN_EVENTS}`}</TableCell>
                     <TableCell align='right'>
@@ -207,8 +246,8 @@ function AtRiskView() {
           >
             <Alert severity='success'>Copied</Alert>
           </Popover>
-        </Box>
+        </Paper>
       )}
-    </React.Fragment>
+    </Box>
   )
 }

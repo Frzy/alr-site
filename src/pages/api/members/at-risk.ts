@@ -11,18 +11,17 @@ import moment from 'moment'
 import { MIN_EVENTS, MIN_RIDES, RIDER_ROLES } from '@/utils/constants'
 
 async function GetHandle(req: NextApiRequest, res: NextApiResponse<Member | Api.Error>) {
-  const { start, end } = req.query
-  const startDate = start ? moment(start) : moment().startOf('year')
-  const endDate = end ? moment(end) : moment().endOf('year')
-  let logs
+  const { year } = req.query
+  const requestYear = typeof year === 'string' ? parseInt(year) - 1 : moment().year()
+  const startDate = moment(requestYear, 'YYYY').startOf('year')
+  const endDate = moment(requestYear, 'YYYY').endOf('year')
+  const logs = await getActivityLogEntries((log) => moment(log.date).isBetween(startDate, endDate))
+  const cutOffDate = moment(requestYear, 'YYYY').month(5).endOf('month')
+  const memberLogs = await groupLogsByMember(logs, (m) => {
+    const joinedDate = moment(m.joined)
 
-  if (startDate.isValid() && endDate.isValid()) {
-    logs = await getActivityLogEntries((log) => moment(log.date).isBetween(startDate, endDate))
-  } else {
-    logs = await getActivityLogEntries()
-  }
-
-  const memberLogs = await groupLogsByMember(logs, (m) => m.isActive)
+    return joinedDate.isBefore(cutOffDate) && m.isActive && !m.isLifeTimeMember
+  })
 
   return memberLogs
     .sort((a, b) => a.member.name.localeCompare(b.member.name))
