@@ -40,8 +40,8 @@ export type Member = {
 
 export type MemberGoogleRow = {
   memberId?: string
-  office?: OFFICER_POSITION
-  role: ROLE
+  office: OFFICER_POSITION | string
+  role: ROLE | string
   id?: string
   phone?: string
   email?: string

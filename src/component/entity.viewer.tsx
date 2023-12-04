@@ -85,7 +85,6 @@ export default function EntityDisplay({
         }}
         MenuProps={MenuProps}
         {...selectProps}
-        size='small'
         label={values.length > 1 ? 'Entities' : 'Entity'}
         variant={editing ? 'outlined' : 'standard'}
         sx={{

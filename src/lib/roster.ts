@@ -3,6 +3,7 @@ import { JWT } from 'google-auth-library'
 import { MEMBER_ROLES } from '@/utils/constants'
 import moment from 'moment'
 import type { Member, MemberGoogleRow } from '@/types/common'
+import { randomUUID } from 'crypto'
 
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -74,7 +75,7 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
   return {
     id: r.get('id'),
     email: r.get('email'),
-    entity: r.get('entity') ? r.get('entity').split(',') : r.get('entity'),
+    entity: r.get('entity') ? r.get('entity').split(',') : [],
     firstName: r.get('firstName'),
     image: r.get('image') || '',
     isActive,
@@ -98,51 +99,25 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
     emergencyContacts: getEmergencyContacts(r),
   }
 }
-export function memberToUnAuthMember(member: Member): Member {
-  const { phoneNumber, email, ...unAuthMember } = member
-
-  return unAuthMember
-}
-export async function getAllMembers() {
-  return await getMembersBy()
-}
-export async function getMembersBy(filter?: (member: Member) => boolean) {
-  const rows = await getRosterRows()
-  const members = rows.map(rowToMember)
-
-  if (filter) return members.filter(filter)
-
-  return members
-}
-export async function findMember(filter: (row: Member) => boolean) {
-  const rows = await getRosterRows()
-  const members: Member[] = rows.map(rowToMember)
-
-  return members.find(filter)
-}
-export async function updateMember(m: Member) {
-  const rows = await getRosterRows()
-
-  const r = rows.find((r) => r.get('id') === m.id)
-
+function memberToRow(m: Member): MemberGoogleRow {
   const data = {
-    firstName: m.firstName,
-    lastName: m.lastName,
-    suffix: m.suffix,
-    nickname: m.nickName,
-    office: m.office,
-    role: m.role,
-    phone: m.phoneNumber ? m.phoneNumber.replace(/\D/g, '') : m.phoneNumber,
-    email: m.email,
-    memberId: m.membershipId,
-    entity: m.entity ? m.entity?.join(',') : '',
-    joinDate: m.joined,
+    firstName: m.firstName ? m.firstName : '',
+    lastName: m.lastName ? m.lastName : '',
+    suffix: m.suffix ? m.suffix : '',
+    nickname: m.nickName ? m.nickName : '',
+    office: m.office ? m.office : '',
+    role: m.role ? m.role : '',
+    phone: m.phoneNumber ? m.phoneNumber.replace(/\D/g, '') : '',
+    email: m.email ? m.email : '',
+    memberId: m.membershipId ? m.membershipId : '',
+    entity: m.entity ? m.entity.sort().join(',') : '',
+    joinDate: m.joined ? m.joined : '',
     lastPaidDues: m.lastPaidDues ? `${m.lastPaidDues}` : '',
     lifttimeMember: m.isLifeTimeMember ? 'TRUE' : '',
     pastPresident: m.isPastPresident ? 'TRUE' : '',
     rides: m.rides ? `${m.rides}` : '',
-    image: m.image,
-    username: m.username,
+    image: m.image ? m.image : '',
+    username: m.username ? m.username.toLowerCase() : '',
     eNameOne: '',
     ePhoneOne: '',
     eNameTwo: '',
@@ -168,6 +143,35 @@ export async function updateMember(m: Member) {
     }
   })
 
+  return data
+}
+export function memberToUnAuthMember(member: Member): Member {
+  const { phoneNumber, email, ...unAuthMember } = member
+
+  return unAuthMember
+}
+export async function getAllMembers() {
+  return await getMembersBy()
+}
+export async function getMembersBy(filter?: (member: Member) => boolean) {
+  const rows = await getRosterRows()
+  const members = rows.map(rowToMember)
+
+  if (filter) return members.filter(filter)
+
+  return members
+}
+export async function findMember(filter: (row: Member) => boolean) {
+  const rows = await getRosterRows()
+  const members: Member[] = rows.map(rowToMember)
+
+  return members.find(filter)
+}
+export async function updateMember(m: Member) {
+  const rows = await getRosterRows()
+  const r = rows.find((r) => r.get('id') === m.id)
+  const data = memberToRow(m)
+
   if (r) {
     r.assign(data)
 
@@ -175,6 +179,23 @@ export async function updateMember(m: Member) {
 
     return rowToMember(r)
   }
+}
+export async function createMember(m: Member) {
+  const doc = await getRosterDoc()
+  const worksheet = doc.sheetsById[process.env.ROSTER_SHEET_KEY]
+  const data = memberToRow(m)
+  data.id = randomUUID()
+
+  const newMember = await worksheet.addRow(data)
+
+  return rowToMember(newMember)
+}
+
+export async function deleteMember(id: string) {
+  const rows = await getRosterRows()
+  const index = rows.findIndex((r) => r.get('id') === id)
+
+  if (index) rows[index].delete()
 }
 
 export async function getNextAlrIDNumber() {

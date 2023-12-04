@@ -6,7 +6,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers'
 import { Member } from '@/types/common'
 import { useSession } from 'next-auth/react'
 import DateDisplay from '@/component/date.display'
-import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import EntityDisplay from '@/component/entity.viewer'
 import FuzzySearch from 'fuzzy-search'
@@ -17,6 +16,7 @@ import ImageDisplay from '@/component/image.display'
 import moment, { Moment } from 'moment'
 import NumbersIcon from '@mui/icons-material/Numbers'
 import OfficeDisplay from '@/component/officer.display'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import PhoneField from '@/component/phone.number.field'
 import ResponsiveDialog from '@/component/responsive.dialog'
 import RoleDisplay from '@/component/role.display'
@@ -31,6 +31,7 @@ import {
   Checkbox,
   CircularProgress,
   Container,
+  Fab,
   FormControlLabel,
   IconButton,
   InputAdornment,
@@ -68,7 +69,7 @@ export default function AdminMembershipPage() {
         <meta name='description' content='american legion riders chapter 91 admin membership' />
       </Head>
       <Header />
-      <Container maxWidth='xl'>
+      <Container maxWidth='xl' sx={{ position: 'relative' }}>
         {status === 'loading' ? (
           <Paper sx={{ p: 2 }}>
             <LinearProgress />
@@ -138,6 +139,7 @@ function AdminMembership() {
   const [showDeleteWarning, setShowDeleteWarning] = React.useState(false)
   const [updating, setUpdating] = React.useState(false)
   const dialogOpen = Boolean(editMember)
+  const isCreatingMember = !Boolean(editMember?.id)
 
   function handleTextChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target
@@ -197,6 +199,8 @@ function AdminMembership() {
   async function handleUpdateMember() {
     if (!editMember) return
 
+    if (!editMember.id) return await handleCreateNewMember()
+
     try {
       setUpdating(true)
       const response = await fetch(`${ENDPOINT.MEMBER}${editMember.id}`, {
@@ -216,6 +220,65 @@ function AdminMembership() {
       mutate(newData)
 
       setEditMember(undefined)
+      setShowDeleteWarning(false)
+      setUpdating(false)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  async function handleDeleteMember() {
+    if (!editMember || !editMember.id) return
+
+    try {
+      setUpdating(true)
+      const response = await fetch(`${ENDPOINT.MEMBER}${editMember.id}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const newData = [...data]
+      const index = newData.findIndex((d) => d.id === editMember.id)
+      if (index) newData.splice(index, 1)
+
+      mutate(newData)
+      setEditMember(undefined)
+      setShowDeleteWarning(false)
+      setUpdating(false)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  async function isMemberValid() {
+    if (!editMember) return false
+
+    return !!editMember.firstName && !!editMember.lastName && !!editMember.username
+  }
+  async function handleCreateNewMember() {
+    if (!editMember) return
+
+    try {
+      setUpdating(true)
+      const response = await fetch(`${ENDPOINT.MEMBERS}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editMember),
+      })
+      const newMember = (await response.json()) as Member
+      const newData = [...data]
+
+      newData.push(newMember)
+      newData.sort((a, b) => a.name.localeCompare(b.name))
+
+      mutate(newData)
+
+      setEditMember(undefined)
+      setShowDeleteWarning(false)
       setUpdating(false)
     } catch (e) {
       console.log(e)
@@ -223,7 +286,7 @@ function AdminMembership() {
   }
 
   return (
-    <Stack spacing={1} sx={{ pb: 1 }}>
+    <Stack spacing={1} sx={{ pb: { xs: 8, md: 2 } }}>
       <Paper>
         <SearchToolbar
           title={memberTitle}
@@ -313,9 +376,16 @@ function AdminMembership() {
         )}
       </Paper>
       <ResponsiveDialog
-        title={`${showDeleteWarning ? 'Delete' : 'Edit'} ${editMember?.name}`}
+        title={
+          isCreatingMember
+            ? 'Create New Member'
+            : `${showDeleteWarning ? 'Delete' : 'Edit'} ${editMember?.name}`
+        }
         open={dialogOpen}
-        onClose={() => setEditMember(undefined)}
+        onClose={() => {
+          setShowDeleteWarning(false)
+          setEditMember(undefined)
+        }}
         maxWidth='md'
         actions={
           showDeleteWarning ? (
@@ -327,23 +397,31 @@ function AdminMembership() {
               >
                 No
               </Button>
-              <LoadingButton loading={updating}>Yes</LoadingButton>
+              <LoadingButton loading={updating} onClick={handleDeleteMember}>
+                Yes
+              </LoadingButton>
             </React.Fragment>
           ) : (
             <Box sx={{ display: 'flex', width: '100%', alignContent: 'center' }}>
               <Box sx={{ flex: 1 }}>
-                <Button
-                  disabled={updating}
-                  color='error'
-                  onClick={() => setShowDeleteWarning(true)}
-                >
-                  Delete
-                </Button>
+                {!isCreatingMember && (
+                  <Button
+                    disabled={updating}
+                    color='error'
+                    onClick={() => setShowDeleteWarning(true)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </Box>
               <Button disabled={updating} color='inherit'>
                 Cancel
               </Button>
-              <LoadingButton loading={updating} onClick={handleUpdateMember}>
+              <LoadingButton
+                disabled={!isMemberValid()}
+                loading={updating}
+                onClick={handleUpdateMember}
+              >
                 Save
               </LoadingButton>
             </Box>
@@ -358,18 +436,21 @@ function AdminMembership() {
         )}
         {!showDeleteWarning && editMember && (
           <Grid container spacing={2}>
-            <Grid xs={12}>
-              <Alert severity='info'>If changing the username a relogin will be necessary</Alert>
-            </Grid>
+            {!isCreatingMember && (
+              <Grid xs={12}>
+                <Alert severity='info'>If changing the username a relogin will be necessary</Alert>
+              </Grid>
+            )}
             <Grid xs={12} md={5}>
               <TextDisplay
                 label='First Name'
                 name='firstName'
                 value={editMember.firstName}
                 autoComplete='given-name name'
-                editing
                 disabled={updating}
                 onChange={handleTextChange}
+                editing
+                required
                 fullWidth
               />
             </Grid>
@@ -379,9 +460,10 @@ function AdminMembership() {
                 name='lastName'
                 autoComplete='family-name name'
                 value={editMember.lastName}
-                editing
                 disabled={updating}
                 onChange={handleTextChange}
+                editing
+                required
                 fullWidth
               />
             </Grid>
@@ -487,7 +569,7 @@ function AdminMembership() {
                 fullWidth
               />
             </Grid>
-            <Grid xs={12} md={6}>
+            <Grid xs={12} md={editMember.role === ROLE.PROSPECT ? 4 : 6}>
               <DateDisplay
                 label='Joined On'
                 value={editMember.joined ? moment(editMember.joined, 'MM-DD-YYYY') : null}
@@ -497,19 +579,20 @@ function AdminMembership() {
                 fullWidth
               />
             </Grid>
-            <Grid xs={12} md={6}>
+            <Grid xs={12} md={editMember.role === ROLE.PROSPECT ? 4 : 6}>
               <TextDisplay
                 label='Username'
                 name='username'
                 value={editMember.username}
-                editing
                 disabled={updating}
                 onChange={handleTextChange}
+                editing
+                required
                 fullWidth
               />
             </Grid>
             {editMember.role === ROLE.PROSPECT && (
-              <Grid xs={12} md={4} lg={3}>
+              <Grid xs={12} md={editMember.role === ROLE.PROSPECT ? 4 : 6}>
                 <TextDisplay
                   label='Canidate Rides'
                   name='rides'
@@ -553,7 +636,6 @@ function AdminMembership() {
                 values={editMember.entity}
                 editing
                 disabled={updating}
-                size='medium'
                 onChange={handleEntityChange}
                 fullWidth
               />
@@ -667,6 +749,46 @@ function AdminMembership() {
           </Grid>
         )}
       </ResponsiveDialog>
+      {!isLoading && (
+        <Fab
+          variant='extended'
+          color='primary'
+          sx={{ position: 'fixed', bottom: 8, right: 16 }}
+          onClick={() => {
+            setEditMember({
+              id: '',
+              email: '',
+              entity: [],
+              firstName: '',
+              image: '',
+              isActive: false,
+              isLifeTimeMember: false,
+              isPastPresident: false,
+              joined: '',
+              lastName: '',
+              membershipId: '',
+              name: '',
+              nickName: '',
+              office: undefined,
+              phoneNumber: '',
+              rides: 0,
+              role: ROLE.PROSPECT,
+              suffix: '',
+              yearsActive: null,
+              lastPaidDues: undefined,
+              username: '',
+              emergencyContacts: [
+                { name: '', phone: '' },
+                { name: '', phone: '' },
+                { name: '', phone: '' },
+              ],
+            })
+          }}
+        >
+          <PersonAddIcon sx={{ mr: 1 }} />
+          Add Member
+        </Fab>
+      )}
     </Stack>
   )
 }
