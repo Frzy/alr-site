@@ -123,6 +123,7 @@ export enum ENDPOINT {
   ACTIVITY_LOG = '/api/activity-log',
   NEXT_MEMBERSHIP_ID = '/api/member/next-id',
   AT_RISK_MEMBERS = '/api/members/at-risk',
+  MEMBERS = '/api/members',
 }
 export enum CALENDAR_COLOR {
   SKYBLUE = '#039be5',
