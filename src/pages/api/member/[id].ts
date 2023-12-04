@@ -45,7 +45,7 @@ async function DeleteHandle(req: NextApiRequest, res: NextApiResponse) {
   if (!session.user.office) throw new HttpError(403, 'Forbidden')
 
   try {
-    if (id) await deleteMember(id)
+    if (typeof id === 'string') await deleteMember(id)
   } catch (e) {
     throw new HttpError(400, 'Unable to update member')
   }
