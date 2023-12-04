@@ -69,7 +69,7 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
   function handleMemberReset() {
     setMember(initMember)
   }
-  async function handleUdpateMember(newMember: Member) {
+  async function handleUpdateMember(newMember: Member) {
     try {
       const response = await fetch(`${ENDPOINT.MEMBER}${newMember.id}`, {
         method: 'PUT',
@@ -103,7 +103,7 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
             <Stack spacing={1}>
               <MemberInformation
                 member={member}
-                onSave={handleUdpateMember}
+                onSave={handleUpdateMember}
                 onChange={handleMemberChange}
                 onReset={handleMemberReset}
               />
