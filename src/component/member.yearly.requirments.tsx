@@ -92,7 +92,12 @@ export default function MemberYearlyRequirments({
               Events
             </Typography>
             <Typography component='span'>
-              : {Math.min(counts.events, MIN_EVENTS)} of {MIN_EVENTS}
+              :
+              {isSupporter
+                ? ` ${Math.min(counts.events, MIN_EVENTS)} of ${MIN_EVENTS}`
+                : ` ${Math.min(counts.events, MIN_EVENTS - MIN_RIDES)} of ${
+                    MIN_EVENTS - MIN_RIDES
+                  }`}
             </Typography>
           </Box>
         </Box>
