@@ -147,15 +147,17 @@ export default function DuesPage() {
 
       const response = await fetch(`${ENDPOINT.LOGS_BY_MEMBER}?${queryParams.toString()}`)
       const newMembers = await response.json()
+      const cutOffDate = moment(start).month(6).startOf('month')
 
       setMembers(
         newMembers.map((entry: LogsByMember): DueMember => {
           const isSupporter = entry.member.role === ROLE.SUPPORTER
-          let eligible = false
+          const joinedDate = moment(entry.member.joined)
+          let eligible = joinedDate.isAfter(cutOffDate) || entry.member.isLifeTimeMember
 
-          if (isSupporter) {
+          if (!eligible && isSupporter) {
             eligible = entry.events >= MIN_EVENTS
-          } else {
+          } else if (!eligible) {
             const rides = entry.breakdown.Ride.events
 
             eligible =
@@ -230,7 +232,7 @@ export default function DuesPage() {
 
               <Paper>
                 <SearchToolbar
-                  title={`Unpaid Members ${unpaidCount}`}
+                  title={`Unpaid Members${unpaidCount ? ` (${unpaidCount})` : ''}`}
                   onSearchChange={(term) => setUnpaidSearchTerm(term)}
                   hideSearch={fetching}
                 />
@@ -322,7 +324,7 @@ export default function DuesPage() {
 
               <Paper>
                 <SearchToolbar
-                  title={`Paid Members ${paidCount}`}
+                  title={`Paid Members${paidCount ? `(${paidCount})` : ''}`}
                   onSearchChange={(term) => setPaidSearchTerm(term)}
                   hideSearch={fetching}
                 />
