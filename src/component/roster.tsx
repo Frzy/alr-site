@@ -60,7 +60,11 @@ export default function Roster() {
   return (
     <Stack spacing={1}>
       <Paper sx={{ position: 'relative' }}>
-        <SearchToolbar title='Executive Board' onSearchChange={setOfficerSearchTerm} />
+        <SearchToolbar
+          title='Executive Board'
+          onSearchChange={setOfficerSearchTerm}
+          hideSearch={isLoading}
+        />
         {isLoading ? (
           <LinearProgress color='primary' />
         ) : officers.length ? (
@@ -98,7 +102,11 @@ export default function Roster() {
         )}
       </Paper>
       <Paper sx={{ position: 'relative' }}>
-        <SearchToolbar title='Active Roster' onSearchChange={setActiveSearchTerm} />
+        <SearchToolbar
+          title='Active Roster'
+          onSearchChange={setActiveSearchTerm}
+          hideSearch={isLoading}
+        />
         {isLoading ? (
           <LinearProgress color='primary' />
         ) : members.length ? (
@@ -138,9 +146,7 @@ export default function Roster() {
       </Paper>
       {!!prospects.length && (
         <Paper sx={{ position: 'relative' }}>
-          <Toolbar sx={{ bgcolor: (theme) => theme.vars.palette.rosterHeader }}>
-            <Typography variant='h5'>Canidates</Typography>
-          </Toolbar>
+          <SearchToolbar title='Canidates' hideSearch={true} />
           <Box
             display='flex'
             sx={{ flexDirection: { xs: 'column', md: 'row' }, flexWrap: 'wrap' }}

@@ -12,7 +12,7 @@ export default function RosterPage() {
         <meta name='description' content='american legion riders chapter 91 roster' />
       </Head>
       <Header />
-      <Container maxWidth='xl'>
+      <Container maxWidth='xl' sx={{ pb: 1 }}>
         <Roster />
       </Container>
     </React.Fragment>
