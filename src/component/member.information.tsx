@@ -243,6 +243,12 @@ export default function MemberInformation({
           </Grid>
         ) : (
           <Grid container spacing={2}>
+            <Grid xs={12}>
+              <Alert severity='info'>
+                Changing the first or last name might cause activity logs to not show up properly.
+                Contact an E-Board officer for help re-linking the activity logs to the new name.
+              </Alert>
+            </Grid>
             <Grid xs={12} md={4}>
               <TextDisplay
                 label='First Name'

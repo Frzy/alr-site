@@ -416,11 +416,6 @@ export default function Header() {
                   </Link>
                 </ListItem>
                 <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
-                  <Link href={`/member/${session?.user.id}`} underline='hover'>
-                    Profile
-                  </Link>
-                </ListItem>
-                <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
                   <MuiLink underline='none' component='button' onClick={() => signOut()}>
                     Sign Out
                   </MuiLink>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import * as React from 'react'
 import moment from 'moment'
 import { Box, Paper, Stack, Typography, LinearProgress, LinearProgressProps } from '@mui/material'
 
@@ -40,7 +40,8 @@ export default function MemberYearlyRequirments({
   year = moment().year(),
 }: MemberYearlyRequirmentsProps) {
   const isSupporter = member.role === ROLE.SUPPORTER
-  const counts = useMemo(() => {
+  const cutOffDate = React.useMemo(() => moment().month(6).startOf('month'), [])
+  const counts = React.useMemo(() => {
     const startDate = moment(year, 'YYYY').startOf('year')
     const endDate = moment(year, 'YYYY').add(1, 'year').endOf('month')
 
@@ -63,11 +64,18 @@ export default function MemberYearlyRequirments({
         { rides: 0, events: 0, total: 0 },
       )
   }, [logs, year])
-  const progress = isSupporter
-    ? (Math.min(counts.total, MIN_EVENTS) / MIN_EVENTS) * 100
-    : ((Math.min(counts.rides, MIN_RIDES) + Math.min(counts.events, MIN_EVENTS - MIN_RIDES)) /
+  const skipEligibility = moment(member.joined).isAfter(cutOffDate)
+  const progress = React.useMemo(() => {
+    if (skipEligibility) return 100
+
+    if (isSupporter) return (Math.min(counts.total, MIN_EVENTS) / MIN_EVENTS) * 100
+
+    return (
+      ((Math.min(counts.rides, MIN_RIDES) + Math.min(counts.events, MIN_EVENTS - MIN_RIDES)) /
         MIN_EVENTS) *
       100
+    )
+  }, [counts, isSupporter, skipEligibility])
 
   return (
     <Paper sx={{ p: 1 }}>
@@ -76,31 +84,38 @@ export default function MemberYearlyRequirments({
           {year + 1} Membership Progress
         </Typography>
         <LinearProgressWithLabel value={progress} />
-        <Box display='flex' justifyContent='space-around'>
-          {!isSupporter && (
+        {!skipEligibility ? (
+          <Box display='flex' justifyContent='space-around'>
+            {!isSupporter && (
+              <Box>
+                <Typography component='span' fontWeight='fontWeightBold'>
+                  Rides
+                </Typography>
+                <Typography component='span'>
+                  : {Math.min(counts.rides, MIN_RIDES)} of {MIN_RIDES}
+                </Typography>
+              </Box>
+            )}
+
             <Box>
               <Typography component='span' fontWeight='fontWeightBold'>
-                Rides
+                Events
               </Typography>
               <Typography component='span'>
-                : {Math.min(counts.rides, MIN_RIDES)} of {MIN_RIDES}
+                :
+                {isSupporter
+                  ? ` ${Math.min(counts.events, MIN_EVENTS)} of ${MIN_EVENTS}`
+                  : ` ${Math.min(counts.events, MIN_EVENTS - MIN_RIDES)} of ${
+                      MIN_EVENTS - MIN_RIDES
+                    }`}
               </Typography>
             </Box>
-          )}
-          <Box>
-            <Typography component='span' fontWeight='fontWeightBold'>
-              Events
-            </Typography>
-            <Typography component='span'>
-              :
-              {isSupporter
-                ? ` ${Math.min(counts.events, MIN_EVENTS)} of ${MIN_EVENTS}`
-                : ` ${Math.min(counts.events, MIN_EVENTS - MIN_RIDES)} of ${
-                    MIN_EVENTS - MIN_RIDES
-                  }`}
-            </Typography>
           </Box>
-        </Box>
+        ) : (
+          <Typography align='center'>
+            New Member that joined after {cutOffDate.format('MMM-YYYY')}.
+          </Typography>
+        )}
       </Stack>
     </Paper>
   )
