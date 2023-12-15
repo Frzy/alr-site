@@ -1,6 +1,6 @@
-import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
+import { GoogleSpreadsheet, type GoogleSpreadsheetRow } from 'google-spreadsheet'
 import { JWT } from 'google-auth-library'
-import { MEMBER_ROLES } from '@/utils/constants'
+import { MEMBER_ROLES, type ROLE } from '@/utils/constants'
 import moment from 'moment'
 import type { Member, MemberGoogleRow } from '@/types/common'
 import { randomUUID } from 'crypto'
@@ -10,7 +10,7 @@ const SCOPES = [
   'https://www.googleapis.com/auth/drive.file',
 ]
 
-async function getRosterDoc() {
+async function getRosterDoc(): Promise<GoogleSpreadsheet> {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\n/g, '\n'),
@@ -22,8 +22,7 @@ async function getRosterDoc() {
 
   return doc
 }
-
-async function getRosterRows() {
+async function getRosterRows(): Promise<GoogleSpreadsheetRow<MemberGoogleRow>[]> {
   const doc = await getRosterDoc()
 
   const worksheet = doc.sheetsById[process.env.ROSTER_SHEET_KEY]
@@ -31,8 +30,10 @@ async function getRosterRows() {
 
   return rows
 }
-
-function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>) {
+function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>): {
+  name: string
+  phone: string
+}[] {
   const eNameOne: string = r.get('eNameOne')
   const eNameTwo: string = r.get('eNameTwo')
   const eNameThree: string = r.get('eNameThree')
@@ -51,7 +52,11 @@ function getEmergencyContacts(r: GoogleSpreadsheetRow<MemberGoogleRow>) {
 
   return contacts
 }
-function getLastPaidDues(lastPaidDues: string, isLifeTimeMember: boolean, isActive: boolean) {
+function getLastPaidDues(
+  lastPaidDues: string,
+  isLifeTimeMember: boolean,
+  isActive: boolean,
+): number | null {
   const dueYear = parseInt(lastPaidDues)
 
   if (isNaN(dueYear)) return null
@@ -64,12 +69,11 @@ function getLastPaidDues(lastPaidDues: string, isLifeTimeMember: boolean, isActi
 
   return dueYear
 }
-
 function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
   const isLifeTimeMember = r.get('lifttimeMember') === 'TRUE'
-  const isActive = MEMBER_ROLES.indexOf(r.get('role')) !== -1
-  const lastPaidDues = getLastPaidDues(r.get('lastPaidDues'), isLifeTimeMember, isActive)
-  const joined = !!r.get('joinDate') ? moment(r.get('joinDate'), 'M/D/YYYY').year() : null
+  const isActive = MEMBER_ROLES.includes(r.get('role') as ROLE)
+  const lastPaidDues = getLastPaidDues(r.get('lastPaidDues') as string, isLifeTimeMember, isActive)
+  const joined = r.get('joinDate') ? moment(r.get('joinDate') as string, 'M/D/YYYY').year() : null
   const yearsActive = lastPaidDues && joined ? lastPaidDues - joined : null
 
   return {
@@ -82,18 +86,18 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
     isLifeTimeMember,
     isPastPresident: r.get('pastPresident') === 'TRUE',
     joined: r.get('joinDate'),
-    lastPaidDues: lastPaidDues ? lastPaidDues : r.get('lastPaidDues'),
+    lastPaidDues: lastPaidDues ?? r.get('lastPaidDues'),
     lastName: r.get('lastName'),
     membershipId: r.get('memberId'),
     name: `${r.get('firstName')} ${r.get('lastName')}${
       r.get('suffix') ? ` ${r.get('suffix')}` : ''
     }`,
-    nickName: r.get('nickname') || '',
-    office: r.get('office') || '',
-    phoneNumber: r.get('phone') || '',
-    rides: r.get('rides') ? parseInt(r.get('rides')) : r.get('rides'),
+    nickName: r.get('nickname') ?? '',
+    office: r.get('office') ?? '',
+    phoneNumber: r.get('phone') ?? '',
+    rides: r.get('rides') ? parseInt(r.get('rides') as string) : r.get('rides'),
     role: r.get('role'),
-    suffix: r.get('suffix') || '',
+    suffix: r.get('suffix') ?? '',
     username: r.get('username'),
     yearsActive,
     emergencyContacts: getEmergencyContacts(r),
@@ -150,10 +154,10 @@ export function memberToUnAuthMember(member: Member): Member {
 
   return unAuthMember
 }
-export async function getAllMembers() {
+export async function getAllMembers(): Promise<Member[]> {
   return await getMembersBy()
 }
-export async function getMembersBy(filter?: (member: Member) => boolean) {
+export async function getMembersBy(filter?: (member: Member) => boolean): Promise<Member[]> {
   const rows = await getRosterRows()
   const members = rows.map(rowToMember)
 
@@ -161,13 +165,13 @@ export async function getMembersBy(filter?: (member: Member) => boolean) {
 
   return members
 }
-export async function findMember(filter: (row: Member) => boolean) {
+export async function findMember(filter: (row: Member) => boolean): Promise<Member | undefined> {
   const rows = await getRosterRows()
   const members: Member[] = rows.map(rowToMember)
 
   return members.find(filter)
 }
-export async function updateMember(m: Member) {
+export async function updateMember(m: Member): Promise<Member | undefined> {
   const rows = await getRosterRows()
   const r = rows.find((r) => r.get('id') === m.id)
   const data = memberToRow(m)
@@ -180,7 +184,7 @@ export async function updateMember(m: Member) {
     return rowToMember(r)
   }
 }
-export async function createMember(m: Member) {
+export async function createMember(m: Member): Promise<Member> {
   const doc = await getRosterDoc()
   const worksheet = doc.sheetsById[process.env.ROSTER_SHEET_KEY]
   const data = memberToRow(m)
@@ -190,15 +194,13 @@ export async function createMember(m: Member) {
 
   return rowToMember(newMember)
 }
-
-export async function deleteMember(id: string) {
+export async function deleteMember(id: string): Promise<void> {
   const rows = await getRosterRows()
   const index = rows.findIndex((r) => r.get('id') === id)
 
-  if (index) rows[index].delete()
+  if (index) await rows[index].delete()
 }
-
-export async function getNextAlrIDNumber() {
+export async function getNextAlrIDNumber(): Promise<string> {
   const doc = await getRosterDoc()
   const sheet = doc.sheetsById[process.env.ROSTER_DATA_SHEET_KEY]
 

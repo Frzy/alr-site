@@ -184,9 +184,11 @@ export type GoogleDriveItem = {
   }
 }
 
-export type AtRiskMember = {
+export interface AtRiskMember {
   eligible: boolean
   events: number
   member: Member
   rides: number
 }
+
+export type Mode = 'light' | 'dark' | 'system'

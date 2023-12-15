@@ -1,4 +1,4 @@
-import { IRequestBodyCalendarEvent } from '@/types/common'
+import type { IRequestBodyCalendarEvent } from '@/types/common'
 
 export enum OFFICER_POSITION {
   DIRECTOR = 'Director',
@@ -71,11 +71,14 @@ export const ENTITY_OBJECTS = ENTITIES.map((e) => {
       }
   }
 })
-export const ENTITY_COLORS = ENTITY_OBJECTS.reduce((a, b) => {
-  a[b.value] = b.color
+export const ENTITY_COLORS = ENTITY_OBJECTS.reduce(
+  (a, b) => {
+    a[b.value] = b.color
 
-  return a
-}, {} as { [key in ENTITY]: { background: string; text: string } })
+    return a
+  },
+  {} as { [key in ENTITY]: { background: string; text: string } },
+)
 export enum ACTIVITY_TYPE {
   EVENT = 'Event',
   MEETING = 'Meeting',
@@ -186,7 +189,7 @@ export enum RECURRENCE_MODE {
   SINGLE = 'single',
   FUTURE = 'future',
 }
-export const UPDATEABLE_PROPS: Array<keyof IRequestBodyCalendarEvent> = [
+export const UPDATEABLE_PROPS: (keyof IRequestBodyCalendarEvent)[] = [
   'colorId',
   'description',
   'end',
@@ -199,3 +202,6 @@ export const UPDATEABLE_PROPS: Array<keyof IRequestBodyCalendarEvent> = [
 export const MIN_RIDES = 4
 export const MIN_EVENTS = 12
 export const MAX_MAILTO = 1500
+export const DRAWER_WIDTH = 240
+export const HEADER_MAX_HEIGHT = 64
+export const HEADER_MIN_HEIGHT = 48

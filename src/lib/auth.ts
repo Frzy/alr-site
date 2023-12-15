@@ -1,7 +1,7 @@
-import type { NextAuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { findMember } from './roster'
 import { ACTIVE_ROLES } from '@/utils/constants'
+import { findMember } from './roster'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import type { NextAuthOptions } from 'next-auth'
 
 export const authOptions: NextAuthOptions = {
   pages: {
@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
 
           return (
             member.username === credentials.username.toLowerCase() &&
-            ACTIVE_ROLES.indexOf(member.role) !== -1 &&
+            ACTIVE_ROLES.includes(member.role) &&
             passwordToMatch.toLowerCase() === credentials.password.toLowerCase()
           )
         })
@@ -53,12 +53,14 @@ export const authOptions: NextAuthOptions = {
       }
     },
     jwt: ({ token, trigger, user, session }) => {
+      // user is not always defined as stated in the type of nextAuth
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (user) {
         return {
           ...token,
           ...user,
         }
-      } else if (trigger === 'update' && session) {
+      } else if (trigger === 'update' && Boolean(session)) {
         return {
           ...token,
           ...session,
