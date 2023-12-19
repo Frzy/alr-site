@@ -1,4 +1,4 @@
-import LoginView from '@/component/Views/LoginView'
+import LoginView from '@/components/Views/LoginView'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {

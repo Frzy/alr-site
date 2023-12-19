@@ -1,16 +1,16 @@
 import {
-  ACTIVITY_TYPE,
-  ENTITY,
-  GOOGLE_MIME_TYPE,
-  OFFICER_POSITION,
-  RECURRENCE_MODE,
-  ROLE,
-  ROLES,
+  type ACTIVITY_TYPE,
+  type ENTITY,
+  type GOOGLE_MIME_TYPE,
+  type OFFICER_POSITION,
+  type RECURRENCE_MODE,
+  type ROLE,
+  type ROLES,
 } from '@/utils/constants'
-import { calendar_v3 } from 'googleapis'
-import { Moment } from 'moment'
+import { type calendar_v3 } from 'googleapis'
+import { type Moment } from 'moment'
 
-export type Member = {
+export interface Member {
   id: string
   email?: string
   entity?: ENTITY[]
@@ -38,7 +38,7 @@ export type Member = {
   }[]
 }
 
-export type MemberGoogleRow = {
+export interface MemberGoogleRow {
   memberId?: string
   office: OFFICER_POSITION | string
   role: ROLE | string
@@ -65,7 +65,7 @@ export type MemberGoogleRow = {
   ePhoneThree?: string
 }
 
-export type Recurrence = {
+export interface Recurrence {
   FREQ?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
   COUNT?: string
   INTERVAL?: string
@@ -73,20 +73,18 @@ export type Recurrence = {
   BYDAY?: string
 }
 
-export type RecurrenceOptions = {
+export interface RecurrenceOptions {
   mode: RECURRENCE_MODE
   stopDate?: Moment
 }
 
-export type BaseLog = {
+export interface BaseLog {
   miles: number
   hours: number
   events: number
 }
 
-export type GroupLogs = {
-  [key: string]: LogStats
-}
+export type GroupLogs = Record<string, LogStats>
 
 export type LogsByMember = {
   name: string
@@ -99,7 +97,7 @@ export type LogStats = {
   }
 } & BaseLog
 
-export type ActivityLog = {
+export interface ActivityLog {
   id: number
   date: string
   name: string
@@ -124,7 +122,7 @@ export type IServerCalendarEvent = {
   textColor: '#000' | '#FFF'
 } & calendar_v3.Schema$Event
 
-export type IRequestBodyCalendarEvent = {
+export interface IRequestBodyCalendarEvent {
   colorId?: calendar_v3.Schema$Event.colorId
   description?: calendar_v3.Schema$Event.description
   end?: calendar_v3.Schema$Event.end
@@ -143,13 +141,13 @@ export type ICalendarEvent = {
   muster?: Moment
 } & Omit<IServerCalendarEvent, 'endDate' | 'startDate' | 'originalStartDate'>
 
-export type NotifierState = {
+export interface NotifierState {
   open: boolean
   message: string
   severity: AlertColor
 }
 
-export type ActivityLogStats = {
+export interface ActivityLogStats {
   events: number
   hours: number
   miles: number
@@ -162,17 +160,17 @@ export type ActivityLogStats = {
 
 export type MembershipStats = ObjectFromList<typeof ROLES, number>
 
-export type ObjectFromList<T extends ReadonlyArray<string>, V = string> = {
-  [K in T extends ReadonlyArray<infer U> ? U : never]: V
+export type ObjectFromList<T extends readonly string[], V = string> = {
+  [K in T extends readonly (infer U)[] ? U : never]: V
 }
 
-export type GoogleDriveFolderList = {
+export interface GoogleDriveFolderList {
   files: GoogleDriveItem[]
   incompleteSearch: boolean
   kind: string
 }
 
-export type GoogleDriveItem = {
+export interface GoogleDriveItem {
   id: string
   kind: string
   mimeType: GOOGLE_MIME_TYPE
@@ -192,3 +190,4 @@ export interface AtRiskMember {
 }
 
 export type Mode = 'light' | 'dark' | 'system'
+export type ListMode = 'list' | 'grid'

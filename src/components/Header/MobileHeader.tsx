@@ -6,7 +6,7 @@ import HeaderDrawer from './HeaderDrawer'
 import MenuIcon from '@mui/icons-material/Menu'
 import { DRAWER_WIDTH } from '@/utils/constants'
 
-export default function MobileHeader(): React.ReactNode {
+export default function MobileHeader({ title = '' }: { title: string }): React.ReactNode {
   const [drawerOpen, setDrawerOpen] = React.useState(false)
 
   function handleDrawerToggle(): void {
@@ -27,7 +27,7 @@ export default function MobileHeader(): React.ReactNode {
             <MenuIcon />
           </IconButton>
           <Typography variant='h6' noWrap component='div'>
-            Mobile Responsive drawer
+            {title}
           </Typography>
         </Toolbar>
       </AppBar>

@@ -1,7 +1,7 @@
 'use client'
 
 import Box from '@mui/material/Box'
-import OfficerList from '../OfficerList'
+import MemberList, { OfficerListItem } from '../MemberList/List'
 import type { Member } from '@/types/common'
 
 interface HomeViewProps {
@@ -11,7 +11,11 @@ interface HomeViewProps {
 export default function HomeView({ officers }: HomeViewProps): React.ReactNode {
   return (
     <Box sx={{ display: 'flex' }}>
-      <OfficerList officers={officers} />
+      <MemberList
+        members={officers}
+        title='Executive Board'
+        renderListItem={(props, key) => <OfficerListItem key={key} {...props} />}
+      />
     </Box>
   )
 }

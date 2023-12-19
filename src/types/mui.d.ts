@@ -7,20 +7,28 @@ declare module '@mui/material/styles' {
     gap: (spacing: number) => number
   }
   interface PaletteOptions {
-    headerSearch: {
-      main: string
-      hover: string
+    memberList: {
+      header: string
+      search: {
+        main: string
+        hover: string
+        focus: string
+      }
+      filterBackground: string
     }
     headerLink: string
-    rosterHeader: string
   }
   interface Palette {
-    headerSearch: {
-      main: string
-      hover: string
+    memberList: {
+      header: string
+      search: {
+        main: string
+        hover: string
+        focus: string
+      }
+      filterBackground: string
     }
     headerLink: string
-    rosterHeader: string
   }
 
   interface Theme extends ExtendedTheme {}

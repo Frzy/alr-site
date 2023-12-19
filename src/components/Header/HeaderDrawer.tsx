@@ -3,18 +3,13 @@
 import * as React from 'react'
 import {
   Avatar,
-  Box,
   Divider,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ToggleButton,
-  ToggleButtonGroup,
   Toolbar,
-  Typography,
-  useColorScheme,
 } from '@mui/material'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import InboxIcon from '@mui/icons-material/MoveToInbox'
@@ -22,11 +17,10 @@ import LoginIcon from '@mui/icons-material/Login'
 import LogoutIcon from '@mui/icons-material/Logout'
 import MailIcon from '@mui/icons-material/Mail'
 import PersonIcon from '@mui/icons-material/Person'
-import type { Mode } from '@/types/common'
+import CalendarIcon from '@mui/icons-material/CalendarToday'
 
 export default function HeaderDrawer(): React.ReactNode {
   const { data, status } = useSession()
-  const { mode, setMode } = useColorScheme()
   const user = data?.user
 
   return (
@@ -35,7 +29,7 @@ export default function HeaderDrawer(): React.ReactNode {
       {status === 'unauthenticated' && (
         <React.Fragment>
           <Divider />
-          <List>
+          <List disablePadding>
             <ListItemButton
               onClick={() => {
                 void signIn()
@@ -52,7 +46,7 @@ export default function HeaderDrawer(): React.ReactNode {
       {status === 'authenticated' && user && (
         <React.Fragment>
           <Divider />
-          <List>
+          <List disablePadding>
             <ListItem>
               <ListItemIcon>
                 <Avatar src={user.image} alt={user.name}></Avatar>
@@ -78,34 +72,16 @@ export default function HeaderDrawer(): React.ReactNode {
           </List>
         </React.Fragment>
       )}
-      <Box sx={{ px: 1, pb: 1 }}>
-        <Typography variant='subtitle2' color='text.secondary'>
-          Theme
-        </Typography>
-        <ToggleButtonGroup
-          exclusive
-          value={mode}
-          onChange={(event, value: Mode) => {
-            setMode(value)
-          }}
-          size='small'
-          fullWidth
-        >
-          <ToggleButton value={'light'}>Light</ToggleButton>
-          <ToggleButton value={'system'}>System</ToggleButton>
-          <ToggleButton value={'dark'}>Dark</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
       <Divider />
-      <List>
-        {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+      <List disablePadding>
+        <ListItem disablePadding>
+          <ListItemButton href='/calendar'>
+            <ListItemIcon>
+              <CalendarIcon />
+            </ListItemIcon>
+            <ListItemText primary={'Calendar'} />
+          </ListItemButton>
+        </ListItem>
       </List>
       <Divider />
       <List>

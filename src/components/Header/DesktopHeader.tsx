@@ -9,9 +9,15 @@ import LoginIcon from '@mui/icons-material/Login'
 
 const HEADER_PADDING = 16
 
-export default function DesktopHeader(): React.ReactNode {
+export default function DesktopHeader({
+  title = '',
+  disableShrink,
+}: {
+  title: string
+  disableShrink?: boolean
+}): React.ReactNode {
   const { status } = useSession()
-  const [shrink, setShrink] = React.useState(false)
+  const [shrink, setShrink] = React.useState(disableShrink)
 
   React.useEffect(() => {
     let lastScrollPosition = 0
@@ -21,7 +27,7 @@ export default function DesktopHeader(): React.ReactNode {
       lastScrollPosition = window.scrollY
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setShrink(lastScrollPosition > 75)
+          if (!disableShrink) setShrink(lastScrollPosition > 75)
           ticking = false
         })
 
@@ -34,7 +40,7 @@ export default function DesktopHeader(): React.ReactNode {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [])
+  }, [disableShrink])
 
   return (
     <React.Fragment>
@@ -57,8 +63,8 @@ export default function DesktopHeader(): React.ReactNode {
             minHeight: { md: shrink ? HEADER_MIN_HEIGHT : HEADER_MAX_HEIGHT },
           }}
         >
-          <Typography variant='h6' noWrap component='div' sx={{ flex: 1 }}>
-            Desktop Responsive Drawer
+          <Typography variant={shrink ? 'h6' : 'h4'} noWrap component='div' sx={{ flex: 1 }}>
+            {title}
           </Typography>
           {status === 'unauthenticated' && (
             <Button

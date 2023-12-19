@@ -1,6 +1,6 @@
 'use client'
 
-import LoginForm from '@/component/login.form'
+import LoginForm from '@/components/LoginForm'
 import { Box, Container, Paper, Typography } from '@mui/material'
 
 import Image from 'next/image'
@@ -16,7 +16,7 @@ export default function LoginView(): React.ReactNode {
         right: 0,
         bottom: 0,
         zIndex: 10000,
-        backgroundColor: (theme) => theme.vars.palette.background.default,
+        backgroundColor: (theme) => theme.palette.background.default,
       }}
     >
       <Container

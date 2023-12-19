@@ -1,26 +1,26 @@
 import * as React from 'react'
 import { LoadingButton } from '@mui/lab'
-import { Alert, Box, BoxProps, Button, Stack, TextField } from '@mui/material'
+import { Alert, Box, type BoxProps, Button, Stack, TextField } from '@mui/material'
 
 import { signIn } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
-export default function LoginForm(props: BoxProps) {
+export default function LoginForm(props: BoxProps): JSX.Element {
   const router = useRouter()
-  const [error, setError] = React.useState('')
+  const [error, setError] = React.useState<Error | null>(null)
   const [loading, setLoading] = React.useState(false)
   const [formValues, setFormValues] = React.useState({
     username: '',
     password: '',
   })
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/'
 
-  async function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault()
     try {
       setLoading(true)
-      setError('')
+      setError(null)
 
       const res = await signIn('credentials', {
         redirect: false,
@@ -32,16 +32,15 @@ export default function LoginForm(props: BoxProps) {
       if (!res?.error) {
         router.push(callbackUrl)
       } else {
-        setError('Invalid Username or Password')
-        setLoading(false)
+        throw new Error('Invalid Username or Password')
       }
-    } catch (error: any) {
-      setError(error)
+    } catch (error) {
+      setError(error as Error)
       setLoading(false)
     }
   }
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const { name, value } = event.target
     setFormValues({ ...formValues, [name]: value })
   }
@@ -50,7 +49,7 @@ export default function LoginForm(props: BoxProps) {
     <Box {...props}>
       <form onSubmit={onSubmit}>
         <Stack spacing={2}>
-          {!!error && <Alert severity='error'>{error}</Alert>}
+          {!!error && <Alert severity='error'>{error.message}</Alert>}
           <TextField
             required
             type='text'

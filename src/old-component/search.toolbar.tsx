@@ -6,7 +6,7 @@ import {
   IconButton,
   InputAdornment,
   Toolbar,
-  ToolbarProps,
+  type ToolbarProps,
   Typography,
   useTheme,
 } from '@mui/material'
@@ -23,7 +23,7 @@ export default function SearchToolbar({
   hideSearch,
   onSearchChange,
   ...toolbarProps
-}: SearchToolbarProps) {
+}: SearchToolbarProps): JSX.Element {
   const theme = useTheme()
   const [searchTerm, setSearchTerm] = React.useState('')
 
@@ -44,10 +44,10 @@ export default function SearchToolbar({
               md: 'row',
             }
           : 'row',
-        paddingBottom: !hideSearch
+        pd: !hideSearch
           ? {
               xs: theme.spacing(1),
-              md: 0,
+              md: hideFilter ? 0.5 : 0,
             }
           : 0,
         alignItems: !hideSearch
