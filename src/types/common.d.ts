@@ -1,14 +1,15 @@
-import {
-  type ACTIVITY_TYPE,
-  type ENTITY,
-  type GOOGLE_MIME_TYPE,
-  type OFFICER_POSITION,
-  type RECURRENCE_MODE,
-  type ROLE,
-  type ROLES,
+import type {
+  EVENT_TYPE,
+  ACTIVITY_TYPE,
+  ENTITY,
+  GOOGLE_MIME_TYPE,
+  OFFICER_POSITION,
+  RECURRENCE_MODE,
+  ROLE,
+  ROLES,
 } from '@/utils/constants'
+import { type Dayjs } from 'dayjs'
 import { type calendar_v3 } from 'googleapis'
-import { type Moment } from 'moment'
 
 export interface Member {
   id: string
@@ -75,7 +76,7 @@ export interface Recurrence {
 
 export interface RecurrenceOptions {
   mode: RECURRENCE_MODE
-  stopDate?: Moment
+  stopDate?: Dayjs
 }
 
 export interface BaseLog {
@@ -134,11 +135,11 @@ export interface IRequestBodyCalendarEvent {
 }
 
 export type ICalendarEvent = {
-  endDate: Moment
-  startDate: Moment
-  originalStartDate?: Moment
-  ksu?: Moment
-  muster?: Moment
+  endDate: Dayjs
+  startDate: Dayjs
+  originalStartDate?: Dayjs
+  ksu?: Dayjs
+  muster?: Dayjs
 } & Omit<IServerCalendarEvent, 'endDate' | 'startDate' | 'originalStartDate'>
 
 export interface NotifierState {

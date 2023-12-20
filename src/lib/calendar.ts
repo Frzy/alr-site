@@ -80,7 +80,7 @@ export function getGoogleCalendarApi() {
 export async function getCalendarEvents(
   options: calendar_v3.Params$Resource$Events$List,
   noParse: boolean = false,
-) {
+): Promise<calendar_v3.Schema$Event[] | ICalendarEvent[]> {
   const calendarApi = getGoogleCalendarApi()
   const response = await calendarApi.events.list({
     ...options,

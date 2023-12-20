@@ -37,48 +37,42 @@ export enum ENTITY {
   AUXILIARY = 'AUX',
 }
 export const ENTITIES = Object.values(ENTITY)
-export const ENTITY_OBJECTS = ENTITIES.map((e) => {
-  switch (e) {
-    case ENTITY.LEGION:
-      return {
-        value: ENTITY.LEGION,
-        label: 'American Legion',
-        short: 'Legion',
-        color: {
-          background: 'rgb(0, 0, 0)',
-          text: '#FFF',
-        },
-      }
-    case ENTITY.SAL:
-      return {
-        value: ENTITY.SAL,
-        label: 'Sons of the American Legion',
-        short: 'Sons',
-        color: {
-          background: 'rgb(8, 107, 173)',
-          text: '#FFF',
-        },
-      }
-    case ENTITY.AUXILIARY:
-      return {
-        value: ENTITY.AUXILIARY,
-        label: 'American Legion Auxiliary',
-        short: 'Auxiliary',
-        color: {
-          background: 'rgb(173, 0, 0)',
-          text: '#FFF',
-        },
-      }
-  }
-})
-export const ENTITY_COLORS = ENTITY_OBJECTS.reduce(
-  (a, b) => {
-    a[b.value] = b.color
-
-    return a
-  },
-  {} as { [key in ENTITY]: { background: string; text: string } },
-)
+// export const ENTITY_OBJECTS = ENTITIES.map((e) => {
+//   switch (e) {
+//     case ENTITY.LEGION:
+//       return {
+//         value: ENTITY.LEGION,
+//         label: 'American Legion',
+//         short: 'Legion',
+//         color: {
+//           background: 'rgb(0, 0, 0)',
+//           text: '#FFF',
+//         },
+//       }
+//     case ENTITY.SAL:
+//       return {
+//         value: ENTITY.SAL,
+//         label: 'Sons of the American Legion',
+//         short: 'Sons',
+//         color: {
+//           background: 'rgb(8, 107, 173)',
+//           text: '#FFF',
+//         },
+//       }
+//     case ENTITY.AUXILIARY:
+//       return {
+//         value: ENTITY.AUXILIARY,
+//         label: 'American Legion Auxiliary',
+//         short: 'Auxiliary',
+//         color: {
+//           background: 'rgb(173, 0, 0)',
+//           text: '#FFF',
+//         },
+//       }
+//     default:
+//       throw new Error('Unknown Entity')
+//   }
+// })
 export enum ACTIVITY_TYPE {
   EVENT = 'Event',
   MEETING = 'Meeting',
@@ -91,6 +85,7 @@ export enum EVENT_TYPE {
   MEETING = 'meeting',
   RIDE = 'ride',
   UNOFFICAL_RIDE = 'unoffical ride',
+  OTHER = 'other',
 }
 export const EVENT_TYPES = Object.values(EVENT_TYPE)
 export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
@@ -173,13 +168,13 @@ export const CALENDAR_COLORS = Object.values(CALENDAR_COLOR)
 export const DEFAULT_CALENDAR_COLOR = CALENDAR_COLOR.PEACOCK
 export const DEFAULT_CALENDAR_COLOR_ID = CALENDAR_COLOR_ID.PEACOCK
 export enum EVENT_TYPE_COLOR_ID {
-  RIDE = CALENDAR_COLOR_ID.GRAPE,
+  RIDE = CALENDAR_COLOR_ID.TANGERINE,
   UNOFFICAL_RIDE = CALENDAR_COLOR_ID.BANANA,
   EVENT = CALENDAR_COLOR_ID.PEACOCK,
   MEETING = CALENDAR_COLOR_ID.SAGE,
 }
 export enum EVENT_TYPE_COLOR {
-  RIDE = CALENDAR_COLOR.GRAPE,
+  RIDE = CALENDAR_COLOR.TANGERINE,
   UNOFFICAL_RIDE = CALENDAR_COLOR.BANANA,
   EVENT = CALENDAR_COLOR.PEACOCK,
   MEETING = CALENDAR_COLOR.SAGE,
@@ -203,5 +198,6 @@ export const MIN_RIDES = 4
 export const MIN_EVENTS = 12
 export const MAX_MAILTO = 1500
 export const DRAWER_WIDTH = 240
+export const CALENDAR_DRAWER_WIDTH = 325
 export const HEADER_MAX_HEIGHT = 64
 export const HEADER_MIN_HEIGHT = 48

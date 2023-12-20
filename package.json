@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "host": "next -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "node_modules/.bin/tsc --noEmit && next lint"
@@ -20,7 +21,9 @@
     "@mui/material-nextjs": "^5.15.0",
     "@mui/x-data-grid": "^6.18.4",
     "@mui/x-date-pickers": "^6.18.4",
+    "@types/luxon": "^3.3.7",
     "bcrypt": "^5.1.1",
+    "dayjs": "^1.11.10",
     "draft-js": "^0.11.7",
     "eslint-config-prettier": "^9.1.0",
     "fuzzy-search": "^3.2.1",

@@ -3,6 +3,8 @@
 import * as React from 'react'
 import {
   Avatar,
+  Box,
+  Button,
   Divider,
   List,
   ListItem,
@@ -18,14 +20,65 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import MailIcon from '@mui/icons-material/Mail'
 import PersonIcon from '@mui/icons-material/Person'
 import CalendarIcon from '@mui/icons-material/CalendarToday'
+import { StaticDatePicker } from '@mui/x-date-pickers'
+import { type Dayjs } from 'dayjs'
+import { useCalendar } from '@/hooks/useCalendar'
+import AddIcon from '@mui/icons-material/Add'
 
-export default function HeaderDrawer(): React.ReactNode {
+export default function CalendarDrawer(): React.ReactNode {
   const { data, status } = useSession()
+  const { date, setDate } = useCalendar()
   const user = data?.user
 
+  function handleDateChange(value: Dayjs | null): void {
+    if (value) {
+      setDate(value)
+    }
+  }
+
   return (
-    <div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar />
+      <Divider />
+      <Box>
+        <StaticDatePicker
+          value={date}
+          onChange={handleDateChange}
+          slotProps={{
+            toolbar: { hidden: true },
+            actionBar: { style: { display: 'none' } },
+          }}
+        />
+        <Box sx={{ px: 2, pb: 1 }}>
+          <Button variant='outlined' startIcon={<AddIcon />} fullWidth>
+            Create Event
+          </Button>
+        </Box>
+      </Box>
+      <Divider />
+      <List disablePadding>
+        <ListItem disablePadding>
+          <ListItemButton href='/calendar/month'>
+            <ListItemIcon>
+              <CalendarIcon />
+            </ListItemIcon>
+            <ListItemText primary={'Calendar'} />
+          </ListItemButton>
+        </ListItem>
+      </List>
+      <Divider />
+      <List>
+        {['All mail', 'Trash', 'Spam'].map((text, index) => (
+          <ListItem key={text} disablePadding>
+            <ListItemButton>
+              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      <Divider />
+      <Box sx={{ flex: 1 }} />
       {status === 'unauthenticated' && (
         <React.Fragment>
           <Divider />
@@ -72,29 +125,6 @@ export default function HeaderDrawer(): React.ReactNode {
           </List>
         </React.Fragment>
       )}
-      <Divider />
-      <List disablePadding>
-        <ListItem disablePadding>
-          <ListItemButton href='/calendar/month'>
-            <ListItemIcon>
-              <CalendarIcon />
-            </ListItemIcon>
-            <ListItemText primary={'Calendar'} />
-          </ListItemButton>
-        </ListItem>
-      </List>
-      <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-    </div>
+    </Box>
   )
 }
