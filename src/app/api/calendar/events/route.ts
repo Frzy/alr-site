@@ -1,4 +1,5 @@
 import { getCalendarEvents } from '@/lib/calendar'
+import { mapGoogleToServer } from '@/utils/calendar'
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url)
@@ -12,5 +13,5 @@ export async function GET(request: Request): Promise<Response> {
     singleEvents: true,
   })
 
-  return Response.json(calendarEvents)
+  return Response.json(calendarEvents.map(mapGoogleToServer))
 }

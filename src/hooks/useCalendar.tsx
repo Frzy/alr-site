@@ -2,14 +2,18 @@
 
 import React from 'react'
 import dayjs, { type Dayjs } from 'dayjs'
-import { usePathname, useRouter } from 'next/navigation'
 import isBetween from 'dayjs/plugin/isBetween'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import type { ICalendarEvent } from '@/types/common'
 
 dayjs.extend(isBetween)
+dayjs.extend(relativeTime)
 
 interface CalendarContextProps {
   date: Dayjs
+  activeEvent: ICalendarEvent | null
   setDate: (date: Dayjs) => void
+  setActiveEvent: (event: ICalendarEvent | null) => void
 }
 
 const CalendarContext = React.createContext<CalendarContextProps | null>(null)
@@ -17,28 +21,45 @@ const CalendarContext = React.createContext<CalendarContextProps | null>(null)
 export default function CalendarProvider({
   children,
   date: initDate,
+  event: initEvent,
 }: {
   date: Dayjs
+  event?: ICalendarEvent
   children: React.ReactNode
 }): JSX.Element {
   const [date, setDate] = React.useState<Dayjs>(initDate)
-  const pathname = usePathname()
-  const router = useRouter()
-  function handleSetDate(newDate: Dayjs): void {
-    if (date.isSame(newDate, 'day')) return
+  const [activeEvent, setActiveEvent] = React.useState<ICalendarEvent | null>(initEvent ?? null)
 
-    const queryParams = new URLSearchParams({ date: newDate.format('M/D/YYYY') })
-    router.push(`${pathname}?${queryParams.toString()}`)
+  // React.useEffect(() => {
+  //   const urlParams = getUrlParams()
+  //   const fomattedDate = date.format('M/D/YYYY')
 
-    setDate(newDate)
-  }
+  //   if (urlParams.has('date') && urlParams.get('date') === fomattedDate) return
 
-  React.useEffect(() => {
-    setDate(initDate)
-  }, [initDate])
+  //   if (date.isSame(dayjs(), 'day') && urlParams.has('date')) {
+  //     urlParams.delete('date')
+  //   } else {
+  //     urlParams.set('date', fomattedDate)
+  //   }
+
+  //   router.push(getUrl(pathname, urlParams))
+  // }, [date])
+
+  // React.useEffect(() => {
+  //   const urlParams = getUrlParams()
+  //   if (activeEvent === null && urlParams.has('eventId')) {
+  //     urlParams.delete('eventId')
+
+  //     router.push(getUrl(pathname, urlParams))
+  //   } else if (activeEvent?.id && urlParams.get('eventId') !== activeEvent.id) {
+  //     urlParams.set('eventId', activeEvent.id)
+
+  //     router.push(getUrl(pathname, urlParams))
+  //   }
+  // }, [activeEvent])
 
   return (
-    <CalendarContext.Provider value={{ date, setDate: handleSetDate }}>
+    <CalendarContext.Provider value={{ date, setDate, activeEvent, setActiveEvent }}>
       {children}
     </CalendarContext.Provider>
   )

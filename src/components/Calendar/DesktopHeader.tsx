@@ -62,12 +62,22 @@ export default function CalendarDesktopHeader(): JSX.Element {
           </Tooltip>
           <Box>
             <Tooltip title='Previous Month'>
-              <IconButton size='small'>
+              <IconButton
+                size='small'
+                onClick={() => {
+                  setDate(date.subtract(1, 'month').startOf('month'))
+                }}
+              >
                 <LeftIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title='Next Month'>
-              <IconButton size='small'>
+              <IconButton
+                size='small'
+                onClick={() => {
+                  setDate(date.add(1, 'month').startOf('month'))
+                }}
+              >
                 <RightIcon />
               </IconButton>
             </Tooltip>

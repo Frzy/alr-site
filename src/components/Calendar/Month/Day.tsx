@@ -1,25 +1,39 @@
 import React from 'react'
-import { Box, Chip, IconButton, Typography, darken } from '@mui/material'
+
+import { Box, Chip, IconButton, Typography, alpha, darken } from '@mui/material'
 import { EVENT_TYPE } from '@/utils/constants'
-import { type Dayjs } from 'dayjs'
+import dayjs, { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
 import RideIcon from '@mui/icons-material/TwoWheeler'
 import MeetingIcon from '@mui/icons-material/Groups'
 import EventIcon from '@mui/icons-material/LocalActivity'
 import OtherIcon from '@mui/icons-material/Event'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
+import { sortDayEvents } from '@/utils/calendar'
 
 interface MonthDayProps {
-  date: Dayjs
-  selected?: boolean
   activeMonth: number
+  date: Dayjs
   events: ICalendarEvent[]
+  selected?: boolean
   onDateClick?: (date: Dayjs) => void
+  onEventClick?: (event: ICalendarEvent) => void
 }
 
 const DAY_ICON_WIDTH = { width: 32, height: 32 }
 const MONTH_DAY_ICON_WIDTH = { width: 64, height: 32 }
 
-function MonthDayEvent({ event }: { event: ICalendarEvent }): JSX.Element {
+function MonthDayEvent({
+  disabled,
+  event,
+  onEventClick,
+}: {
+  disabled?: boolean
+  event: ICalendarEvent
+  onEventClick?: (event: ICalendarEvent) => void
+}): JSX.Element {
+  const { listeners, setNodeRef, isDragging } = useDraggable({ id: event?.id ?? '' })
+  const isPastEvent = dayjs().isAfter(event.endDate)
   const icon = React.useMemo(() => {
     switch (event.eventType) {
       case EVENT_TYPE.UNOFFICAL_RIDE:
@@ -38,35 +52,59 @@ function MonthDayEvent({ event }: { event: ICalendarEvent }): JSX.Element {
 
     return `${event.startDate.format('ha')} ${event.summary}`
   }, [event])
+  const isDisabled = isDragging || disabled
 
   return (
     <Chip
+      ref={setNodeRef}
+      {...listeners}
       size='small'
       label={label}
       icon={icon}
       variant={event.isAllDayEvent ? 'filled' : 'outlined'}
       sx={{
+        // transform: CSS.Translate.toString(transform),
+        touchAction: 'none',
         border: 'none',
         borderRadius: 0.75,
-        bgcolor: event.isAllDayEvent ? event.color : 'inherit',
+        bgcolor: isDragging
+          ? 'green'
+          : event.isAllDayEvent
+            ? isPastEvent
+              ? alpha(event.color as string, 0.15)
+              : event.color
+            : 'inherit',
         color: (theme) =>
-          event.isAllDayEvent ? theme.palette.getContrastText(event.color as string) : 'inherit',
+          isPastEvent
+            ? 'text.secondary'
+            : event.isAllDayEvent
+              ? theme.palette.getContrastText(event.color as string)
+              : 'inherit',
         justifyContent: 'flex-start',
         gap: 1,
         mx: 0.5,
         px: 0.5,
         '&:hover': {
-          bgcolor: event.isAllDayEvent ? darken(event.color as string, 0.25) : undefined,
+          bgcolor:
+            !isDisabled && event.isAllDayEvent ? darken(event.color as string, 0.25) : undefined,
         },
         '& .MuiChip-icon': {
           color: !event.isAllDayEvent ? event.color : undefined,
         },
       }}
-      onClick={() => {
-        console.log('here')
-      }}
+      onClick={
+        !isDisabled
+          ? () => {
+              if (onEventClick) onEventClick(event)
+            }
+          : undefined
+      }
     />
   )
+}
+
+function EventPlaceholder(): JSX.Element {
+  return <Box height={24} width='100%' />
 }
 
 export default function MonthDay({
@@ -75,7 +113,11 @@ export default function MonthDay({
   onDateClick,
   selected,
   events,
+  onEventClick,
 }: MonthDayProps): JSX.Element {
+  const { setNodeRef, isOver } = useDroppable({
+    id: date.format(),
+  })
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
   function handleDateClick(): void {
@@ -83,9 +125,19 @@ export default function MonthDay({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', pt: 0.5, width: '100%', gap: '2px' }}>
+    <Box
+      ref={setNodeRef}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        pt: 0.5,
+        width: '100%',
+        gap: '2px',
+      }}
+    >
       <Box sx={{ textAlign: 'center' }}>
         <IconButton
+          disabled={isOver}
           onClick={handleDateClick}
           color={selected ? 'primary' : 'default'}
           sx={{ ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH) }}
@@ -104,9 +156,14 @@ export default function MonthDay({
           </Typography>
         </IconButton>
       </Box>
-      {events.map((e) => (
-        <MonthDayEvent key={e.id} event={e} />
-      ))}
+      {sortDayEvents(events, date).map((e, index) => {
+        if (e)
+          return (
+            <MonthDayEvent key={e.id} event={e} onEventClick={onEventClick} disabled={isOver} />
+          )
+
+        return <EventPlaceholder key={index} />
+      })}
     </Box>
   )
 }

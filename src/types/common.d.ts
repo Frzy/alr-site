@@ -110,7 +110,9 @@ export interface ActivityLog {
   created: string
 }
 
-export type IServerCalendarEvent = {
+export interface IServerCalendarEvent {
+  id: string
+  summary: string
   endDate: string
   eventType: EVENT_TYPE
   isAllDayEvent: boolean
@@ -120,8 +122,19 @@ export type IServerCalendarEvent = {
   originalStartDate?: string
   dayNumber?: number
   color: CALENDAR_COLOR
+  ksu?: string
+  muster?: string
   textColor: '#000' | '#FFF'
-} & calendar_v3.Schema$Event
+  _originalEvent: calendar_v3.Schema$Event
+}
+export interface ICalendarEvent extends IServerCalendarEvent {
+  endDate: Dayjs
+  startDate: Dayjs
+  originalStartDate?: Dayjs
+  ksu?: Dayjs
+  muster?: Dayjs
+  _renderIndex: number
+}
 
 export interface IRequestBodyCalendarEvent {
   colorId?: calendar_v3.Schema$Event.colorId
@@ -133,14 +146,6 @@ export interface IRequestBodyCalendarEvent {
   summary?: calendar_v3.Schema$Event.summary
   extendedProperties?: calendar_v3.Schema$Event.extendedProperties
 }
-
-export type ICalendarEvent = {
-  endDate: Dayjs
-  startDate: Dayjs
-  originalStartDate?: Dayjs
-  ksu?: Dayjs
-  muster?: Dayjs
-} & Omit<IServerCalendarEvent, 'endDate' | 'startDate' | 'originalStartDate'>
 
 export interface NotifierState {
   open: boolean
