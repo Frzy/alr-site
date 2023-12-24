@@ -42,10 +42,11 @@ export default function MobileMonthView({
               borderStyle: 'solid',
               borderColor: (theme) => theme.palette.divider,
               borderRight: index > 0 && (index + 1) % 7 === 0 ? undefined : 'none',
-              borderBottom: 'none',
+              borderTop: 'none',
               display: 'flex',
               justifyContent: 'center',
-              pt: 0.25,
+              pt: 0.5,
+              pb: 0.25,
             }}
           >
             <Typography

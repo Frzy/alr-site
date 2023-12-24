@@ -1,13 +1,9 @@
 import React from 'react'
 
-import { Box, Chip, IconButton, Typography, alpha, darken } from '@mui/material'
-import { EVENT_TYPE } from '@/utils/constants'
+import { Box, ButtonBase, Typography } from '@mui/material'
 import { sortDayEvents } from '@/utils/calendar'
 import { type Dayjs } from 'dayjs'
-import EventIcon from '@mui/icons-material/LocalActivity'
-import MeetingIcon from '@mui/icons-material/Groups'
-import OtherIcon from '@mui/icons-material/Event'
-import RideIcon from '@mui/icons-material/TwoWheeler'
+
 import type { ICalendarEvent } from '@/types/common'
 
 interface MobileMonthDayProps {
@@ -19,84 +15,28 @@ interface MobileMonthDayProps {
   onEventClick?: (event: ICalendarEvent) => void
 }
 
-const DAY_ICON_WIDTH = { width: 32, height: 32 }
-const MONTH_DAY_ICON_WIDTH = { width: 64, height: 32 }
-
-function MobileMonthDayEvent({
-  disabled,
-  event,
-  onEventClick,
-}: {
-  disabled?: boolean
-  event: ICalendarEvent
-  onEventClick?: (event: ICalendarEvent) => void
-}): JSX.Element {
-  const icon = React.useMemo(() => {
-    switch (event.eventType) {
-      case EVENT_TYPE.UNOFFICAL_RIDE:
-      case EVENT_TYPE.RIDE:
-        return <RideIcon />
-      case EVENT_TYPE.MEETING:
-        return <MeetingIcon />
-      case EVENT_TYPE.EVENT:
-        return <EventIcon />
-      default:
-        return <OtherIcon />
-    }
-  }, [event])
-  const label = React.useMemo(() => {
-    if (event.isAllDayEvent) return event.summary
-
-    return `${event.startDate.format('ha')} ${event.summary}`
-  }, [event])
-
+function MobileMonthDayEvent({ event }: { event: ICalendarEvent }): JSX.Element {
   return (
-    <Chip
-      size='small'
-      label={label}
-      icon={icon}
-      variant={event.isAllDayEvent ? 'filled' : 'outlined'}
+    <Typography
+      variant='caption'
       sx={{
-        // transform: CSS.Translate.toString(transform),
-        touchAction: 'none',
-        border: 'none',
-        borderRadius: 0.75,
-        bgcolor: event.isAllDayEvent
-          ? event.isPastEvent
-            ? alpha(event.color as string, 0.15)
-            : event.color
-          : 'inherit',
-        color: (theme) =>
-          event.isPastEvent
-            ? 'text.secondary'
-            : event.isAllDayEvent
-              ? theme.palette.getContrastText(event.color as string)
-              : 'inherit',
-        justifyContent: 'flex-start',
-        gap: 1,
-        mx: 0.5,
-        px: 0.5,
-        '&:hover': {
-          bgcolor:
-            !disabled && event.isAllDayEvent ? darken(event.color as string, 0.25) : undefined,
-        },
-        '& .MuiChip-icon': {
-          color: !event.isAllDayEvent ? event.color : undefined,
-        },
+        mx: '2px',
+        px: '2px',
+        bgcolor: event.color,
+        borderRadius: 0.5,
+        fontSize: '.65rem',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        width: 'calc(100% - 4px)',
       }}
-      onClick={
-        !disabled
-          ? () => {
-              if (onEventClick) onEventClick(event)
-            }
-          : undefined
-      }
-    />
+    >
+      {event.summary}
+    </Typography>
   )
 }
 
 function EventPlaceholder(): JSX.Element {
-  return <Box height={24} width='100%' />
+  return <Box height={17.27} width='100%' />
 }
 
 export default function MobileMonthDay({
@@ -109,21 +49,25 @@ export default function MobileMonthDay({
 }: MobileMonthDayProps): JSX.Element {
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
-  function handleDateClick(): void {
-    if (onDateClick) onDateClick(date)
-  }
 
   return (
-    <Box
+    <ButtonBase
+      component='div'
+      onClick={() => {
+        const queryParams = new URLSearchParams({ date: date.format('YYYY-MM-DD') })
+        window.location.href = `/calendar/day?${queryParams.toString()}`
+      }}
       sx={{
         display: 'flex',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
         flexDirection: 'column',
         pt: 0.5,
         width: '100%',
         gap: '2px',
       }}
     >
-      <Box sx={{ textAlign: 'center' }}>
+      <Box sx={{ textAlign: 'center', width: '100%' }}>
         <Typography
           sx={{
             color: isActiveMonth ? (selected ? 'primary.main' : 'text.primary') : 'text.secondary',
@@ -135,10 +79,10 @@ export default function MobileMonthDay({
         </Typography>
       </Box>
       {sortDayEvents(events, date).map((e, index) => {
-        if (e) return <MobileMonthDayEvent key={e.id} event={e} onEventClick={onEventClick} />
+        if (e) return <MobileMonthDayEvent key={e.id} event={e} />
 
         return <EventPlaceholder key={index} />
       })}
-    </Box>
+    </ButtonBase>
   )
 }

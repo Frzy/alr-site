@@ -63,7 +63,6 @@ function DesktopMonthDayEvent({
       icon={icon}
       variant={event.isAllDayEvent ? 'filled' : 'outlined'}
       sx={{
-        // transform: CSS.Translate.toString(transform),
         touchAction: 'none',
         border: 'none',
         borderRadius: 0.75,
