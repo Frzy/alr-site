@@ -13,7 +13,7 @@ export enum OFFICER_POSITION {
   PAST_DIRECTOR = 'Past Director',
 }
 export const OFFICES = Object.values(OFFICER_POSITION)
-
+export const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 export enum ROLE {
   ABANDONED = 'Abandoned',
   CHARTER = 'Charter Member',
@@ -100,12 +100,10 @@ export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
   Chaplain: 9,
   'Past Director': 10,
 }
-
 export enum GOOGLE_MIME_TYPE {
   FOLDER = 'application/vnd.google-apps.folder',
   SHORTCUT = 'application/vnd.google-apps.shortcut',
 }
-
 export enum ENDPOINT {
   EVENT = '/api/calendar/event',
   EVENTS = '/api/calendar/events',

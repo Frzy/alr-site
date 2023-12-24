@@ -295,3 +295,17 @@ export function sortDayEvents(
 export function resetEvent(event: ICalendarEvent): ICalendarEvent {
   return mapServerToClient(mapGoogleToServer(event._originalEvent))
 }
+export function getDaysEvents(data: ICalendarEvent[], day: Dayjs): ICalendarEvent[] {
+  if (data) {
+    return data.filter((event) => {
+      const start = event.startDate.startOf('day')
+      const end = event.endDate.endOf('day')
+
+      if (event.isAllDayEvent) return day.isBetween(start, end, 'day', '[)')
+
+      return day.isBetween(start, end, 'day', '[]')
+    })
+  }
+
+  return []
+}
