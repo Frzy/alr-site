@@ -30,6 +30,7 @@ export type EventDialogView =
   | 'delete'
   | 'edit_recurrence'
   | 'edit_recurrence_confirmation'
+  | 'activity_log'
 
 export default function CalendarEventDialog({
   event: initEvent,
@@ -115,6 +116,8 @@ export default function CalendarEventDialog({
             setView(newMode)
           }}
         />
+      ) : view === 'activity_log' ? (
+        <div>Activity Log Entry</div>
       ) : (
         <DialogView
           event={event}
