@@ -1,12 +1,4 @@
 import * as React from 'react'
-import { Box, DialogContent, Stack, Tooltip, Typography, IconButton } from '@mui/material'
-import {
-  getCalendarEventTypeIcon,
-  getHumanReadableRecurrenceString,
-  getLocationMapLink,
-  parseLocationString,
-} from '@/utils/calendar'
-
 import { isMemberAdmin } from '@/utils/member'
 import { startCase } from '@/utils/helpers'
 import { useSession } from 'next-auth/react'
@@ -18,11 +10,19 @@ import EditIcon from '@mui/icons-material/Edit'
 import KsuIcon from '@mui/icons-material/SportsMotorsports'
 import MapIcon from '@mui/icons-material/Map'
 import MeetingIcon from '@mui/icons-material/Groups'
-import MusterLocationIcon from '@mui/icons-material/PersonPinCircle'
+import MilesIcon from '@mui/icons-material/Route'
 import NotesIcon from '@mui/icons-material/Notes'
 import PlaceIcon from '@mui/icons-material/Place'
-import type { ICalendarEvent } from '@/types/common'
+import ActivityLogIcon from '@mui/icons-material/Telegram'
 import type { EventDialogView } from './Dialog'
+import type { ICalendarEvent } from '@/types/common'
+import { Box, DialogContent, Stack, Tooltip, Typography, IconButton, Button } from '@mui/material'
+import {
+  getCalendarEventTypeIcon,
+  getHumanReadableRecurrenceString,
+  getLocationMapLink,
+  parseLocationString,
+} from '@/utils/calendar'
 
 export default function DialogView({
   event,
@@ -35,6 +35,7 @@ export default function DialogView({
 }): JSX.Element {
   const { data: session } = useSession()
   const isAdmin = session?.user ? isMemberAdmin(session.user) : false
+  const isLoggedIn = !!session?.user
   const recurrenceString = React.useMemo(() => {
     if (event) {
       const startDate = event.originalStartDate ?? event.startDate
@@ -107,6 +108,10 @@ export default function DialogView({
 
     return ''
   }, [event])
+  const canAttend = React.useMemo(() => {
+    const now = dayjs()
+    return event.startDate.isBefore(now) && isLoggedIn
+  }, [event, isLoggedIn])
 
   return (
     <React.Fragment>
@@ -157,21 +162,25 @@ export default function DialogView({
               )}
             </Box>
           </Box>
-          {event.musterLocation && (
-            <Box display='flex'>
-              <Tooltip title='Muster Location'>
-                <MusterLocationIcon />
+          {event.musterLocation && event.muster && (
+            <Box display='flex' alignItems='center'>
+              <Tooltip title='Muster'>
+                <MeetingIcon sx={{ fontSize: '28px' }} />
               </Tooltip>
-              <Box sx={{ ml: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', ml: 2, flexGrow: 1 }}>
                 {Array.isArray(musterLocationString) ? (
-                  <Box sx={{ width: '100%' }}>
-                    <Typography>{musterLocationString[0]}</Typography>
+                  <Box>
+                    <Typography>
+                      Muster @ {musterLocationString[0]} {'\u2013'} {event.muster?.format('H:mm a')}
+                    </Typography>
                     <Typography variant='body2' color='text.secondary'>
                       {musterLocationString[1]}
                     </Typography>
                   </Box>
                 ) : (
-                  <Typography>{musterLocationString}</Typography>
+                  <Typography sx={{ flexGrow: 1 }}>
+                    Muster @ {musterLocationString} {'\u2013'} {event.muster?.format('H:mm a')}{' '}
+                  </Typography>
                 )}
               </Box>
               <Tooltip title='View Map'>
@@ -181,32 +190,32 @@ export default function DialogView({
               </Tooltip>
             </Box>
           )}
-          {event.muster && (
+          {!event.musterLocation && event.muster && (
             <Box display='flex'>
               <Tooltip title='Muster'>
-                <MeetingIcon />
+                <MeetingIcon sx={{ fontSize: '28px' }} />
               </Tooltip>
               <Box sx={{ ml: 2 }}>
-                <Typography>{event.muster?.format('H:mm')}</Typography>
+                <Typography>Muster @ {event.muster?.format('H:mm a')}</Typography>
               </Box>
             </Box>
           )}
           {event.ksu && (
-            <Box display='flex'>
+            <Box display='flex' alignItems='center'>
               <Tooltip title='KSU'>
-                <KsuIcon />
+                <KsuIcon sx={{ fontSize: '28px' }} />
               </Tooltip>
               <Box sx={{ ml: 2 }}>
-                <Typography>{event.ksu?.format('H:mm')}</Typography>
+                <Typography>KSU @ {event.ksu?.format('H:mm a')}</Typography>
               </Box>
             </Box>
           )}
           {event?.location && (
-            <Box display='flex'>
+            <Box display='flex' alignItems='center'>
               <Tooltip title={'Location'}>
                 <PlaceIcon sx={{ fontSize: '28px' }} />
               </Tooltip>
-              <Box sx={{ ml: 2, flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', ml: 2, flexGrow: 1 }}>
                 {Array.isArray(locationString) ? (
                   <Box sx={{ width: '100%' }}>
                     <Typography>{locationString[0]}</Typography>
@@ -223,6 +232,16 @@ export default function DialogView({
                   <MapIcon />
                 </IconButton>
               </Tooltip>
+            </Box>
+          )}
+          {event.miles && (
+            <Box display='flex' alignItems='center'>
+              <Tooltip title='Estimated Miles'>
+                <MilesIcon sx={{ fontSize: '28px' }} />
+              </Tooltip>
+              <Box sx={{ ml: 2 }}>
+                <Typography>{event.miles} miles</Typography>
+              </Box>
             </Box>
           )}
           {event.description && (
@@ -247,6 +266,18 @@ export default function DialogView({
                 </Typography>
               </Box>
             </Box>
+          )}
+          {canAttend && (
+            <Button
+              startIcon={<ActivityLogIcon />}
+              variant='outlined'
+              color='primary'
+              onClick={() => {
+                onViewChange('activity_log')
+              }}
+            >
+              I attended this event
+            </Button>
           )}
         </Stack>
       </DialogContent>
