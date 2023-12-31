@@ -1,4 +1,19 @@
 import * as React from 'react'
+
+import { createCalendarEvent, udpateCalendarEvent } from '@/utils/api'
+import { DatePicker, TimePicker } from '@mui/x-date-pickers'
+import { EVENT_TYPE, EVENT_TYPES, EVENT_TYPE_COLOR, RECURRENCE_MODE } from '@/utils/constants'
+import { LoadingButton } from '@mui/lab'
+import { startCase } from '@/utils/helpers'
+import AddLocationIcon from '@mui/icons-material/AddLocation'
+import CloseIcon from '@mui/icons-material/Close'
+import CustomRecurrenceDialog from '../CustomRecurrenceDialog'
+import EventRecurrenceConfirmationOptions from '../EventRecurrenceConfirmationOptions'
+import MilesIcon from '@mui/icons-material/Route'
+import NotesIcon from '@mui/icons-material/Notes'
+import type { Dayjs } from 'dayjs'
+import type { EventDialogView } from './Dialog'
+import type { ICalendarEvent, RecurrenceOptions } from '@/types/common'
 import {
   Box,
   Checkbox,
@@ -17,26 +32,12 @@ import {
   DialogActions,
   Button,
 } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
-import type { ICalendarEvent, RecurrenceOptions } from '@/types/common'
-import { DatePicker, TimePicker } from '@mui/x-date-pickers'
-import { EVENT_TYPE, EVENT_TYPES, EVENT_TYPE_COLOR, RECURRENCE_MODE } from '@/utils/constants'
-import { startCase } from '@/utils/helpers'
 import {
   combineDateAndTime,
   getCalendarEventTypeColor,
   getCalendarEventTypeIcon,
   getHumanReadableRecurrenceString,
 } from '@/utils/calendar'
-import { type Dayjs } from 'dayjs'
-import CustomRecurrenceDialog from '../CustomRecurrenceDialog'
-import { type EventDialogView } from './Dialog'
-import AddLocationIcon from '@mui/icons-material/AddLocation'
-import MilesIcon from '@mui/icons-material/Route'
-import NotesIcon from '@mui/icons-material/Notes'
-import { LoadingButton } from '@mui/lab'
-import EventRecurrenceConfirmationOptions from '../EventRecurrenceConfirmationOptions'
-import { createCalendarEvent, udpateCalendarEvent } from '@/utils/api'
 
 export default function DialogEdit({
   event: initEvent,
@@ -65,7 +66,7 @@ export default function DialogEdit({
   function handleEventTextChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const { name, value } = event.target
 
-    updateEvent({ [name]: value })
+    updateEvent({ [name]: value || undefined })
   }
   function handleEventTypeChange(event: SelectChangeEvent): void {
     const eventType = event.target.value as EVENT_TYPE
@@ -95,6 +96,8 @@ export default function DialogEdit({
       const muster = combineDateAndTime(event.startDate, value)
 
       updateEvent({ muster })
+    } else {
+      updateEvent({ muster: undefined })
     }
   }
   function handleKsuTimeChange(value: Dayjs | null): void {
@@ -102,6 +105,8 @@ export default function DialogEdit({
       const ksu = combineDateAndTime(event.startDate, value)
 
       updateEvent({ ksu })
+    } else {
+      updateEvent({ ksu: undefined })
     }
   }
   function handleDateChange(data: Partial<ICalendarEvent>, error: boolean): void {
@@ -640,7 +645,12 @@ function EventDateSelector({
           format='dddd, MMMM D'
           sx={{ '& .MuiInputBase-input': { py: 1 }, mr: 1 }}
           slotProps={{
-            textField: { variant: 'filled', size: 'small', fullWidth: true },
+            textField: {
+              variant: 'filled',
+              size: 'small',
+              fullWidth: true,
+              helperText: error ? 'End time is before start time.' : undefined,
+            },
           }}
           onChange={handleSameDayDateChange}
         />
@@ -662,7 +672,11 @@ function EventDateSelector({
           disabled={disabled}
           format='h:mm a'
           minTime={event.startDate.add(15, 'minutes')}
-          sx={{ minWidth: 130, '& .MuiInputBase-input': { py: 1 } }}
+          sx={{
+            minWidth: 130,
+            '& .MuiInputBase-input': { py: 1 },
+            '& .MuiInputBase-root': { bgcolor: error ? 'rgba(255, 0, 0, 0.1)' : undefined },
+          }}
           timeSteps={{ minutes: 15 }}
           slotProps={{ textField: { variant: 'filled', size: 'small' } }}
           onAccept={handleSameDayEndTimeChange}
@@ -747,7 +761,6 @@ function EventDateSelector({
       </Box>
     )
   }
-
   if (multiDate) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: { xs: 0, sm: 0.5 } }}>
