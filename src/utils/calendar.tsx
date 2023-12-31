@@ -158,13 +158,13 @@ export function mapClientToRequest(cEvent: ICalendarEvent): calendar_v3.Schema$E
     summary: cEvent.summary,
     start,
     end,
-    extendedProperties: Object.keys(shared).length ? shared : null,
+    extendedProperties: Object.keys(shared).length ? { shared } : null,
   }
 }
 export function getBlankEventForDate(date: Dayjs): ICalendarEvent {
   const now = dayjs()
-  const startDate = date.startOf('day')
-  const endDate = date.add(1, 'day').startOf('day')
+  const startDate = getClosestHalfHour(combineDateAndTime(date, dayjs()))
+  const endDate = startDate.add(1, 'hour').add(1, 'day')
   const event: ICalendarEvent = {
     endDate,
     id: crypto.randomUUID(),
