@@ -1,5 +1,18 @@
 import type { BaseLog, LogsByMember } from '@/types/common'
+import type { AlertColor } from '@mui/material'
 
+// New Stuff
+export function SendNotification(message: string, severity: AlertColor = 'info'): void {
+  const event = new CustomEvent('notify', { detail: { message, severity } })
+
+  dispatchEvent(event)
+}
+export function startCase(str: string): string {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
 export function stripAllButNumbers(str: string): string {
   return str.replace(/[^0-9]/gi, '')
 }
@@ -21,18 +34,6 @@ export function stringToColor(string: string): string {
   /* eslint-enable no-bitwise */
 
   return color
-}
-export function stripHTML(html: string | undefined | null): string {
-  if (!html) return ''
-
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-
-  return doc.body.textContent ?? ''
-}
-export function formatMoney(number: string | number): string {
-  const toFormat = typeof number === 'string' ? parseFloat(number) : number
-
-  return toFormat.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 export function getContrastTextColor(color: string | number[]): '#000' | '#FFF' {
   return luma(color) >= 165 ? '#000' : '#FFF'
@@ -59,11 +60,12 @@ function hexToRGBArray(colorStr: string): number[] {
 
   return rgb
 }
-export function capitalizeAllWords(str: string): string {
-  return str
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+
+// Old Stuff
+export function formatMoney(number: string | number): string {
+  const toFormat = typeof number === 'string' ? parseFloat(number) : number
+
+  return toFormat.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
 export function roundNumber(num: number, decimail = 1): number {
   const dec = decimail * 10

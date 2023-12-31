@@ -8,8 +8,9 @@ import type {
   ROLE,
   ROLES,
 } from '@/utils/constants'
-import { type Dayjs } from 'dayjs'
-import { type calendar_v3 } from 'googleapis'
+import type { AlertColor } from '@mui/material'
+import type { Dayjs } from 'dayjs'
+import type { calendar_v3 } from 'googleapis'
 
 export interface Member {
   id: string
@@ -76,7 +77,6 @@ export interface Recurrence {
 
 export interface RecurrenceOptions {
   mode: RECURRENCE_MODE
-  stopDate?: Dayjs
 }
 
 export interface BaseLog {
@@ -111,21 +111,28 @@ export interface ActivityLog {
 }
 
 export interface IServerCalendarEvent {
-  id: string
-  summary: string
+  _event?: calendar_v3.Schema$Event
+  _recurrenceEvent?: calendar_v3.Schema$Event
+  color: CALENDAR_COLOR
+  dayNumber?: number
+  dayTotal: number
+  description?: string
   endDate: string
   eventType: EVENT_TYPE
+  id: string
   isAllDayEvent: boolean
-  dayTotal: number
+  isMultipleDayEvent: boolean
   isPastEvent: boolean
-  startDate: string
-  originalStartDate?: string
-  dayNumber?: number
-  color: CALENDAR_COLOR
   ksu?: string
+  location?: string
+  miles?: number
   muster?: string
+  musterLocation?: string
+  originalStartDate?: string
+  recurrence?: string[] | null
+  startDate: string
+  summary?: string
   textColor: '#000' | '#FFF'
-  _originalEvent: calendar_v3.Schema$Event
 }
 export interface ICalendarEvent extends IServerCalendarEvent {
   endDate: Dayjs
@@ -133,18 +140,19 @@ export interface ICalendarEvent extends IServerCalendarEvent {
   originalStartDate?: Dayjs
   ksu?: Dayjs
   muster?: Dayjs
+  isNew?: boolean
   _renderIndex: number
 }
 
 export interface IRequestBodyCalendarEvent {
   colorId?: calendar_v3.Schema$Event.colorId
   description?: calendar_v3.Schema$Event.description
-  end?: calendar_v3.Schema$Event.end
+  end: calendar_v3.Schema$Event.end
+  extendedProperties?: calendar_v3.Schema$Event.extendedProperties
   location?: calendar_v3.Schema$Event.location
   recurrence?: calendar_v3.Schema$Event.recurrence
-  start?: calendar_v3.Schema$Event.start
+  start: calendar_v3.Schema$Event.start
   summary?: calendar_v3.Schema$Event.summary
-  extendedProperties?: calendar_v3.Schema$Event.extendedProperties
 }
 
 export interface NotifierState {
@@ -193,6 +201,11 @@ export interface AtRiskMember {
   events: number
   member: Member
   rides: number
+}
+
+export interface Notification {
+  severity: AlertColor
+  message: string
 }
 
 export type Mode = 'light' | 'dark' | 'system'

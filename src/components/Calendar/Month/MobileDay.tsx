@@ -78,7 +78,7 @@ export default function MobileMonthDay({
           {isFirstOfMonth ? date.format('MMM D') : date.format('D')}
         </Typography>
       </Box>
-      {sortDayEvents(events, date).map((e, index) => {
+      {sortDayEvents(events).map((e, index) => {
         if (e) return <MobileMonthDayEvent key={e.id} event={e} />
 
         return <EventPlaceholder key={index} />

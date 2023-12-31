@@ -1,15 +1,10 @@
 import React from 'react'
 
 import { Box, Chip, IconButton, Typography, alpha, darken } from '@mui/material'
-import { EVENT_TYPE } from '@/utils/constants'
 import dayjs, { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
-import RideIcon from '@mui/icons-material/TwoWheeler'
-import MeetingIcon from '@mui/icons-material/Groups'
-import EventIcon from '@mui/icons-material/LocalActivity'
-import OtherIcon from '@mui/icons-material/Event'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
-import { sortDayEvents } from '@/utils/calendar'
+import { getCalendarEventTypeIcon, sortDayEvents } from '@/utils/calendar'
 
 interface DesktopMonthDayProps {
   activeMonth: number
@@ -18,6 +13,7 @@ interface DesktopMonthDayProps {
   selected?: boolean
   onDateClick?: (date: Dayjs) => void
   onEventClick?: (event: ICalendarEvent) => void
+  onEventCreate?: (date: Dayjs) => void
 }
 
 const DAY_ICON_WIDTH = { width: 32, height: 32 }
@@ -35,22 +31,14 @@ function DesktopMonthDayEvent({
   const { listeners, setNodeRef, isDragging } = useDraggable({ id: event?.id ?? '' })
   const isPastEvent = dayjs().isAfter(event.endDate)
   const icon = React.useMemo(() => {
-    switch (event.eventType) {
-      case EVENT_TYPE.UNOFFICAL_RIDE:
-      case EVENT_TYPE.RIDE:
-        return <RideIcon />
-      case EVENT_TYPE.MEETING:
-        return <MeetingIcon />
-      case EVENT_TYPE.EVENT:
-        return <EventIcon />
-      default:
-        return <OtherIcon />
-    }
+    return getCalendarEventTypeIcon(event.eventType)
   }, [event])
   const label = React.useMemo(() => {
-    if (event.isAllDayEvent) return event.summary
+    if (event.isAllDayEvent) return event.summary ? event.summary : '(No Title)'
 
-    return `${event.startDate.format('ha')} ${event.summary}`
+    const format = event.startDate.minute() === 0 ? 'ha' : 'h:mma'
+
+    return `${event.startDate.format(format)} ${event.summary ? event.summary : '(No Title)'}`
   }, [event])
   const isDisabled = isDragging || disabled
 
@@ -67,7 +55,7 @@ function DesktopMonthDayEvent({
         border: 'none',
         borderRadius: 0.75,
         bgcolor: isDragging
-          ? 'green'
+          ? 'rgba(0, 255, 0, 0.25)'
           : event.isAllDayEvent
             ? isPastEvent
               ? alpha(event.color as string, 0.15)
@@ -80,7 +68,7 @@ function DesktopMonthDayEvent({
               ? theme.palette.getContrastText(event.color as string)
               : 'inherit',
         justifyContent: 'flex-start',
-        gap: 1,
+        gap: '6px',
         mx: 0.5,
         px: 0.5,
         '&:hover': {
@@ -89,11 +77,16 @@ function DesktopMonthDayEvent({
         },
         '& .MuiChip-icon': {
           color: !event.isAllDayEvent ? event.color : undefined,
+          ml: 0,
+        },
+        '& .MuiChip-label': {
+          pl: '2px',
         },
       }}
       onClick={
         !isDisabled
-          ? () => {
+          ? (clickEvent) => {
+              clickEvent.stopPropagation()
               if (onEventClick) onEventClick(event)
             }
           : undefined
@@ -113,19 +106,25 @@ export default function DesktopMonthDay({
   selected,
   events,
   onEventClick,
+  onEventCreate,
 }: DesktopMonthDayProps): JSX.Element {
   const { setNodeRef, isOver } = useDroppable({
     id: date.format(),
   })
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
-  function handleDateClick(): void {
+  function handleDateClick(event: React.MouseEvent<HTMLButtonElement>): void {
+    event.stopPropagation()
+
     if (onDateClick) onDateClick(date)
   }
 
   return (
     <Box
       ref={setNodeRef}
+      onClick={(event) => {
+        if (onEventCreate) onEventCreate(date)
+      }}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -155,7 +154,7 @@ export default function DesktopMonthDay({
           </Typography>
         </IconButton>
       </Box>
-      {sortDayEvents(events, date).map((e, index) => {
+      {sortDayEvents(events).map((e, index) => {
         if (e)
           return (
             <DesktopMonthDayEvent

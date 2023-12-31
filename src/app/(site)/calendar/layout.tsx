@@ -9,6 +9,7 @@ import Box from '@mui/material/Box'
 import CalendarHeader from '@/components/Calendar/Header'
 import CalendarProvider from '@/hooks/useCalendar'
 import dayjs from 'dayjs'
+import Notifier from '@/components/Notifier'
 
 export default function CalendarView({ children }: { children: React.ReactNode }): JSX.Element {
   const searchParams = useSearchParams()
@@ -30,6 +31,7 @@ export default function CalendarView({ children }: { children: React.ReactNode }
         >
           {children}
         </Box>
+        <Notifier />
       </CalendarProvider>
     </LocalizationProvider>
   )

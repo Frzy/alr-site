@@ -1,110 +1,143 @@
-import {
-  ICalendarEvent,
-  IRequestBodyCalendarEvent,
-  IServerCalendarEvent,
-  RecurrenceOptions,
-} from '@/types/common'
+import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
 import { ENDPOINT, RECURRENCE_MODE } from './constants'
-import moment, { Moment } from 'moment'
-import { Fetcher } from 'swr'
-import { FetcherResponse } from 'swr/_internal'
-import { getFrontEndCalendarEvent } from './helpers'
+import {
+  getRecurrenceStringFromParts,
+  getRecurrenceStringParts,
+  mapClientToRequest,
+  mapServerToClient,
+} from './calendar'
+import { SendNotification } from './helpers'
 
 export async function queryRequest(
   method: 'GET' | 'DELETE',
   url: string,
   queries?: Record<string, string>,
-) {
+): Promise<Response> {
   const params = new URLSearchParams(queries)
 
-  return params.toString() ? fetch(`${url}?${params}`, { method }) : fetch(url, { method })
+  return params.toString()
+    ? await fetch(`${url}?${params.toString()}`, { method })
+    : await fetch(url, { method })
 }
-
-export async function bodyRequest(method: 'PUT' | 'POST' | 'PATCH', url: string, data: unknown) {
-  return fetch(url, {
+export async function bodyRequest(
+  method: 'PUT' | 'POST' | 'PATCH',
+  url: string,
+  data: unknown,
+): Promise<Response> {
+  return await fetch(url, {
     method,
     body: JSON.stringify(data),
   })
 }
 
-export function createCalendarEvent<T = unknown>(calendarEvent: IRequestBodyCalendarEvent) {
-  return new Promise(async (resolve, reject) => {
-    const url = `${ENDPOINT.EVENTS}`
-    const response = await bodyRequest('POST', url, calendarEvent)
-    const data = (await response.json()) as T
+// Calendar Events
+export async function createCalendarEvent(
+  event: ICalendarEvent,
+  skipNotification?: boolean,
+): Promise<ICalendarEvent | undefined> {
+  try {
+    const requestBody = mapClientToRequest(event)
+    const response = await bodyRequest('POST', '/api/calendar/events', requestBody)
+    const data = (await response.json()) as IServerCalendarEvent
+    if (!skipNotification) SendNotification(`Event was create`, 'success')
 
-    if (response.ok) {
-      resolve(data)
-    } else {
-      reject(data)
-    }
-  })
+    return mapServerToClient(data)
+  } catch (error) {
+    if (!skipNotification) SendNotification(`Failed to create event`, 'error')
+  }
 }
-export function udpateCalendarEvent<T = unknown>(
-  calendarEvent: ICalendarEvent,
-  body: IRequestBodyCalendarEvent,
-  recurrenceOptions: RecurrenceOptions = { mode: RECURRENCE_MODE.SINGLE },
-) {
-  return new Promise(async (resolve, reject) => {
-    const { mode, stopDate } = recurrenceOptions
-    const params: { [key: string]: string } = {
-      mode,
-    }
-    let id = calendarEvent.id
+export async function udpateCalendarEvent(
+  event: ICalendarEvent,
+  options: RecurrenceOptions = { mode: RECURRENCE_MODE.SINGLE },
+): Promise<ICalendarEvent | undefined> {
+  const { mode } = options
 
-    if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
-      id = calendarEvent.recurringEventId
+  try {
+    switch (mode) {
+      case RECURRENCE_MODE.ALL: {
+        const requestBody = mapClientToRequest(event)
+        const response = await bodyRequest(
+          'PUT',
+          `/api/calendar/event/${event?._event?.recurringEventId}`,
+          requestBody,
+        )
+        const data = (await response.json()) as IServerCalendarEvent
 
-      if (calendarEvent.isAllDayEvent) {
-        params.stopDate = moment(stopDate).format('YYYYMMDD')
-      } else {
-        params.stopDate = moment(stopDate).utc().format('YYYYMMDDTHHmmss[Z]')
+        SendNotification(`Events were updated`, 'success')
+        return mapServerToClient(data)
       }
+      case RECURRENCE_MODE.FUTURE: {
+        await deleteCalendarEvent(event, options, true)
+        const data = await createCalendarEvent(event, true)
 
-      body.start = calendarEvent.start
-      body.end = calendarEvent.end
-    } else if (mode === RECURRENCE_MODE.ALL) {
-      id = calendarEvent.recurringEventId
+        if (data) {
+          SendNotification(`Events were updated`, 'success')
+          return data
+        } else {
+          throw new Error('No create response object')
+        }
+      }
+      case RECURRENCE_MODE.SINGLE: {
+        const requestBody = mapClientToRequest(event)
+        const response = await bodyRequest('PUT', `/api/calendar/event/${event.id}`, requestBody)
+        const data = (await response.json()) as IServerCalendarEvent
+
+        SendNotification(`Event was updated`, 'success')
+
+        return mapServerToClient(data)
+      }
     }
-
-    const url = `${ENDPOINT.EVENT}/${id}`
-    const response = await bodyRequest('PUT', url, { ...params, event: body })
-    const data = (await response.json()) as T
-
-    if (response.ok) {
-      resolve(data)
-    } else {
-      reject(data)
-    }
-  })
+  } catch (error) {
+    SendNotification('Failed to update event()', 'error')
+  }
 }
 export async function deleteCalendarEvent(
-  calendarEvent: ICalendarEvent,
-  recurrenceOptions: RecurrenceOptions = { mode: RECURRENCE_MODE.SINGLE },
-) {
-  const { mode, stopDate } = recurrenceOptions
-  const params: Record<string, string> = { mode }
-  let id = calendarEvent.id
+  event: ICalendarEvent,
+  options: RecurrenceOptions = { mode: RECURRENCE_MODE.SINGLE },
+  skipNotification?: boolean,
+): Promise<void> {
+  const { mode } = options
+  const isRecurringEvent = !!event?._event?.recurringEventId
 
-  if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
-    if (calendarEvent.isAllDayEvent) {
-      params.stopDate = moment(stopDate).format('YYYYMMDD')
-    } else {
-      params.stopDate = moment(stopDate).utc().format('YYYYMMDDTHHmmss[Z]')
+  try {
+    switch (mode) {
+      case RECURRENCE_MODE.ALL:
+        void (await queryRequest('DELETE', `${ENDPOINT.EVENT}/${event?._event?.recurringEventId}`))
+        if (!skipNotification) SendNotification(`Events were deleted`, 'success')
+        break
+      case RECURRENCE_MODE.FUTURE: {
+        if (!event._recurrenceEvent)
+          throw new Error('Calendar event does not have a recurrence event')
+        if (!Array.isArray(event.recurrence))
+          throw new Error('Calendar event does not have a recurrence string')
+
+        const stopDate = event.startDate.utc().subtract(1, 'day').endOf('day')
+        const recurrenceString = event.recurrence[0]
+        const parts = getRecurrenceStringParts(recurrenceString)
+        parts.COUNT = undefined
+        parts.UNTIL = stopDate.utc().format(event.isAllDayEvent ? 'YYYYMMDD' : 'YYYYMMDDTHHmmss[Z]')
+        const recurrence = getRecurrenceStringFromParts(parts)
+
+        void (await bodyRequest('PUT', `/api/calendar/event/${event._recurrenceEvent.id}`, {
+          ...event._recurrenceEvent,
+          recurrence: [recurrence],
+        }))
+        if (!skipNotification) SendNotification(`Events were deleted`, 'success')
+        break
+      }
+      case RECURRENCE_MODE.SINGLE:
+        if (isRecurringEvent) {
+          void (await bodyRequest('PUT', `/api/calendar/event/${event.id}`, {
+            ...event._event,
+            status: 'cancelled',
+          }))
+        } else {
+          void (await queryRequest('DELETE', `${ENDPOINT.EVENT}/${event.id}`))
+        }
+        if (!skipNotification) SendNotification(`Event was deleted`, 'success')
+        break
     }
-    id = calendarEvent.recurringEventId
-  } else if (mode === RECURRENCE_MODE.ALL) {
-    id = calendarEvent.recurringEventId
+  } catch (error) {
+    if (!skipNotification) SendNotification('Failed to delete event(s)', 'error')
   }
-
-  await queryRequest('DELETE', `${ENDPOINT.EVENT}/${id}`, params)
-}
-export const fetcher: Fetcher<ICalendarEvent[], [string, Record<string, string>]> = async (
-  args,
-) => {
-  const [url, query] = args
-  const response = await queryRequest('GET', url, query)
-  const data = (await response.json()) as IServerCalendarEvent[]
-
-  return data.map(getFrontEndCalendarEvent)
 }

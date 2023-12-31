@@ -30,3 +30,7 @@ export function getFormatedPhoneNumber(phoneNumber: string): string {
 
   return pNumber.join('')
 }
+
+export function isMemberAdmin(member: Member): boolean {
+  return !!member.office
+}

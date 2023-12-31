@@ -122,7 +122,6 @@ export enum ENDPOINT {
   MEMBERS = '/api/members',
 }
 export enum CALENDAR_COLOR {
-  SKYBLUE = '#039be5',
   LAVENDER = '#7986CB',
   SAGE = '#33B679',
   GRAPE = '#8E24AA',
@@ -136,7 +135,6 @@ export enum CALENDAR_COLOR {
   TOMATO = '#D60000',
 }
 export enum CALENDAR_COLOR_ID {
-  SKYBLUE = '0',
   LAVENDER = '1',
   SAGE = '2',
   GRAPE = '3',
@@ -150,17 +148,17 @@ export enum CALENDAR_COLOR_ID {
   TOMATO = '11',
 }
 export const COLOR_OPTIONS = [
-  { value: '1', color: '#7986CB' },
-  { value: '2', color: '#33B679' },
-  { value: '3', color: '#8E24AA' },
-  { value: '4', color: '#E67C73' },
-  { value: '5', color: '#F6C026' },
-  { value: '6', color: '#F5511D' },
-  { value: '7', color: '#039BE5' },
-  { value: '8', color: '#616161' },
-  { value: '9', color: '#3F51B5' },
-  { value: '10', color: '#0B8043' },
-  { value: '11', color: '#D60000' },
+  { value: '1', color: CALENDAR_COLOR.LAVENDER },
+  { value: '2', color: CALENDAR_COLOR.SAGE },
+  { value: '3', color: CALENDAR_COLOR.GRAPE },
+  { value: '4', color: CALENDAR_COLOR.FLAMINGO },
+  { value: '5', color: CALENDAR_COLOR.BANANA },
+  { value: '6', color: CALENDAR_COLOR.TANGERINE },
+  { value: '7', color: CALENDAR_COLOR.PEACOCK },
+  { value: '8', color: CALENDAR_COLOR.GRAPHITE },
+  { value: '9', color: CALENDAR_COLOR.BLUEBERRY },
+  { value: '10', color: CALENDAR_COLOR.BASIL },
+  { value: '11', color: CALENDAR_COLOR.TOMATO },
 ]
 export const CALENDAR_COLORS = Object.values(CALENDAR_COLOR)
 export const DEFAULT_CALENDAR_COLOR = CALENDAR_COLOR.PEACOCK
@@ -170,12 +168,14 @@ export enum EVENT_TYPE_COLOR_ID {
   UNOFFICAL_RIDE = CALENDAR_COLOR_ID.BANANA,
   EVENT = CALENDAR_COLOR_ID.PEACOCK,
   MEETING = CALENDAR_COLOR_ID.SAGE,
+  OTHER = CALENDAR_COLOR_ID.GRAPE,
 }
 export enum EVENT_TYPE_COLOR {
   RIDE = CALENDAR_COLOR.TANGERINE,
   UNOFFICAL_RIDE = CALENDAR_COLOR.BANANA,
   EVENT = CALENDAR_COLOR.PEACOCK,
   MEETING = CALENDAR_COLOR.SAGE,
+  OTHER = CALENDAR_COLOR.GRAPE,
 }
 export enum RECURRENCE_MODE {
   ALL = 'all',

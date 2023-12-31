@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { stringAvatar } from '@/utils/helpers'
+import { memberAvatar } from '@/utils/member'
 import EmailIcon from '@mui/icons-material/Email'
 import Grid from '@mui/material/Unstable_Grid2/Grid2'
 import ListHeader, { type ListFilter } from './Header'
@@ -59,7 +59,7 @@ export function OfficerListItem({ member, mode = 'grid' }: MemberListItemProps):
       >
         <ListItemButton href={`/member/${member.id}`}>
           <ListItemAvatar>
-            <Avatar src={member.image} {...stringAvatar(member)} />
+            <Avatar src={member.image} {...memberAvatar(member)} />
           </ListItemAvatar>
           <ListItemText
             primary={member.office}
@@ -88,7 +88,7 @@ export function OfficerListItem({ member, mode = 'grid' }: MemberListItemProps):
               <Typography sx={{ fontSize: '2rem' }}>{member.office}</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Avatar src={member.image} {...stringAvatar(member)} />
+              <Avatar src={member.image} {...memberAvatar(member)} />
               <Stack>
                 <Typography variant='h6'>{member.name}</Typography>
 

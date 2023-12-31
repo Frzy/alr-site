@@ -1,4 +1,4 @@
-import { getCalendarEvents } from '@/lib/calendar'
+import { createCalendarEvent, getCalendarEvents } from '@/lib/calendar'
 import { mapGoogleToServer } from '@/utils/calendar'
 
 export async function GET(request: Request): Promise<Response> {
@@ -14,4 +14,12 @@ export async function GET(request: Request): Promise<Response> {
   })
 
   return Response.json(calendarEvents.map(mapGoogleToServer))
+}
+
+export async function POST(request: Request): Promise<Response> {
+  const requestBody = await request.json()
+
+  const response = await createCalendarEvent({ requestBody })
+
+  return Response.json({ response })
 }

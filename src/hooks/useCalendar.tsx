@@ -4,10 +4,12 @@ import React from 'react'
 import dayjs, { type Dayjs } from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import utc from 'dayjs/plugin/utc'
 import type { ICalendarEvent } from '@/types/common'
 
 dayjs.extend(isBetween)
 dayjs.extend(relativeTime)
+dayjs.extend(utc)
 
 interface CalendarContextProps {
   date: Dayjs

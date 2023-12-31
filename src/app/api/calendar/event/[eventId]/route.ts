@@ -1,37 +1,49 @@
-import { getCalendarEvent } from '@/lib/calendar'
-import type { IServerCalendarEvent } from '@/types/common'
+import { deleteCalendarEvent, getCalendarEvent, updateCalendarEvent } from '@/lib/calendar'
 import { mapGoogleToServer } from '@/utils/calendar'
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } },
-): Promise<IServerCalendarEvent> {
+  { params }: { params: { eventId: string } },
+): Promise<Response> {
+  let recurrenceEvent
+  const { searchParams } = new URL(request.url)
   const event = await getCalendarEvent({
-    eventId: params.slug,
+    eventId: params.eventId,
   })
 
-  return mapGoogleToServer(event)
+  const serverEvent = mapGoogleToServer(event)
+
+  if (searchParams.get('expandRecurrence') === 'true' && !!event.recurringEventId) {
+    recurrenceEvent = await getCalendarEvent({
+      eventId: event.recurringEventId,
+    })
+
+    serverEvent._recurrenceEvent = recurrenceEvent
+    serverEvent.recurrence = recurrenceEvent.recurrence
+  }
+
+  return Response.json(serverEvent)
 }
 
-// async function DeleteHandle(req: NextApiRequest, res: NextApiResponse) {
-//   const { eventId, mode, stopDate } = req.query as { [key: string]: string }
+export async function DELETE(
+  request: Request,
+  { params }: { params: { eventId: string } },
+): Promise<Response> {
+  await deleteCalendarEvent({ eventId: params.eventId })
 
-//   if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
-//     await deleteFutureCalendarEvents(eventId, stopDate)
-//   } else {
-//     await deleteCalendarEvent({ eventId })
-//   }
+  return Response.json({ success: true })
+}
 
-//   return null
-// }
+export async function PUT(
+  request: Request,
+  { params }: { params: { eventId: string } },
+): Promise<Response> {
+  const { eventId } = params
+  const requestBody = await request.json()
 
-// async function PutHandle(req: NextApiRequest, res: NextApiResponse) {
-//   const { eventId } = req.query as { [key: string]: string }
-//   const { mode, stopDate, event } = JSON.parse(req.body)
+  const response = await updateCalendarEvent({ eventId, requestBody })
 
-//   if (mode === RECURRENCE_MODE.FUTURE && stopDate) {
-//     return await updateFurtureRecurringEvents(eventId, event, stopDate)
-//   }
+  const data = mapGoogleToServer(response)
 
-//   return await updateCalendarEvent({ eventId, requestBody: event }, true)
-// }
+  return Response.json({ data })
+}

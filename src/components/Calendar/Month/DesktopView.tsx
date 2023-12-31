@@ -1,7 +1,22 @@
 'use client'
 
 import React from 'react'
-import { Box, Dialog, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
+import { DAYS } from '@/utils/constants'
+import {
+  getBlankEventForDate,
+  getDaysEvents,
+  resetEvent,
+  updateEventStartDate,
+} from '@/utils/calendar'
+import { restrictToWindowEdges } from '@dnd-kit/modifiers'
+import { type MutatorOptions } from 'swr'
+import { udpateCalendarEvent } from '@/utils/api'
+import { useCalendar } from '@/hooks/useCalendar'
+import dayjs, { type Dayjs } from 'dayjs'
+import DesktopMonthDay from './DesktopDay'
+import Grid from '@mui/material/Unstable_Grid2/Grid2'
+import type { ICalendarEvent } from '@/types/common'
 import {
   DndContext,
   PointerSensor,
@@ -12,16 +27,6 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { getDaysEvents, resetEvent, updateEventStartDate } from '@/utils/calendar'
-import { useCalendar } from '@/hooks/useCalendar'
-import CalendarEventDialogContent from '../EventDialog'
-import dayjs, { type Dayjs } from 'dayjs'
-import Grid from '@mui/material/Unstable_Grid2/Grid2'
-import type { ICalendarEvent } from '@/types/common'
-import { restrictToWindowEdges } from '@dnd-kit/modifiers'
-import DesktopMonthDay from './DesktopDay'
-import { DAYS } from '@/utils/constants'
-import { type MutatorOptions } from 'swr'
 
 export default function DesktopMonthView({
   days,
@@ -34,7 +39,7 @@ export default function DesktopMonthView({
   firstDate: Dayjs
   onMutate?: (data: any, options?: MutatorOptions<ICalendarEvent[]>) => void
 }): JSX.Element {
-  const { date, setDate, activeEvent, setActiveEvent } = useCalendar()
+  const { date, setDate, setActiveEvent } = useCalendar()
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -43,6 +48,12 @@ export default function DesktopMonthView({
     }),
   )
 
+  function handleEventCreateClick(date: Dayjs): void {
+    const newEvent = getBlankEventForDate(date)
+    if (onMutate) onMutate([...data, newEvent], { revalidate: false })
+
+    setActiveEvent(newEvent)
+  }
   function handleEventClick(event: ICalendarEvent): void {
     setActiveEvent(event)
   }
@@ -86,22 +97,13 @@ export default function DesktopMonthView({
       }
     }
   }
-  function handleDragDrop(event: DragEndEvent): void {
-    // const { active, over } = event
-    // if (over && active.id) {
-    //   const eventIndex = data.findIndex((e) => e.id === active.id)
-    //   if (eventIndex > -1) {
-    //     let newData = [...data]
-    //     const [event] = newData.splice(eventIndex, 1)
-    //     const updatedEvent = updateEventStartDate(event, dayjs(over.id))
-    //     newData.push(updatedEvent)
-    //     newData = newData.map((e) => {
-    //       e._renderIndex = -1
-    //       return e
-    //     })
-    //     void mutate(newData, { revalidate: false })
-    //   }
-    // }
+  async function handleDragDrop(dndEvent: DragEndEvent): Promise<void> {
+    const eventId = dndEvent.active.id
+    const eventIndex = data.findIndex((e) => e.id === eventId)
+
+    await udpateCalendarEvent(data[eventIndex])
+
+    if (onMutate) onMutate([...data])
   }
 
   return (
@@ -164,18 +166,11 @@ export default function DesktopMonthView({
                 selected={date.isSame(firstDate.add(d, 'days'), 'day')}
                 onDateClick={setDate}
                 onEventClick={handleEventClick}
+                onEventCreate={handleEventCreateClick}
               />
             </Grid>
           ))}
         </Grid>
-        <Dialog
-          open={!!activeEvent}
-          onClose={() => {
-            setActiveEvent(null)
-          }}
-        >
-          {activeEvent && <CalendarEventDialogContent event={activeEvent} />}
-        </Dialog>
       </Box>
     </DndContext>
   )

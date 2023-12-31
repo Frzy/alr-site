@@ -47,6 +47,22 @@ export async function getGoogleCalendarEvent(
   return response.data
 }
 
+export async function cancelCalendarEvent(
+  options: calendar_v3.Params$Resource$Events$Update,
+): Promise<calendar_v3.Schema$Event> {
+  const calendarApi = getGoogleCalendarApi()
+  const { requestBody, ...requestOptions } = options
+
+  const response = await calendarApi.events.update({
+    ...requestOptions,
+    requestBody: {
+      status: 'cancelled',
+    },
+  })
+
+  return response.data
+}
+
 export async function createCalendarEvent(
   options: calendar_v3.Params$Resource$Events$Insert,
 ): Promise<calendar_v3.Schema$Event> {
@@ -84,10 +100,12 @@ export async function deleteCalendarEvent(
   options: calendar_v3.Params$Resource$Events$Delete,
 ): Promise<void> {
   const calendarApi = getGoogleCalendarApi()
-  await calendarApi.events.delete({
+  const response = await calendarApi.events.delete({
     ...options,
     calendarId: process.env.GOOGLE_CALENDAR_ID,
   })
+
+  return response.data
 }
 export async function updateFurtureRecurringEvents(
   eventId: string,

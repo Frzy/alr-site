@@ -3,11 +3,13 @@
 import React from 'react'
 import { fetchCalendarEventsBetweenDates, mapServerToClient } from '@/utils/calendar'
 import { useCalendar } from '@/hooks/useCalendar'
-import { useMediaQuery, useTheme } from '@mui/material'
+import { Hidden } from '@mui/material'
 import DesktopMonthView from './DesktopView'
 import MobileMonthView from './MobileView'
-import type { ICalendarEvent, IServerCalendarEvent } from '@/types/common'
+import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
 import useSWR, { type MutatorOptions } from 'swr'
+import CalendarEventDialog from '../EventDialog/Dialog'
+import { RECURRENCE_MODE } from '@/utils/constants'
 
 export default function MonthView({
   activeEvent: initActiveEvent,
@@ -16,9 +18,7 @@ export default function MonthView({
   activeEvent?: IServerCalendarEvent
   events?: IServerCalendarEvent[]
 }): JSX.Element {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const { date, setActiveEvent } = useCalendar()
+  const { date, activeEvent, setActiveEvent } = useCalendar()
   const firstDate = React.useMemo(() => {
     return date.startOf('month').day(0)
   }, [date])
@@ -38,15 +38,92 @@ export default function MonthView({
   function handleMutate(data: ICalendarEvent[], options?: MutatorOptions<ICalendarEvent[]>): void {
     void mutate(data, options)
   }
+  function handleCalendarEventDelete(
+    deletedEvent: ICalendarEvent,
+    options: RecurrenceOptions,
+  ): void {
+    const { mode } = options
+    let newData: ICalendarEvent[] = []
+
+    if (mode === RECURRENCE_MODE.SINGLE) {
+      newData = events.filter((e) => e.id !== deletedEvent.id)
+    } else if (mode === RECURRENCE_MODE.ALL) {
+      newData = events.filter(
+        (e) => e?._event?.recurringEventId !== deletedEvent?._event?.recurringEventId,
+      )
+    } else if (mode === RECURRENCE_MODE.FUTURE) {
+      const stopDate = deletedEvent.startDate.subtract(1, 'day').endOf('day')
+
+      newData = events.filter((e) => {
+        return (
+          e?._event?.recurringEventId !== deletedEvent?._event?.recurringEventId ||
+          (e?._event?.recurringEventId === deletedEvent?._event?.recurringEventId &&
+            e.startDate.isBefore(stopDate))
+        )
+      })
+    }
+
+    handleMutate(newData)
+  }
+  function handleCalendarEventUpdate(newEvent: ICalendarEvent, options: RecurrenceOptions): void {
+    const { mode } = options
+
+    if (mode === RECURRENCE_MODE.SINGLE) {
+      const index = events.findIndex((e) => e.id === newEvent.id)
+      const newData = [...events]
+
+      newData.splice(index, 1, newEvent)
+      handleMutate(newData)
+    } else {
+      void mutate()
+    }
+  }
+  function handleCalendarEventCreate(newEvent: ICalendarEvent): void {
+    const newData = events.filter((e) => !e.isNew)
+
+    handleMutate([...newData, newEvent])
+  }
 
   React.useEffect(() => {
     if (initActiveEvent) setActiveEvent(mapServerToClient(initActiveEvent))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return isMobile ? (
-    <MobileMonthView events={events} firstDate={firstDate} days={days} onMutate={handleMutate} />
-  ) : (
-    <DesktopMonthView events={events} firstDate={firstDate} days={days} onMutate={handleMutate} />
+  return (
+    <React.Fragment>
+      <Hidden mdUp>
+        <MobileMonthView
+          events={events}
+          firstDate={firstDate}
+          days={days}
+          onMutate={handleMutate}
+        />
+      </Hidden>
+      <Hidden mdDown>
+        <DesktopMonthView
+          events={events}
+          firstDate={firstDate}
+          days={days}
+          onMutate={handleMutate}
+        />
+      </Hidden>
+      <CalendarEventDialog
+        key={activeEvent?.id ?? 'key'}
+        open={Boolean(activeEvent)}
+        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+        event={activeEvent!}
+        onDelete={handleCalendarEventDelete}
+        onUpdate={handleCalendarEventUpdate}
+        onCreate={handleCalendarEventCreate}
+        onClose={() => {
+          if (activeEvent?.isNew) {
+            const newEvents = events.filter((e) => e.id !== activeEvent.id)
+
+            handleMutate(newEvents, { revalidate: false })
+          }
+          setActiveEvent(null)
+        }}
+      />
+    </React.Fragment>
   )
 }

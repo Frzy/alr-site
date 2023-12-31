@@ -27,6 +27,20 @@ const themeOptions: ThemeOptions = {
         color: blue.A200,
       },
     },
+    MuiInput: {
+      styleOverrides: {
+        input: {
+          '&:-internal-autofill-selected': {
+            WebkitBoxShadow: '0 0 0 100px #266798 inset',
+            WebkitTextFillColor: '#fff',
+            caretColor: '#fff',
+            borderTopLeftRadius: 'inherit',
+            borderTopRightRadius: 'inherit',
+          },
+          colorScheme: 'dark',
+        },
+      },
+    },
   },
 }
 
