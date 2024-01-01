@@ -3,12 +3,7 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
 import { DAYS } from '@/utils/constants'
-import {
-  getBlankEventForDate,
-  getDaysEvents,
-  resetEvent,
-  updateEventStartDate,
-} from '@/utils/calendar'
+import { getDaysEvents, resetEvent, updateEventStartDate } from '@/utils/calendar'
 import { restrictToWindowEdges } from '@dnd-kit/modifiers'
 import { type MutatorOptions } from 'swr'
 import { udpateCalendarEvent } from '@/utils/api'
@@ -32,14 +27,16 @@ export default function DesktopMonthView({
   days,
   events: data = [],
   firstDate,
+  onCalendarEventCreate,
   onMutate,
 }: {
   days: number[]
   events?: ICalendarEvent[]
   firstDate: Dayjs
+  onCalendarEventCreate?: (date: Dayjs) => void
   onMutate?: (data: any, options?: MutatorOptions<ICalendarEvent[]>) => void
 }): JSX.Element {
-  const { date, setDate, setActiveEvent } = useCalendar()
+  const { date, setDate, setEventId } = useCalendar()
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -49,13 +46,10 @@ export default function DesktopMonthView({
   )
 
   function handleEventCreateClick(date: Dayjs): void {
-    const newEvent = getBlankEventForDate(date)
-    if (onMutate) onMutate([...data, newEvent], { revalidate: false })
-
-    setActiveEvent(newEvent)
+    if (onCalendarEventCreate) onCalendarEventCreate(date)
   }
   function handleEventClick(event: ICalendarEvent): void {
-    setActiveEvent(event)
+    setEventId(event.id)
   }
   function handleDragCancel({ active }: DragCancelEvent): void {
     if (active.id) {

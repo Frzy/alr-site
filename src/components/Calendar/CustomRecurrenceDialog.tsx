@@ -87,14 +87,12 @@ function convertRecurrenceObject(parts: CustomRecurrence): Recurrence {
 }
 
 interface RecurrenceCalendarDialogProps {
-  date: Dayjs
   defaultValue?: string
   onCancel?: () => void
   onChange?: (recurrence: string) => void
 }
 
 export default function CustomRecurrenceDialog({
-  date,
   defaultValue,
   onCancel,
   onChange,

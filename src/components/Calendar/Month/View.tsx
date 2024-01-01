@@ -1,24 +1,28 @@
 'use client'
 
 import React from 'react'
-import { fetchCalendarEventsBetweenDates, mapServerToClient } from '@/utils/calendar'
-import { useCalendar } from '@/hooks/useCalendar'
 import { Hidden } from '@mui/material'
+import { RECURRENCE_MODE } from '@/utils/constants'
+import { type Dayjs } from 'dayjs'
+import { useCalendar } from '@/hooks/useCalendar'
+import CalendarEventDialog, { type EventDialogView } from '../EventDialog/Dialog'
 import DesktopMonthView from './DesktopView'
 import MobileMonthView from './MobileView'
 import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
 import useSWR, { type MutatorOptions } from 'swr'
-import CalendarEventDialog from '../EventDialog/Dialog'
-import { RECURRENCE_MODE } from '@/utils/constants'
+import {
+  fetchCalendarEventsBetweenDates,
+  getBlankEventForDate,
+  mapServerToClient,
+} from '@/utils/calendar'
 
 export default function MonthView({
-  activeEvent: initActiveEvent,
   events: initEvents = [],
 }: {
   activeEvent?: IServerCalendarEvent
   events?: IServerCalendarEvent[]
 }): JSX.Element {
-  const { date, activeEvent, setActiveEvent } = useCalendar()
+  const { date, eventId, setEventId } = useCalendar()
   const firstDate = React.useMemo(() => {
     return date.startOf('month').day(0)
   }, [date])
@@ -34,6 +38,14 @@ export default function MonthView({
   )
   const totalDays = React.useMemo(() => lastDate.diff(firstDate, 'days'), [firstDate, lastDate])
   const days = React.useMemo(() => Array.from({ length: totalDays }, (_, i) => i), [totalDays])
+  const [newEvent, setNewEvent] = React.useState<ICalendarEvent>()
+  const activeEvent = React.useMemo<ICalendarEvent | string | null>(() => {
+    const event = events.find((e) => e.id === eventId)
+
+    if (event) return event
+
+    return eventId
+  }, [events, eventId])
 
   function handleMutate(data: ICalendarEvent[], options?: MutatorOptions<ICalendarEvent[]>): void {
     void mutate(data, options)
@@ -83,11 +95,22 @@ export default function MonthView({
 
     handleMutate([...newData, newEvent])
   }
+  function handleNewCalendarEvent(createDate: Dayjs): void {
+    const createEvent = getBlankEventForDate(createDate)
+    handleMutate([...events, createEvent], { revalidate: false })
+    setEventId(null)
+    setNewEvent(createEvent)
+  }
+  function handleDialogClose(view: EventDialogView): void {
+    if (view === 'create' && newEvent) {
+      const newEvents = events.filter((e) => e.id !== newEvent.id)
 
-  React.useEffect(() => {
-    if (initActiveEvent) setActiveEvent(mapServerToClient(initActiveEvent))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+      handleMutate(newEvents, { revalidate: false })
+      setNewEvent(undefined)
+    } else {
+      setEventId(null)
+    }
+  }
 
   return (
     <React.Fragment>
@@ -104,26 +127,21 @@ export default function MonthView({
           events={events}
           firstDate={firstDate}
           days={days}
+          onCalendarEventCreate={handleNewCalendarEvent}
           onMutate={handleMutate}
         />
       </Hidden>
-      <CalendarEventDialog
-        key={activeEvent?.id ?? 'key'}
-        open={Boolean(activeEvent)}
-        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-        event={activeEvent!}
-        onDelete={handleCalendarEventDelete}
-        onUpdate={handleCalendarEventUpdate}
-        onCreate={handleCalendarEventCreate}
-        onClose={() => {
-          if (activeEvent?.isNew) {
-            const newEvents = events.filter((e) => e.id !== activeEvent.id)
-
-            handleMutate(newEvents, { revalidate: false })
-          }
-          setActiveEvent(null)
-        }}
-      />
+      {(newEvent ?? activeEvent) && (
+        <CalendarEventDialog
+          key={eventId}
+          open={true}
+          event={newEvent ?? activeEvent}
+          onDelete={handleCalendarEventDelete}
+          onUpdate={handleCalendarEventUpdate}
+          onCreate={handleCalendarEventCreate}
+          onClose={handleDialogClose}
+        />
+      )}
     </React.Fragment>
   )
 }

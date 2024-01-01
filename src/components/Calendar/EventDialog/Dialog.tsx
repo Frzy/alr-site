@@ -6,6 +6,7 @@ import {
   type DialogProps,
   useMediaQuery,
   CircularProgress,
+  Alert,
 } from '@mui/material'
 import { mapServerToClient } from '@/utils/calendar'
 
@@ -17,11 +18,14 @@ import { RECURRENCE_MODE } from '@/utils/constants'
 import DialogDelete from './DialogDelete'
 
 interface CalendarEventDialogProps extends DialogProps {
-  event: ICalendarEvent | string
+  event: ICalendarEvent | string | null
   onDelete?: (event: ICalendarEvent, options: RecurrenceOptions) => void
   onUpdate?: (event: ICalendarEvent, options: RecurrenceOptions) => void
   onCreate?: (event: ICalendarEvent) => void
-  create?: boolean
+  onClose?: (
+    view: EventDialogView,
+    reason: 'backdropClick' | 'escapeKeyDown' | 'headerCloseClick',
+  ) => void
 }
 export type EventDialogView =
   | 'view'
@@ -42,11 +46,16 @@ export default function CalendarEventDialog({
 }: CalendarEventDialogProps): JSX.Element | null {
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'))
-  const [view, setView] = React.useState<EventDialogView>('view')
+  const [view, setView] = React.useState<EventDialogView>(
+    typeof initEvent !== 'string' && initEvent?.isNew ? 'create' : 'view',
+  )
   const [event, setEvent] = React.useState<ICalendarEvent | null>(null)
+  const [fetching, setFetching] = React.useState(true)
 
-  function handleClose(): void {
-    if (onClose) onClose({}, 'backdropClick')
+  function handleClose(
+    reason: 'backdropClick' | 'escapeKeyDown' | 'headerCloseClick' = 'backdropClick',
+  ): void {
+    if (onClose) onClose(view, 'backdropClick')
   }
   async function handleEventDelete(
     event: ICalendarEvent,
@@ -65,14 +74,18 @@ export default function CalendarEventDialog({
       const calEvent = (await response.json()) as IServerCalendarEvent
 
       setEvent(mapServerToClient(calEvent))
+      setFetching(false)
     }
 
     if (typeof initEvent === 'string') {
       void fetchCalendarEvent(initEvent)
-    } else if (!initEvent?._event?.recurrence && initEvent?._event?.recurringEventId) {
+    } else if (initEvent?._event?.recurringEventId && !initEvent.recurrence) {
       void fetchCalendarEvent(initEvent.id)
     } else if (initEvent) {
       setEvent(initEvent)
+      setFetching(false)
+    } else {
+      setFetching(false)
     }
   }, [initEvent])
 
@@ -81,10 +94,12 @@ export default function CalendarEventDialog({
       TransitionProps={{ mountOnEnter: true, unmountOnExit: true }}
       fullScreen={event ? fullScreen : false}
       {...other}
-      fullWidth={view === 'edit'}
-      onClose={handleClose}
+      fullWidth={view === 'edit' || view === 'create'}
+      onClose={(_event, reason) => {
+        handleClose(reason)
+      }}
     >
-      {!event ? (
+      {fetching ? (
         <Box
           display='flex'
           flexDirection='column'
@@ -96,6 +111,18 @@ export default function CalendarEventDialog({
         >
           <Box>Fetching Event</Box>
           <CircularProgress />
+        </Box>
+      ) : !event ? (
+        <Box
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
+          justifyContent='center'
+          minHeight={150}
+          minWidth={250}
+          gap={3}
+        >
+          <Alert severity='error'>Not a valid Calendar Event</Alert>
         </Box>
       ) : view === 'delete' ? (
         <DialogDelete

@@ -231,7 +231,6 @@ export default function DialogEdit({
   if (repeatOption === 'custom') {
     return (
       <CustomRecurrenceDialog
-        date={event.originalStartDate ?? event.startDate}
         defaultValue={event?.recurrence?.length ? event.recurrence[0] : undefined}
         onCancel={handleRecurrenceDialogClose}
         onChange={handleCustomRecurrenceChange}
