@@ -1,22 +1,20 @@
 'use client'
 
 import React from 'react'
-import { Hidden } from '@mui/material'
+import { Box } from '@mui/material'
 import { RECURRENCE_MODE } from '@/utils/constants'
 import { type Dayjs } from 'dayjs'
 import { useCalendar } from '@/hooks/useCalendar'
 import CalendarEventDialog, { type EventDialogView } from '../EventDialog/Dialog'
-import DesktopMonthView from './DesktopView'
-import MobileMonthView from './MobileView'
 import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
 import useSWR, { type MutatorOptions } from 'swr'
 import {
   fetchCalendarEventsBetweenDates,
-  getBlankAllDayEvent,
+  getBlankEventForDate,
   mapServerToClient,
 } from '@/utils/calendar'
 
-export default function MonthView({
+export default function WeekView({
   events: initEvents = [],
 }: {
   activeEvent?: IServerCalendarEvent
@@ -24,10 +22,10 @@ export default function MonthView({
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
   const firstDate = React.useMemo(() => {
-    return date.startOf('month').day(0)
+    return date.startOf('week').startOf('day')
   }, [date])
   const lastDate = React.useMemo(() => {
-    return date.endOf('month').day(7)
+    return date.endOf('week').endOf('day')
   }, [date])
   const { data: events, mutate } = useSWR(
     `${firstDate.format()}|${lastDate.format()}`,
@@ -36,8 +34,6 @@ export default function MonthView({
       fallbackData: initEvents.map(mapServerToClient),
     },
   )
-  const totalDays = React.useMemo(() => lastDate.diff(firstDate, 'days'), [firstDate, lastDate])
-  const days = React.useMemo(() => Array.from({ length: totalDays }, (_, i) => i), [totalDays])
   const [newEvent, setNewEvent] = React.useState<ICalendarEvent>()
   const activeEvent = React.useMemo<ICalendarEvent | string | null>(() => {
     const event = events.find((e) => e.id === eventId)
@@ -96,7 +92,7 @@ export default function MonthView({
     handleMutate([...newData, newEvent])
   }
   function handleNewCalendarEvent(createDate: Dayjs): void {
-    const createEvent = getBlankAllDayEvent(createDate)
+    const createEvent = getBlankEventForDate(createDate)
     handleMutate([...events, createEvent], { revalidate: false })
     setEventId(null)
     setNewEvent(createEvent)
@@ -114,23 +110,7 @@ export default function MonthView({
 
   return (
     <React.Fragment>
-      <Hidden mdUp>
-        <MobileMonthView
-          events={events}
-          firstDate={firstDate}
-          days={days}
-          onMutate={handleMutate}
-        />
-      </Hidden>
-      <Hidden mdDown>
-        <DesktopMonthView
-          events={events}
-          firstDate={firstDate}
-          days={days}
-          onCalendarEventCreate={handleNewCalendarEvent}
-          onMutate={handleMutate}
-        />
-      </Hidden>
+      <Box>Week View</Box>
       {(newEvent ?? activeEvent) && (
         <CalendarEventDialog
           key={eventId}

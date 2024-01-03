@@ -36,7 +36,7 @@ export default function DesktopMonthView({
   onCalendarEventCreate?: (date: Dayjs) => void
   onMutate?: (data: any, options?: MutatorOptions<ICalendarEvent[]>) => void
 }): JSX.Element {
-  const { date, setDate, setEventId } = useCalendar()
+  const { date, setEventId } = useCalendar()
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -44,10 +44,6 @@ export default function DesktopMonthView({
       },
     }),
   )
-
-  function handleEventCreateClick(date: Dayjs): void {
-    if (onCalendarEventCreate) onCalendarEventCreate(date)
-  }
   function handleEventClick(event: ICalendarEvent): void {
     setEventId(event.id)
   }
@@ -158,9 +154,8 @@ export default function DesktopMonthView({
                 events={getDaysEvents(data, firstDate.add(d, 'days'))}
                 activeMonth={date.month()}
                 selected={date.isSame(firstDate.add(d, 'days'), 'day')}
-                onDateClick={setDate}
                 onEventClick={handleEventClick}
-                onEventCreate={handleEventCreateClick}
+                onEventCreate={onCalendarEventCreate}
               />
             </Grid>
           ))}

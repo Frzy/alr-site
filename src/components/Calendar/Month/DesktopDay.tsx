@@ -20,10 +20,12 @@ const DAY_ICON_WIDTH = { width: 32, height: 32 }
 const MONTH_DAY_ICON_WIDTH = { width: 64, height: 32 }
 
 function DesktopMonthDayEvent({
+  day,
   disabled,
   event,
   onEventClick,
 }: {
+  day: Dayjs
   disabled?: boolean
   event: ICalendarEvent
   onEventClick?: (event: ICalendarEvent) => void
@@ -40,6 +42,7 @@ function DesktopMonthDayEvent({
 
     return `${event.startDate.format(format)} ${event.summary ? event.summary : '(No Title)'}`
   }, [event])
+  const timedEvent = !event.isAllDayEvent && !event.isMultipleDayEvent
   const isDisabled = isDragging || disabled
 
   return (
@@ -49,22 +52,22 @@ function DesktopMonthDayEvent({
       size='small'
       label={label}
       icon={icon}
-      variant={event.isAllDayEvent ? 'filled' : 'outlined'}
+      variant={!timedEvent ? 'filled' : 'outlined'}
       sx={{
         touchAction: 'none',
         border: 'none',
         borderRadius: 0.75,
         bgcolor: isDragging
           ? 'rgba(0, 255, 0, 0.25)'
-          : event.isAllDayEvent
+          : !timedEvent
             ? isPastEvent
               ? alpha(event.color as string, 0.15)
               : event.color
             : 'inherit',
         color: (theme) =>
           isPastEvent
-            ? 'text.secondary'
-            : event.isAllDayEvent
+            ? 'rgba(255, 255, 255, 0.25)'
+            : !timedEvent
               ? theme.palette.getContrastText(event.color as string)
               : 'inherit',
         justifyContent: 'flex-start',
@@ -72,11 +75,10 @@ function DesktopMonthDayEvent({
         mx: 0.5,
         px: 0.5,
         '&:hover': {
-          bgcolor:
-            !isDisabled && event.isAllDayEvent ? darken(event.color as string, 0.25) : undefined,
+          bgcolor: !isDisabled && !timedEvent ? darken(event.color as string, 0.25) : undefined,
         },
         '& .MuiChip-icon': {
-          color: !event.isAllDayEvent ? event.color : undefined,
+          color: timedEvent ? event.color : undefined,
           ml: 0,
         },
         '& .MuiChip-label': {
@@ -102,7 +104,6 @@ function EventPlaceholder(): JSX.Element {
 export default function DesktopMonthDay({
   date,
   activeMonth,
-  onDateClick,
   selected,
   events,
   onEventClick,
@@ -113,11 +114,6 @@ export default function DesktopMonthDay({
   })
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
-  function handleDateClick(event: React.MouseEvent<HTMLButtonElement>): void {
-    event.stopPropagation()
-
-    if (onDateClick) onDateClick(date)
-  }
 
   return (
     <Box
@@ -136,7 +132,10 @@ export default function DesktopMonthDay({
       <Box sx={{ textAlign: 'center' }}>
         <IconButton
           disabled={isOver}
-          onClick={handleDateClick}
+          onClick={(event) => {
+            event.stopPropagation()
+          }}
+          href={`/calendar/day?date=${date.format('YYYY-MM-DD')}`}
           color={selected ? 'primary' : 'default'}
           sx={{ ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH) }}
         >
@@ -146,7 +145,7 @@ export default function DesktopMonthDay({
                 ? selected
                   ? 'primary.main'
                   : 'text.primary'
-                : 'text.secondary',
+                : 'rgba(255, 255, 255, 0.25)',
               fontSize: '.95rem',
             }}
           >
@@ -159,6 +158,7 @@ export default function DesktopMonthDay({
           return (
             <DesktopMonthDayEvent
               key={e.id}
+              day={date}
               event={e}
               onEventClick={onEventClick}
               disabled={isOver}

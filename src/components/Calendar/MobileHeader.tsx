@@ -1,12 +1,13 @@
 'use client'
 
-import React from 'react'
+import * as React from 'react'
 import { AppBar, Box, Button, Drawer, IconButton, Toolbar, Typography } from '@mui/material'
 import { CALENDAR_DRAWER_WIDTH } from '@/utils/constants'
 import { signIn, useSession } from 'next-auth/react'
+import CalendarDrawer from './Drawer'
+import CalendarPicker from './CalendarPicker'
 import LoginIcon from '@mui/icons-material/Login'
 import MenuIcon from '@mui/icons-material/Menu'
-import CalendarDrawer from './Drawer'
 
 export default function CalendarMobileHeader(): JSX.Element {
   const { status } = useSession()
@@ -42,6 +43,7 @@ export default function CalendarMobileHeader(): JSX.Element {
           <Typography variant={'h6'} noWrap component='div' sx={{ flex: 1 }}>
             Calendar
           </Typography>
+          <CalendarPicker />
           {status === 'unauthenticated' && (
             <Button
               onClick={() => {

@@ -7,34 +7,48 @@ import {
   Button,
   Drawer,
   IconButton,
-  Menu,
-  MenuItem,
   Toolbar,
   Tooltip,
   Typography,
 } from '@mui/material'
-import { CALENDAR_DRAWER_WIDTH } from '@/utils/constants'
+import { CALENDAR_DRAWER_WIDTH, CALENDAR_VIEW } from '@/utils/constants'
 import { signIn, useSession } from 'next-auth/react'
 import CalendarDrawer from './Drawer'
 import dayjs from 'dayjs'
-import DownArrow from '@mui/icons-material/ArrowDropDown'
 import LeftIcon from '@mui/icons-material/KeyboardArrowLeft'
 import LoginIcon from '@mui/icons-material/Login'
 import RightIcon from '@mui/icons-material/KeyboardArrowRight'
 import { useCalendar } from '@/hooks/useCalendar'
+import { startCase } from '@/utils/helpers'
+import CalendarPicker from './CalendarPicker'
 
 export default function CalendarDesktopHeader(): JSX.Element {
   const { status } = useSession()
-  const { date, setDate } = useCalendar()
-  const [calendarTypeAnchorEl, setCalendarTypeAnchorEl] = React.useState<HTMLElement | null>(null)
-  const openCalendarTypeMenu = Boolean(calendarTypeAnchorEl)
+  const { date, setDate, view } = useCalendar()
+  const headerDateString = React.useMemo(() => {
+    switch (view) {
+      case CALENDAR_VIEW.DAY:
+        return date.format('MMMM D, YYYY')
+      case CALENDAR_VIEW.SCHEDULE: {
+        const startOfSchedule = date.startOf('day')
+        const endOfSchedule = date.add(2, 'months').endOf('day')
 
-  function handleCalendarTypeClick(event: React.MouseEvent<HTMLButtonElement>): void {
-    setCalendarTypeAnchorEl(event.currentTarget)
-  }
-  function handleCalendarTypeClose(): void {
-    setCalendarTypeAnchorEl(null)
-  }
+        return `${startOfSchedule.format('MMM YYYY')} - ${endOfSchedule.format('MMM YYYY')}`
+      }
+      case CALENDAR_VIEW.WEEK: {
+        const startOfWeek = date.startOf('week')
+        const endOfWeek = date.endOf('week')
+
+        if (startOfWeek.month() !== endOfWeek.month()) {
+          return `${startOfWeek.format('MMM YYYY')} - ${endOfWeek.format('MMM YYYY')}`
+        }
+
+        return startOfWeek.format('MMMM YYYY')
+      }
+      default:
+        return date.format('MMMM YYYY')
+    }
+  }, [view, date])
 
   return (
     <React.Fragment>
@@ -61,21 +75,32 @@ export default function CalendarDesktopHeader(): JSX.Element {
             </Button>
           </Tooltip>
           <Box>
-            <Tooltip title='Previous Month'>
+            <Tooltip
+              title={`Previous ${
+                view !== CALENDAR_VIEW.SCHEDULE ? startCase(view) : startCase(CALENDAR_VIEW.DAY)
+              }`}
+            >
               <IconButton
                 size='small'
                 onClick={() => {
-                  setDate(date.subtract(1, 'month').startOf('month'))
+                  const duration = view === CALENDAR_VIEW.SCHEDULE ? CALENDAR_VIEW.DAY : view
+
+                  setDate(date.subtract(1, duration).startOf('day'))
                 }}
               >
                 <LeftIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title='Next Month'>
+            <Tooltip
+              title={`Next ${
+                view !== CALENDAR_VIEW.SCHEDULE ? startCase(view) : startCase(CALENDAR_VIEW.DAY)
+              }`}
+            >
               <IconButton
                 size='small'
                 onClick={() => {
-                  setDate(date.add(1, 'month').startOf('month'))
+                  const duration = view === CALENDAR_VIEW.SCHEDULE ? CALENDAR_VIEW.DAY : view
+                  setDate(date.add(1, duration).startOf('day'))
                 }}
               >
                 <RightIcon />
@@ -83,32 +108,9 @@ export default function CalendarDesktopHeader(): JSX.Element {
             </Tooltip>
           </Box>
           <Typography variant='h5' sx={{ flex: 1 }}>
-            {date.format('MMMM YYYY')}
+            {headerDateString}
           </Typography>
-          <Button
-            variant='outlined'
-            color='inherit'
-            endIcon={<DownArrow />}
-            onClick={handleCalendarTypeClick}
-          >
-            Month
-          </Button>
-          <Menu
-            id='basic-menu'
-            anchorEl={calendarTypeAnchorEl}
-            open={openCalendarTypeMenu}
-            onClose={handleCalendarTypeClose}
-            MenuListProps={{
-              'aria-labelledby': 'basic-button',
-            }}
-          >
-            <MenuItem onClick={handleCalendarTypeClose}>Day</MenuItem>
-            <MenuItem onClick={handleCalendarTypeClose}>Week</MenuItem>
-            <MenuItem onClick={handleCalendarTypeClose} selected>
-              Month
-            </MenuItem>
-            <MenuItem onClick={handleCalendarTypeClose}>Schedule</MenuItem>
-          </Menu>
+          <CalendarPicker />
           {status === 'unauthenticated' && (
             <Button
               onClick={() => {

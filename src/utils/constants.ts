@@ -88,6 +88,13 @@ export enum EVENT_TYPE {
   OTHER = 'other',
 }
 export const EVENT_TYPES = Object.values(EVENT_TYPE)
+export enum CALENDAR_VIEW {
+  MONTH = 'month',
+  DAY = 'day',
+  WEEK = 'week',
+  SCHEDULE = 'schedule',
+}
+export const CALENDAR_VIEWS = Object.values(CALENDAR_VIEW)
 export const OFFICER_ORDER: { [key in OFFICER_POSITION]: number } = {
   Director: 1,
   'Vice Director': 2,

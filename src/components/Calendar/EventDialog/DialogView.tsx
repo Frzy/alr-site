@@ -145,7 +145,7 @@ export default function DialogView({
         </Tooltip>
       </Box>
       <DialogContent sx={{ px: 2, pt: 0, minWidth: { xs: undefined, md: 400 } }}>
-        <Stack spacing={2}>
+        <Stack spacing={2} height='100%'>
           <Box display='flex'>
             {IconEvent && <Tooltip title={startCase(event.eventType)}>{IconEvent}</Tooltip>}
             <Box sx={{ ml: 2 }}>
@@ -267,6 +267,7 @@ export default function DialogView({
               </Box>
             </Box>
           )}
+          <Box sx={{ flexGrow: 1 }} />
           {canAttend && (
             <Button
               startIcon={<ActivityLogIcon />}

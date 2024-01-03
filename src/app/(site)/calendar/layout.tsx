@@ -2,22 +2,21 @@
 
 import React from 'react'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { CALENDAR_DRAWER_WIDTH } from '@/utils/constants'
+import { CALENDAR_DRAWER_WIDTH, type CALENDAR_VIEW } from '@/utils/constants'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Box from '@mui/material/Box'
 import CalendarHeader from '@/components/Calendar/Header'
 import CalendarProvider from '@/hooks/useCalendar'
-import dayjs from 'dayjs'
 import Notifier from '@/components/Notifier'
 
 export default function CalendarView({ children }: { children: React.ReactNode }): JSX.Element {
-  const searchParams = useSearchParams()
-  const dateString = searchParams.get('date')
+  const pathname = usePathname()
+  const calendarView = pathname.slice(pathname.lastIndexOf('/') + 1)
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <CalendarProvider date={dateString ? dayjs(dateString, 'M/D/YYYY') : dayjs()}>
+      <CalendarProvider view={calendarView as CALENDAR_VIEW}>
         <CalendarHeader />
         <Box
           component='main'

@@ -55,8 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     let response
 
-    console.log({ method: req.method })
-
     switch (req.method) {
       case 'GET':
         response = await GetHandle(req, res)

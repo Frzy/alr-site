@@ -21,13 +21,7 @@ import {
 
 const EVENTS_ENDPOINT = '/api/calendar/events'
 
-export const fetchCalendarEventsBetweenDates: Fetcher<ICalendarEvent[], string> = async (key) => {
-  const [startDateString, endDateString] = key.split('|')
-  const start = dayjs(startDateString)
-  const end = dayjs(endDateString)
-
-  if (!start.isValid() || !end.isValid()) throw new Error(`Invalid date string: ${key}`)
-
+export async function fetchEventsBetween(start: Dayjs, end: Dayjs): Promise<ICalendarEvent[]> {
   const queryParams = new URLSearchParams({
     start: start.format(),
     end: end.format(),
@@ -38,6 +32,15 @@ export const fetchCalendarEventsBetweenDates: Fetcher<ICalendarEvent[], string> 
   const serverEvents = (await response.json()) as IServerCalendarEvent[]
 
   return serverEvents.map(mapServerToClient)
+}
+export const fetchCalendarEventsBetweenDates: Fetcher<ICalendarEvent[], string> = async (key) => {
+  const [startDateString, endDateString] = key.split('|')
+  const start = dayjs(startDateString)
+  const end = dayjs(endDateString)
+
+  if (!start.isValid() || !end.isValid()) throw new Error(`Invalid date string: ${key}`)
+
+  return await fetchEventsBetween(start, end)
 }
 export function mapGoogleToServer(calendarEvent: calendar_v3.Schema$Event): IServerCalendarEvent {
   const now = dayjs()
@@ -161,15 +164,15 @@ export function mapClientToRequest(cEvent: ICalendarEvent): calendar_v3.Schema$E
     extendedProperties: Object.keys(shared).length ? { shared } : null,
   }
 }
-export function getBlankEventForDate(date: Dayjs): ICalendarEvent {
+export function getBlankAllDayEvent(
+  date: Dayjs,
+  data: Partial<ICalendarEvent> = {},
+): ICalendarEvent {
   const now = dayjs()
   const startDate = getClosestHalfHour(combineDateAndTime(date, dayjs()))
   const endDate = startDate.add(1, 'hour').add(1, 'day')
   const event: ICalendarEvent = {
-    endDate,
     id: crypto.randomUUID(),
-    isAllDayEvent: true,
-    startDate,
     _renderIndex: -1,
     color: EVENT_TYPE_COLOR.EVENT,
     dayTotal: 1,
@@ -177,6 +180,35 @@ export function getBlankEventForDate(date: Dayjs): ICalendarEvent {
     isMultipleDayEvent: false,
     isPastEvent: startDate.isBefore(now),
     textColor: getContrastTextColor(EVENT_TYPE_COLOR.EVENT.slice(1)),
+    ...data,
+    isAllDayEvent: true,
+    endDate,
+    startDate,
+    isNew: true,
+  }
+
+  return event
+}
+export function getBlankTimedEvent(
+  date: Dayjs,
+  data: Partial<ICalendarEvent> = {},
+): ICalendarEvent {
+  const now = dayjs()
+  const startDate = data?.startDate ?? getClosestHalfHour(combineDateAndTime(date, dayjs()))
+  const endDate = data?.endDate ?? startDate.add(1, 'hour')
+  const event: ICalendarEvent = {
+    id: crypto.randomUUID(),
+    isAllDayEvent: false,
+    _renderIndex: -1,
+    color: EVENT_TYPE_COLOR.EVENT,
+    dayTotal: 0,
+    eventType: EVENT_TYPE.EVENT,
+    isMultipleDayEvent: false,
+    isPastEvent: startDate.isBefore(now),
+    textColor: getContrastTextColor(EVENT_TYPE_COLOR.EVENT.slice(1)),
+    ...data,
+    endDate,
+    startDate,
     isNew: true,
   }
 
@@ -347,8 +379,8 @@ export function updateEventStartDate(initEvent: ICalendarEvent, date: Dayjs): IC
 }
 export function sortDayEvents(initEvents: ICalendarEvent[]): (ICalendarEvent | null)[] {
   const events = [...initEvents]
-  const singleDayEvents = events.filter((e) => !e.isMultipleDayEvent)
-  let multipleDayEvents = events.filter((e) => e.isMultipleDayEvent)
+  let multipleDayEvents = events.filter((e) => e.isAllDayEvent || e.isMultipleDayEvent)
+  const singleDayEvents = events.filter((e) => !e.isAllDayEvent && !e.isMultipleDayEvent)
   let maxIndex = events.length
   let rIndex = 0
 
@@ -497,4 +529,57 @@ export function combineDateAndTime(date: Dayjs, time: Dayjs): Dayjs {
   const timeString = time.format(timeFormat)
 
   return dayjs(`${dateString}T${timeString}`, `${dateFormat}T${timeFormat}`)
+}
+export function getEventfromMousePosition(
+  event: React.MouseEvent<HTMLElement>,
+  date: Dayjs,
+  hourHeight: number,
+): ICalendarEvent | null {
+  const { target, clientY } = event
+
+  if (target instanceof Element) {
+    const bounds = target.getBoundingClientRect()
+    const y = Math.round(clientY - bounds.top)
+    const totalHour = y / hourHeight
+    const fractionHour = totalHour % 1
+    const hour = Math.round(totalHour - fractionHour)
+    const minute = fractionHour > 0.5 ? 30 : 0
+
+    const startDate = combineDateAndTime(date, dayjs().startOf('day').hour(hour).minute(minute))
+    const endDate = startDate.add(1, 'hour')
+
+    return getBlankTimedEvent(date, { startDate, endDate })
+  }
+
+  return null
+}
+
+export function getEventClusters(events: ICalendarEvent[]): ICalendarEvent[][] {
+  const clusters: ICalendarEvent[][] = []
+
+  for (let i = 0; i < events.length; i++) {
+    const currentEvent = events[i]
+    const { startDate, endDate } = currentEvent
+    const localCluster = [currentEvent]
+
+    if (startDate.isSame(endDate, 'day')) {
+      while (i + 1 < events.length && events[i + 1].startDate.isBefore(endDate)) {
+        localCluster.push(events[i + 1])
+        i++
+      }
+
+      clusters.push(localCluster)
+    }
+  }
+
+  clusters.sort((a: ICalendarEvent[], b: ICalendarEvent[]) => {
+    const aTime = a[0].startDate
+    const bTime = b[0].startDate
+
+    if (aTime.isSame(bTime)) return 0
+
+    return aTime.isBefore(bTime) ? -1 : 1
+  })
+
+  return clusters
 }
