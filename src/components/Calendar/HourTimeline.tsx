@@ -9,7 +9,6 @@ interface HourTickerProps {
 export default function HourTicker({ height, children }: HourTickerProps): JSX.Element {
   return (
     <Box
-      className='weekday-scrollable'
       sx={{
         flexGrow: 1,
         overflowX: 'hidden',
@@ -79,7 +78,6 @@ export default function HourTicker({ height, children }: HourTickerProps): JSX.E
               />
             ))}
           </Box>
-
           <Box
             sx={{
               flexGrow: 1,

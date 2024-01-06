@@ -2,7 +2,7 @@ import { useCalendar } from '@/hooks/useCalendar'
 import type { ICalendarEvent } from '@/types/common'
 import { getCalendarEventTypeIcon } from '@/utils/calendar'
 import { useDraggable, type UseDraggableArguments } from '@dnd-kit/core'
-import { ButtonBase, darken, type ButtonBaseProps, type SvgIconProps } from '@mui/material'
+import { ButtonBase, darken, type ButtonBaseProps, type SvgIconProps, lighten } from '@mui/material'
 import React from 'react'
 
 interface AllDayEventProps extends ButtonBaseProps {
@@ -71,21 +71,22 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
     arrowWidth = 8,
     eventHeight = 24,
     iconProps,
-    backgroundColor,
+    backgroundColor: initBackgroundColor,
     sx,
     ...buttonProps
   },
   ref,
 ) {
-  const { bgcolor, darkColor, icon, title } = React.useMemo(() => {
-    const bgcolor: string = backgroundColor ?? event.color
+  const { backgroundColor, hoverColor, icon, title } = React.useMemo(() => {
+    const bgcolor: string = initBackgroundColor ?? event.color
+
     return {
-      bgcolor,
-      darkColor: darken(bgcolor, 0.25),
+      backgroundColor: event.isPastEvent ? darken(bgcolor, 0.75) : bgcolor,
+      hoverColor: event.isPastEvent ? darken(bgcolor, 0.35) : lighten(bgcolor, 0.25),
       icon: getCalendarEventTypeIcon(event.eventType, iconProps),
       title: event.summary ?? '(No Title)',
     }
-  }, [event, iconProps, backgroundColor])
+  }, [event, iconProps, initBackgroundColor])
   const hasLeftArrow = typeof getLeftArrow === 'function' ? getLeftArrow() : getLeftArrow
   const hasRightArrow = typeof getRightArrow === 'function' ? getRightArrow() : getRightArrow
 
@@ -94,17 +95,17 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
       ref={ref}
       {...buttonProps}
       sx={{
+        backgroundColor,
+        color: event.textColor,
+        ':hover': {
+          backgroundColor: hoverColor,
+        },
         transition: (theme) =>
           theme.transitions.create('all', { duration: theme.transitions.duration.standard }),
         justifyContent: 'flex-start',
         gap: 0.5,
         pl: 0.5,
-        ':hover': {
-          bgcolor: darkColor,
-        },
         ...sx,
-        bgcolor,
-
         height: eventHeight,
         width: `calc(100% - ${hasLeftArrow ? arrowWidth * 2 : arrowWidth}px)`,
         ml: hasLeftArrow ? `${arrowWidth}px !important` : 0,
@@ -113,7 +114,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
         borderTopRightRadius: hasRightArrow ? 0 : 2,
         borderBottomRightRadius: hasRightArrow ? 0 : 2,
         '&:hover:before': {
-          borderRight: `${arrowWidth}px solid ${darkColor}`,
+          borderRight: `${arrowWidth}px solid ${hoverColor}`,
         },
         ':before': hasLeftArrow
           ? {
@@ -124,7 +125,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
               left: -eventHeight + (eventHeight / 2 - arrowWidth),
               top: 0,
               border: `${eventHeight / 2}px solid transparent`,
-              borderRight: `${arrowWidth}px solid ${bgcolor}`,
+              borderRight: `${arrowWidth}px solid ${backgroundColor}`,
               transition: (theme) =>
                 theme.transitions.create('all', {
                   duration: theme.transitions.duration.standard,
@@ -132,7 +133,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
             }
           : undefined,
         '&:hover:after': {
-          borderLeft: `${arrowWidth}px solid ${darkColor}`,
+          borderLeft: `${arrowWidth}px solid ${hoverColor}`,
         },
         ':after': hasRightArrow
           ? {
@@ -143,7 +144,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
               left: '100%',
               top: 0,
               border: `${eventHeight / 2}px solid transparent`,
-              borderLeft: `${arrowWidth}px solid ${bgcolor}`,
+              borderLeft: `${arrowWidth}px solid ${backgroundColor}`,
               transition: (theme) =>
                 theme.transitions.create('all', {
                   duration: theme.transitions.duration.standard,

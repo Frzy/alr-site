@@ -209,7 +209,8 @@ function WeekDayHeader({
                 fontWeight: 'fontWeightBold',
               }}
               label={`${extraAllDayEvents} more`}
-              onClick={() => {
+              onClick={(clickEvent) => {
+                clickEvent.stopPropagation()
                 if (onShowAllEventChange) onShowAllEventChange(!showAllDayEvents)
               }}
             />

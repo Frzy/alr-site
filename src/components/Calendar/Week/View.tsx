@@ -11,7 +11,7 @@ import dayjs, { type Dayjs } from 'dayjs'
 import HourTicker from '../HourTimeline'
 import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
 import useSWR, { type MutatorOptions } from 'swr'
-import WeekDayTimedEvents from './WeekDayTimedEvents'
+import WeekDayTimedEvents from '../WeekDayTimedEvents'
 import WeekHeader from './WeekHeader'
 import {
   combineDateAndTime,

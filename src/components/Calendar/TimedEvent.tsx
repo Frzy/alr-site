@@ -137,6 +137,7 @@ const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function
         border: '1px solid rgba(0, 0, 0, 0.25)',
         display: 'flex',
         alignItems: 'flex-start',
+        justifyContent: 'flex-start',
         ...sx,
       }}
     >
