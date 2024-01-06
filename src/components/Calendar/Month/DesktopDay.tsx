@@ -1,7 +1,6 @@
 import React from 'react'
-
 import { Box, Chip, IconButton, Typography, alpha, darken } from '@mui/material'
-import dayjs, { type Dayjs } from 'dayjs'
+import { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { getCalendarEventTypeIcon, sortDayEvents } from '@/utils/calendar'
@@ -20,18 +19,15 @@ const DAY_ICON_WIDTH = { width: 32, height: 32 }
 const MONTH_DAY_ICON_WIDTH = { width: 64, height: 32 }
 
 function DesktopMonthDayEvent({
-  day,
   disabled,
   event,
   onEventClick,
 }: {
-  day: Dayjs
   disabled?: boolean
   event: ICalendarEvent
   onEventClick?: (event: ICalendarEvent) => void
 }): JSX.Element {
   const { listeners, setNodeRef, isDragging } = useDraggable({ id: event?.id ?? '' })
-  const isPastEvent = dayjs().isAfter(event.endDate)
   const icon = React.useMemo(() => {
     return getCalendarEventTypeIcon(event.eventType)
   }, [event])
@@ -56,23 +52,24 @@ function DesktopMonthDayEvent({
       sx={{
         touchAction: 'none',
         border: 'none',
+        mb: '2px',
         borderRadius: 0.75,
         bgcolor: isDragging
           ? 'rgba(0, 255, 0, 0.25)'
           : !timedEvent
-            ? isPastEvent
+            ? event.isPastEvent
               ? alpha(event.color as string, 0.15)
               : event.color
             : 'inherit',
         color: (theme) =>
-          isPastEvent
+          event.isPastEvent
             ? 'rgba(255, 255, 255, 0.25)'
             : !timedEvent
               ? theme.palette.getContrastText(event.color as string)
               : 'inherit',
         justifyContent: 'flex-start',
+        width: '100%',
         gap: '6px',
-        mx: 0.5,
         px: 0.5,
         '&:hover': {
           bgcolor: !isDisabled && !timedEvent ? darken(event.color as string, 0.25) : undefined,
@@ -98,7 +95,7 @@ function DesktopMonthDayEvent({
 }
 
 function EventPlaceholder(): JSX.Element {
-  return <Box height={24} width='100%' />
+  return <Box height={24} width='100%' mb='2px' />
 }
 
 export default function DesktopMonthDay({
@@ -132,10 +129,10 @@ export default function DesktopMonthDay({
       <Box sx={{ textAlign: 'center' }}>
         <IconButton
           disabled={isOver}
+          href={`/calendar/day?date=${date.format('YYYY-MM-DD')}`}
           onClick={(event) => {
             event.stopPropagation()
           }}
-          href={`/calendar/day?date=${date.format('YYYY-MM-DD')}`}
           color={selected ? 'primary' : 'default'}
           sx={{ ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH) }}
         >
@@ -153,20 +150,21 @@ export default function DesktopMonthDay({
           </Typography>
         </IconButton>
       </Box>
-      {sortDayEvents(events).map((e, index) => {
-        if (e)
-          return (
-            <DesktopMonthDayEvent
-              key={e.id}
-              day={date}
-              event={e}
-              onEventClick={onEventClick}
-              disabled={isOver}
-            />
-          )
+      <Box sx={{ px: 0.5 }}>
+        {sortDayEvents(events).map((e, index) => {
+          if (e)
+            return (
+              <DesktopMonthDayEvent
+                key={e.id}
+                event={e}
+                onEventClick={onEventClick}
+                disabled={isOver}
+              />
+            )
 
-        return <EventPlaceholder key={index} />
-      })}
+          return <EventPlaceholder key={index} />
+        })}
+      </Box>
     </Box>
   )
 }

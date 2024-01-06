@@ -12,12 +12,11 @@ import {
   Toolbar,
 } from '@mui/material'
 import { signIn, signOut, useSession } from 'next-auth/react'
-import InboxIcon from '@mui/icons-material/MoveToInbox'
 import LoginIcon from '@mui/icons-material/Login'
 import LogoutIcon from '@mui/icons-material/Logout'
-import MailIcon from '@mui/icons-material/Mail'
 import PersonIcon from '@mui/icons-material/Person'
 import CalendarIcon from '@mui/icons-material/CalendarToday'
+import Link from 'next/link'
 
 export default function HeaderDrawer(): React.ReactNode {
   const { data, status } = useSession()
@@ -53,7 +52,7 @@ export default function HeaderDrawer(): React.ReactNode {
               </ListItemIcon>
               <ListItemText primary={user.name} />
             </ListItem>
-            <ListItemButton href={`/member/${user.id}`}>
+            <ListItemButton LinkComponent={Link} href={`/member/${user.id}`}>
               <ListItemIcon>
                 <PersonIcon />
               </ListItemIcon>
@@ -75,24 +74,13 @@ export default function HeaderDrawer(): React.ReactNode {
       <Divider />
       <List disablePadding>
         <ListItem disablePadding>
-          <ListItemButton href='/calendar/month'>
+          <ListItemButton LinkComponent={Link} href='/calendar/month'>
             <ListItemIcon>
               <CalendarIcon />
             </ListItemIcon>
             <ListItemText primary={'Calendar'} />
           </ListItemButton>
         </ListItem>
-      </List>
-      <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
       </List>
       <Divider />
     </div>

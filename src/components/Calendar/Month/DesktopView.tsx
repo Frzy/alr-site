@@ -133,7 +133,7 @@ export default function DesktopMonthView({
             </Grid>
           ))}
         </Grid>
-        <Grid container columns={7} sx={{ flexGrow: 1 }}>
+        <Grid container columns={7} sx={{ flex: '1 1 100%' }}>
           {days.map((d) => (
             <Grid
               key={d}
@@ -147,6 +147,8 @@ export default function DesktopMonthView({
                 borderTop: d < 7 ? 'none' : undefined,
                 borderRight: d > 0 && (d + 1) % 7 === 0 ? undefined : 'none',
                 borderBottom: 'none',
+                height: `${100 / (days.length / 7)}%`,
+                overflow: 'hidden',
               }}
             >
               <DesktopMonthDay

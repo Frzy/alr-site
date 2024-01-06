@@ -7,7 +7,12 @@ import OtherIcon from '@mui/icons-material/Event'
 import RideIcon from '@mui/icons-material/TwoWheeler'
 import type { calendar_v3 } from 'googleapis'
 import type { Fetcher } from 'swr'
-import type { ICalendarEvent, IServerCalendarEvent, Recurrence } from '@/types/common'
+import type {
+  ICalendarEvent,
+  IServerCalendarEvent,
+  Recurrence,
+  TimedEventProps,
+} from '@/types/common'
 import {
   type CALENDAR_COLOR,
   CALENDAR_COLORS,
@@ -367,13 +372,8 @@ export function getRecurrenceStringFromParts(parts: Recurrence): string {
 export function updateEventStartDate(initEvent: ICalendarEvent, date: Dayjs): ICalendarEvent {
   const event = { ...initEvent }
 
-  const startDateString = date.format('YYYY-MM-DD')
-  const endDateString = date.add(event.dayTotal, 'day').format('YYYY-MM-DD')
-  const startTimeString = event.startDate.format('HH:mm:ssZ')
-  const endTimeString = event.endDate.format('HH:mm:ssZ')
-
-  event.startDate = dayjs(`${startDateString}T${startTimeString}`)
-  event.endDate = dayjs(`${endDateString}T${endTimeString}`)
+  event.startDate = combineDateAndTime(date, event.startDate)
+  event.endDate = combineDateAndTime(date.add(event.dayTotal, 'day'), event.endDate)
 
   return event
 }
@@ -385,8 +385,9 @@ export function sortDayEvents(initEvents: ICalendarEvent[]): (ICalendarEvent | n
   let rIndex = 0
 
   multipleDayEvents.sort((a, b) => {
-    if (a.startDate.isBefore(b.startDate)) return -1
-    if (a.startDate.isAfter(b.startDate)) return 1
+    if (a.startDate.isBefore(b.startDate, 'day')) return -1
+    if (a.startDate.isAfter(b.startDate, 'day')) return 1
+    if (a.endDate.isAfter(b.endDate)) return -1
 
     return 0
   })
@@ -442,7 +443,7 @@ export function getDaysEvents(data: ICalendarEvent[], day: Dayjs): ICalendarEven
     const dayStart = day.startOf('day')
     const dayEnd = day.endOf('day')
 
-    const temp = data.filter((event) => {
+    return data.filter((event) => {
       if (event.isAllDayEvent && event.isMultipleDayEvent) {
         return day.isBetween(event.startDate, event.endDate, 'day', '[)')
       } else if (event.isMultipleDayEvent) {
@@ -451,8 +452,6 @@ export function getDaysEvents(data: ICalendarEvent[], day: Dayjs): ICalendarEven
 
       return event.startDate.isBetween(dayStart, dayEnd, 'day', '[]')
     })
-
-    return temp
   }
 
   return []
@@ -582,4 +581,47 @@ export function getEventClusters(events: ICalendarEvent[]): ICalendarEvent[][] {
   })
 
   return clusters
+}
+
+export function getSortedTimelineEvents(
+  events: ICalendarEvent[],
+  pxRatio: number = 0.8,
+): TimedEventProps[] {
+  const timedProps: TimedEventProps[] = []
+
+  events.forEach((currentEvent, index) => {
+    const curStartDate = currentEvent.startDate
+    const curEndDate = currentEvent.endDate
+    const fromMidnight = curStartDate.diff(curStartDate.startOf('day'), 'minutes')
+    const duration = curEndDate.diff(curStartDate, 'minutes')
+    const top = fromMidnight * pxRatio
+    const height = duration * pxRatio
+    const width = 100
+    let left = 0
+    const intersectIndex = timedProps.findLastIndex((p) => {
+      return curStartDate.isBefore(p.event.endDate)
+    })
+    const intersectingProp = intersectIndex > -1 ? timedProps[intersectIndex] : undefined
+
+    if (intersectingProp) {
+      const diff = curStartDate.diff(intersectingProp.event.startDate, 'minutes')
+
+      if (diff >= 45) {
+        left = intersectingProp.left + 5
+      } else {
+        left = intersectingProp.left + 30
+        intersectingProp.width -= 10
+      }
+    }
+
+    timedProps[index] = {
+      event: currentEvent,
+      top,
+      height,
+      left,
+      width,
+    }
+  })
+
+  return timedProps
 }

@@ -1,8 +1,16 @@
 import { createTheme, type ThemeOptions } from '@mui/material/styles'
 import { deepOrange, blue } from '@mui/material/colors'
+import NextLink, { type LinkProps } from 'next/link'
+import React from 'react'
+
+const LinkBehaviour = React.forwardRef<HTMLAnchorElement, LinkProps>(
+  function LinkBehaviour(props, ref) {
+    return <NextLink ref={ref} {...props} />
+  },
+)
 
 const defaultTheme = createTheme()
-
+/** @type {*} */
 const themeOptions: ThemeOptions = {
   gap: (spacing: number) => parseInt(defaultTheme.spacing(spacing), 10),
   palette: {
@@ -21,10 +29,17 @@ const themeOptions: ThemeOptions = {
     },
   },
   components: {
+    MuiListItemButton: {},
     MuiLink: {
       defaultProps: {
+        component: LinkBehaviour,
         underline: 'none',
         color: blue.A200,
+      },
+    },
+    MuiButtonBase: {
+      defaultProps: {
+        LinkComponent: LinkBehaviour,
       },
     },
     MuiInput: {

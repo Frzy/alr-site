@@ -411,7 +411,6 @@ export default function DayView({
             flexGrow: 1,
             overflowX: 'auto',
             overflowY: 'scroll',
-            scrollSnapPointsY: 'repeate(12px)',
             display: 'flex',
             '&:hover::-webkit-scrollbar-thumb': {
               backgroundColor: '#3f3f3f',
@@ -494,7 +493,7 @@ export default function DayView({
                   position='absolute'
                   top={now.diff(now.startOf('day'), 'minutes') * MIN_TO_PX_RATIO}
                   left={6}
-                  bgcolor='primary.main'
+                  bgcolor='red'
                   height={2}
                   right={0}
                   zIndex={500}
@@ -502,7 +501,7 @@ export default function DayView({
                   <Box ml='-12px' mt='-12px'>
                     <HelmetIcon
                       sx={{
-                        color: 'primary.light',
+                        color: 'red',
                         transform: 'scaleX(-1)',
                         height: 24,
                         width: 24,

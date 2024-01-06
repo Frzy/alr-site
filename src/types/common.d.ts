@@ -210,3 +210,10 @@ export interface Notification {
 
 export type Mode = 'light' | 'dark' | 'system'
 export type ListMode = 'list' | 'grid'
+export interface TimedEventProps {
+  event: ICalendarEvent
+  top: number
+  height: number
+  left: number
+  width: number
+}
