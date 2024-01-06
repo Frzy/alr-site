@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Chip, IconButton, Typography, alpha, darken } from '@mui/material'
+import { Box, Chip, IconButton, Typography, darken, lighten } from '@mui/material'
 import { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
@@ -28,18 +28,41 @@ function DesktopMonthDayEvent({
   onEventClick?: (event: ICalendarEvent) => void
 }): JSX.Element {
   const { listeners, setNodeRef, isDragging } = useDraggable({ id: event?.id ?? '' })
-  const icon = React.useMemo(() => {
-    return getCalendarEventTypeIcon(event.eventType)
-  }, [event])
-  const label = React.useMemo(() => {
-    if (event.isAllDayEvent) return event.summary ? event.summary : '(No Title)'
-
-    const format = event.startDate.minute() === 0 ? 'ha' : 'h:mma'
-
-    return `${event.startDate.format(format)} ${event.summary ? event.summary : '(No Title)'}`
-  }, [event])
   const timedEvent = !event.isAllDayEvent && !event.isMultipleDayEvent
   const isDisabled = isDragging || disabled
+
+  const { backgroundColor, hoverColor, textColor, iconColor, icon, label } = React.useMemo(() => {
+    const allDayEvent = event.isAllDayEvent || event.isMultipleDayEvent
+    const icon = getCalendarEventTypeIcon(event.eventType)
+    let backgroundColor: string = event.color
+    let hoverColor: string | undefined
+    let textColor: string = event.textColor
+    let iconColor: string | undefined
+    let label = event.summary
+
+    if (isDragging) {
+      backgroundColor = 'rgba(0, 255, 0, 0.25)'
+    } else if (allDayEvent && event.isPastEvent) {
+      hoverColor = darken(backgroundColor, 0.35)
+      backgroundColor = darken(backgroundColor, 0.75)
+      textColor = 'text.secondary'
+    } else if (allDayEvent) {
+      hoverColor = lighten(backgroundColor, 0.25)
+    } else if (!allDayEvent) {
+      backgroundColor = 'inherit'
+      textColor = event.isPastEvent ? 'text.secondary' : 'text.primary'
+      iconColor = event.color
+    }
+
+    if (event.isAllDayEvent) {
+      label = event.summary ? event.summary : '(No Title)'
+    } else {
+      const format = event.startDate.minute() === 0 ? 'ha' : 'h:mma'
+      label = `${event.startDate.format(format)} ${event.summary ? event.summary : '(No Title)'}`
+    }
+
+    return { backgroundColor, hoverColor, textColor, icon, iconColor, label }
+  }, [event, isDragging])
 
   return (
     <Chip
@@ -54,28 +77,17 @@ function DesktopMonthDayEvent({
         border: 'none',
         mb: '2px',
         borderRadius: 0.75,
-        bgcolor: isDragging
-          ? 'rgba(0, 255, 0, 0.25)'
-          : !timedEvent
-            ? event.isPastEvent
-              ? alpha(event.color as string, 0.15)
-              : event.color
-            : 'inherit',
-        color: (theme) =>
-          event.isPastEvent
-            ? 'rgba(255, 255, 255, 0.25)'
-            : !timedEvent
-              ? theme.palette.getContrastText(event.color as string)
-              : 'inherit',
+        backgroundColor,
+        color: textColor,
         justifyContent: 'flex-start',
         width: '100%',
         gap: '6px',
         px: 0.5,
         '&:hover': {
-          bgcolor: !isDisabled && !timedEvent ? darken(event.color as string, 0.25) : undefined,
+          bgcolor: hoverColor,
         },
         '& .MuiChip-icon': {
-          color: timedEvent ? event.color : undefined,
+          color: iconColor,
           ml: 0,
         },
         '& .MuiChip-label': {

@@ -93,28 +93,33 @@ function DraggableTimedEvent({
 }
 
 const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function TimedEvent(
-  { event, hourHeight = 48, iconProps, backgroundColor, hoverColor, sx, ...boxProps },
+  { event, hourHeight = 48, iconProps, backgroundColor: initBackgroundColor, sx, ...boxProps },
   ref,
 ) {
-  const { bgcolor, duration, location, title, time } = React.useMemo(() => {
-    const bgcolor: string = backgroundColor ?? event.color
-    const locString = event.location ? parseLocationString(event.location) : ''
-    const endFormat = 'h:mma'
-    let startFormat = 'h:mm'
+  const { backgroundColor, hoverColor, textColor, duration, location, title, time } =
+    React.useMemo(() => {
+      const backgroundColor: string = initBackgroundColor ?? event.color
+      const locString = event.location ? parseLocationString(event.location) : ''
+      const endFormat = 'h:mma'
+      let startFormat = 'h:mm'
 
-    if (event.startDate.format('a') !== event.endDate.format('a')) {
-      startFormat = 'h:mma'
-    }
+      if (event.startDate.format('a') !== event.endDate.format('a')) {
+        startFormat = 'h:mma'
+      }
 
-    return {
-      bgcolor,
-      icon: getCalendarEventTypeIcon(event.eventType, iconProps),
-      title: event.summary ?? '(No Title)',
-      duration: event.endDate.diff(event.startDate, 'minutes'),
-      location: Array.isArray(locString) ? locString[0] : locString,
-      time: `${event.startDate.format(startFormat)} \u2013 ${event.endDate.format(endFormat)}`,
-    }
-  }, [event, iconProps, backgroundColor])
+      return {
+        backgroundColor: event.isPastEvent ? darken(backgroundColor, 0.75) : backgroundColor,
+        hoverColor: event.isPastEvent
+          ? darken(backgroundColor, 0.35)
+          : lighten(backgroundColor, 0.25),
+        textColor: event.isPastEvent ? 'text.secondary' : event.textColor,
+        icon: getCalendarEventTypeIcon(event.eventType, iconProps),
+        title: event.summary ?? '(No Title)',
+        duration: event.endDate.diff(event.startDate, 'minutes'),
+        location: Array.isArray(locString) ? locString[0] : locString,
+        time: `${event.startDate.format(startFormat)} \u2013 ${event.endDate.format(endFormat)}`,
+      }
+    }, [event, iconProps, initBackgroundColor])
 
   return (
     <ButtonBase
@@ -122,14 +127,14 @@ const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function
       {...boxProps}
       sx={{
         position: 'absolute',
-        backgroundColor: event.isPastEvent ? darken(bgcolor, 0.75) : bgcolor,
-        color: event.textColor,
+        backgroundColor,
+        color: textColor,
         transition: (theme) =>
           theme.transitions.create('backgroundColor', {
             duration: theme.transitions.duration.standard,
           }),
         '&:hover': {
-          backgroundColor: event.isPastEvent ? darken(bgcolor, 0.35) : lighten(bgcolor, 0.25),
+          backgroundColor: hoverColor,
         },
         borderRadius: 0.75,
         px: 0.5,

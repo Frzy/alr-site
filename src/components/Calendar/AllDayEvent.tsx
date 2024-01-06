@@ -77,12 +77,13 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
   },
   ref,
 ) {
-  const { backgroundColor, hoverColor, icon, title } = React.useMemo(() => {
+  const { backgroundColor, hoverColor, textColor, icon, title } = React.useMemo(() => {
     const bgcolor: string = initBackgroundColor ?? event.color
 
     return {
       backgroundColor: event.isPastEvent ? darken(bgcolor, 0.75) : bgcolor,
       hoverColor: event.isPastEvent ? darken(bgcolor, 0.35) : lighten(bgcolor, 0.25),
+      textColor: event.isPastEvent ? 'text.secondary' : event.textColor,
       icon: getCalendarEventTypeIcon(event.eventType, iconProps),
       title: event.summary ?? '(No Title)',
     }
@@ -96,7 +97,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
       {...buttonProps}
       sx={{
         backgroundColor,
-        color: event.textColor,
+        color: textColor,
         ':hover': {
           backgroundColor: hoverColor,
         },
