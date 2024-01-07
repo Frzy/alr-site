@@ -46,6 +46,7 @@ export default function DesktopMonthView({
   )
   const dayRef = React.useRef<HTMLDivElement | null>(null)
   const [maxEvents, setMaxEvents] = React.useState<number>()
+  const [overEvent, setOverEvent] = React.useState<ICalendarEvent | null>(null)
 
   function handleEventClick(event: ICalendarEvent): void {
     setEventId(event.id)
@@ -107,7 +108,7 @@ export default function DesktopMonthView({
 
       setMaxEvents(maxEvents)
     }
-  }, [])
+  }, [date])
 
   return (
     <DndContext
@@ -147,11 +148,11 @@ export default function DesktopMonthView({
           ))}
         </Grid>
         <Grid container columns={7} sx={{ flex: '1 1 100%' }}>
-          {days.map((d) => (
+          {days.map((d, index) => (
             <Grid
               key={d}
               xs={1}
-              ref={dayRef}
+              ref={index === 0 ? dayRef : undefined}
               sx={{
                 borderColor: (theme) => theme.palette.divider,
                 display: 'flex',
@@ -170,8 +171,15 @@ export default function DesktopMonthView({
                 events={getDaysEvents(data, firstDate.add(d, 'days'))}
                 activeMonth={date.month()}
                 selected={date.isSame(firstDate.add(d, 'days'), 'day')}
+                highlightedEvent={overEvent}
                 onEventClick={handleEventClick}
                 onEventCreate={onCalendarEventCreate}
+                onEventOver={(e) => {
+                  setOverEvent(e)
+                }}
+                onEventOut={() => {
+                  setOverEvent(null)
+                }}
                 maxEvents={maxEvents}
               />
             </Grid>

@@ -2,7 +2,7 @@ import { useCalendar } from '@/hooks/useCalendar'
 import type { ICalendarEvent } from '@/types/common'
 import { getCalendarEventTypeIcon } from '@/utils/calendar'
 import { useDraggable, type UseDraggableArguments } from '@dnd-kit/core'
-import { ButtonBase, darken, type ButtonBaseProps, type SvgIconProps, lighten } from '@mui/material'
+import { ButtonBase, darken, type ButtonBaseProps, type SvgIconProps } from '@mui/material'
 import React from 'react'
 
 interface AllDayEventProps extends ButtonBaseProps {
@@ -13,6 +13,7 @@ interface AllDayEventProps extends ButtonBaseProps {
   eventHeight?: number
   iconProps?: SvgIconProps
   backgroundColor?: string
+  selected?: boolean
 }
 
 interface DraggableEventProps extends AllDayEventProps {
@@ -73,6 +74,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
     iconProps,
     backgroundColor: initBackgroundColor,
     sx,
+    selected,
     ...buttonProps
   },
   ref,
@@ -82,10 +84,14 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
 
     return {
       backgroundColor: event.isPastEvent ? darken(bgcolor, 0.75) : bgcolor,
-      hoverColor: event.isPastEvent ? darken(bgcolor, 0.35) : lighten(bgcolor, 0.25),
+      hoverColor: event.isPastEvent ? darken(bgcolor, 0.35) : darken(bgcolor, 0.35),
       textColor: event.isPastEvent ? 'text.secondary' : event.textColor,
       icon: getCalendarEventTypeIcon(event.eventType, iconProps),
-      title: event.summary ?? '(No Title)',
+      title: event.summary
+        ? event.isAllDayEvent
+          ? event.summary
+          : `${event.startDate.format('h:mma')} ${event.summary}`
+        : '(No Title)',
     }
   }, [event, iconProps, initBackgroundColor])
   const hasLeftArrow = typeof getLeftArrow === 'function' ? getLeftArrow() : getLeftArrow
@@ -96,7 +102,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
       ref={ref}
       {...buttonProps}
       sx={{
-        backgroundColor,
+        backgroundColor: selected ? hoverColor : backgroundColor,
         color: textColor,
         ':hover': {
           backgroundColor: hoverColor,
@@ -126,7 +132,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
               left: -eventHeight + (eventHeight / 2 - arrowWidth),
               top: 0,
               border: `${eventHeight / 2}px solid transparent`,
-              borderRight: `${arrowWidth}px solid ${backgroundColor}`,
+              borderRight: `${arrowWidth}px solid ${selected ? hoverColor : backgroundColor}`,
               transition: (theme) =>
                 theme.transitions.create('all', {
                   duration: theme.transitions.duration.standard,
@@ -145,7 +151,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
               left: '100%',
               top: 0,
               border: `${eventHeight / 2}px solid transparent`,
-              borderLeft: `${arrowWidth}px solid ${backgroundColor}`,
+              borderLeft: `${arrowWidth}px solid ${selected ? hoverColor : backgroundColor}`,
               transition: (theme) =>
                 theme.transitions.create('all', {
                   duration: theme.transitions.duration.standard,
@@ -155,7 +161,7 @@ const AllDayEvent = React.forwardRef<HTMLButtonElement, AllDayEventProps>(functi
       }}
     >
       {icon}
-      {event.isAllDayEvent ? title : `${title}, ${event.startDate.format('h:mma')}`}
+      {title}
     </ButtonBase>
   )
 })

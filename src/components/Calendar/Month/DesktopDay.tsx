@@ -1,10 +1,12 @@
 import React from 'react'
-import { Box, Chip, IconButton, Typography, darken, lighten } from '@mui/material'
+import { Box, Chip, IconButton, Typography } from '@mui/material'
 import { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
-import { useDraggable, useDroppable } from '@dnd-kit/core'
-import { getCalendarEventTypeIcon, sortDayEvents } from '@/utils/calendar'
+import { useDroppable } from '@dnd-kit/core'
+import { sortDayEvents } from '@/utils/calendar'
 import EventMenu from '../EventMenu'
+import CalendarAllDayEvent from '../AllDayEvent'
+import CalendarTimedEvent from '../TimedEvent'
 
 interface DesktopMonthDayProps {
   activeMonth: number
@@ -12,117 +14,43 @@ interface DesktopMonthDayProps {
   events: ICalendarEvent[]
   selected?: boolean
   maxEvents?: number
+  highlightedEvent?: ICalendarEvent | null
   onDateClick?: (date: Dayjs) => void
-  onEventClick?: (event: ICalendarEvent) => void
   onEventCreate?: (date: Dayjs) => void
+  onEventClick?: (event: ICalendarEvent) => void
+  onEventOut?: (event: ICalendarEvent) => void
+  onEventOver?: (event: ICalendarEvent) => void
 }
 
 const DAY_ICON_WIDTH = { width: 32, height: 32 }
 const MONTH_DAY_ICON_WIDTH = { width: 64, height: 32 }
 
-function DesktopMonthDayEvent({
-  disabled,
-  event,
-  onEventClick,
+function EventPlaceholder(): JSX.Element {
+  return <Box height={24} width='100%' mb='2px' />
+}
+
+function MoreEventButton({
+  numOfEvents,
+  onClick,
 }: {
-  disabled?: boolean
-  event: ICalendarEvent
-  onEventClick?: (event: ICalendarEvent) => void
+  numOfEvents: number
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void
 }): JSX.Element {
-  const { listeners, setNodeRef, isDragging } = useDraggable({ id: event?.id ?? '' })
-  const timedEvent = !event.isAllDayEvent && !event.isMultipleDayEvent
-  const isDisabled = isDragging || disabled
-
-  const { backgroundColor, hoverColor, textColor, iconColor, icon, label } = React.useMemo(() => {
-    const allDayEvent = event.isAllDayEvent || event.isMultipleDayEvent
-    const icon = getCalendarEventTypeIcon(event.eventType)
-    let backgroundColor: string = event.color
-    let hoverColor: string | undefined
-    let textColor: string = event.textColor
-    let iconColor: string | undefined
-    let label = event.summary
-
-    if (isDragging) {
-      backgroundColor = 'rgba(0, 255, 0, 0.25)'
-    } else if (allDayEvent && event.isPastEvent) {
-      hoverColor = darken(backgroundColor, 0.35)
-      backgroundColor = darken(backgroundColor, 0.75)
-      textColor = 'text.secondary'
-    } else if (allDayEvent) {
-      hoverColor = lighten(backgroundColor, 0.25)
-    } else if (!allDayEvent) {
-      backgroundColor = 'inherit'
-      textColor = event.isPastEvent ? 'text.secondary' : 'text.primary'
-      iconColor = event.color
-    }
-
-    if (event.isAllDayEvent) {
-      label = event.summary ? event.summary : '(No Title)'
-    } else {
-      const format = event.startDate.minute() === 0 ? 'ha' : 'h:mma'
-      label = `${event.startDate.format(format)} ${event.summary ? event.summary : '(No Title)'}`
-    }
-
-    return { backgroundColor, hoverColor, textColor, icon, iconColor, label }
-  }, [event, isDragging])
-
   return (
     <Chip
-      ref={setNodeRef}
-      {...listeners}
+      label={`${numOfEvents} More`}
+      onClick={onClick}
       size='small'
-      label={label}
-      icon={icon}
-      variant={!timedEvent ? 'filled' : 'outlined'}
       sx={{
         touchAction: 'none',
         border: 'none',
         mb: '2px',
         borderRadius: 0.75,
-        backgroundColor,
-        color: textColor,
         justifyContent: 'flex-start',
-        width: '100%',
-        gap: '6px',
+        backgroundColor: 'inherit',
         px: 0.5,
-        '&:hover': {
-          bgcolor: hoverColor,
-        },
-        '& .MuiChip-icon': {
-          color: iconColor,
-          ml: 0,
-        },
-        '& .MuiChip-label': {
-          pl: '2px',
-        },
       }}
-      onClick={
-        !isDisabled
-          ? (clickEvent) => {
-            clickEvent.stopPropagation()
-            if (onEventClick) onEventClick(event)
-          }
-          : undefined
-      }
     />
-  )
-}
-
-function EventPlaceholder(): JSX.Element {
-  return <Box height={24} width='100%' mb='2px' />
-}
-
-function MoreEventButton({ numOfEvents, onClick }: { numOfEvents: number, onClick: (event: React.MouseEvent<HTMLDivElement>) => void }): JSX.Element {
-  return (
-    <Chip label={`${numOfEvents} More`} onClick={onClick} size='small' sx={{
-      touchAction: 'none',
-      border: 'none',
-      mb: '2px',
-      borderRadius: 0.75,
-      justifyContent: 'flex-start',
-      backgroundColor: 'inherit',
-      px: 0.5,
-    }} />
   )
 }
 
@@ -132,6 +60,9 @@ export default function DesktopMonthDay({
   selected,
   events: data,
   maxEvents = Infinity,
+  highlightedEvent,
+  onEventOver,
+  onEventOut,
   onEventClick,
   onEventCreate,
 }: DesktopMonthDayProps): JSX.Element {
@@ -141,13 +72,14 @@ export default function DesktopMonthDay({
   const events = React.useMemo(() => {
     return sortDayEvents(data)
   }, [data])
+  const dayRef = React.useRef<HTMLDivElement | null>(null)
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null)
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
 
   function handleShowMoreEvents(clickEvent: React.MouseEvent<HTMLDivElement>): void {
     clickEvent.stopPropagation()
-    if (clickEvent.target) setAnchorEl(clickEvent.target as Element)
+    if (dayRef.current) setAnchorEl(dayRef.current)
   }
 
   function handleEventMenuClose(): void {
@@ -155,64 +87,101 @@ export default function DesktopMonthDay({
   }
 
   return (
-    <Box
-      ref={setNodeRef}
-      onClick={(event) => {
-        if (onEventCreate) onEventCreate(date)
-      }}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        pt: 0.5,
-        width: '100%',
-        gap: '2px',
-      }}
-    >
-      <Box sx={{ textAlign: 'center' }}>
-        <IconButton
-          disabled={isOver}
-          href={`/calendar/day?date=${date.format('YYYY-MM-DD')}`}
-          onClick={(event) => {
-            event.stopPropagation()
-          }}
-          color={selected ? 'primary' : 'default'}
-          sx={{ ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH) }}
-        >
-          <Typography
-            sx={{
-              color: isActiveMonth
-                ? selected
-                  ? 'primary.main'
-                  : 'text.primary'
-                : 'rgba(255, 255, 255, 0.25)',
-              fontSize: '.95rem',
+    <React.Fragment>
+      <Box
+        ref={setNodeRef}
+        onClick={(event) => {
+          if (onEventCreate) onEventCreate(date)
+        }}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          pt: 0.5,
+          width: '100%',
+          gap: '2px',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }} ref={dayRef}>
+          <IconButton
+            disabled={isOver}
+            href={`/calendar/day?date=${date.format('YYYY-MM-DD')}`}
+            onClick={(event) => {
+              event.stopPropagation()
             }}
+            color={selected ? 'primary' : 'default'}
+            sx={{ ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH) }}
           >
-            {isFirstOfMonth ? date.format('MMM D') : date.format('D')}
-          </Typography>
-        </IconButton>
-      </Box>
-      <Box sx={{ px: 0.5 }}>
-        {events.slice(0, maxEvents).map((e, index) => {
-          if (e)
-            return (
-              <DesktopMonthDayEvent
-                key={e.id}
-                event={e}
-                onEventClick={onEventClick}
-                disabled={isOver}
-              />
-            )
+            <Typography
+              sx={{
+                color: isActiveMonth
+                  ? selected
+                    ? 'primary.main'
+                    : 'text.primary'
+                  : 'rgba(255, 255, 255, 0.25)',
+                fontSize: '.95rem',
+              }}
+            >
+              {isFirstOfMonth ? date.format('MMM D') : date.format('D')}
+            </Typography>
+          </IconButton>
+        </Box>
+        <Box sx={{ px: 0.5 }}>
+          {events.slice(0, maxEvents).map((e, index) => {
+            if (!!e?.isAllDayEvent || !!e?.isMultipleDayEvent) {
+              return (
+                <CalendarAllDayEvent
+                  key={e.id}
+                  event={e}
+                  selected={!anchorEl && highlightedEvent?.id === e.id}
+                  draggable
+                  onClick={onEventClick}
+                  onMouseOver={() => {
+                    if (onEventOver) onEventOver(e)
+                  }}
+                  onMouseOut={() => {
+                    if (onEventOut) onEventOut(e)
+                  }}
+                  hasLeftArrow={e.startDate.isBefore(date)}
+                  hasRightArrow={
+                    e.isAllDayEvent
+                      ? e.endDate.isAfter(date.add(1, 'day').startOf('day'))
+                      : e.endDate.isAfter(date.endOf('day'))
+                  }
+                />
+              )
+            } else if (e) {
+              return (
+                <CalendarTimedEvent
+                  key={e.id}
+                  event={e}
+                  variant='inline'
+                  onClick={onEventClick}
+                  draggable
+                />
+              )
+            }
 
-          return <EventPlaceholder key={index} />
-        })}
-        {maxEvents < events.length && (
-          <MoreEventButton numOfEvents={events.length - maxEvents} onClick={handleShowMoreEvents} />
-        )}
+            return <EventPlaceholder key={index} />
+          })}
+          {maxEvents < events.length && (
+            <MoreEventButton
+              numOfEvents={events.length - maxEvents}
+              onClick={handleShowMoreEvents}
+            />
+          )}
+        </Box>
       </Box>
       {maxEvents < events.length && (
-        <EventMenu events={events.filter(Boolean) as ICalendarEvent[]} anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleEventMenuClose} />
+        <EventMenu
+          date={date}
+          events={events.filter(Boolean) as ICalendarEvent[]}
+          onEventOver={onEventOver}
+          onEventOut={onEventOut}
+          anchorEl={anchorEl}
+          open={!!anchorEl}
+          onClose={handleEventMenuClose}
+        />
       )}
-    </Box>
+    </React.Fragment>
   )
 }

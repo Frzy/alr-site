@@ -7,12 +7,8 @@ import { type Dayjs } from 'dayjs'
 import { useCalendar } from '@/hooks/useCalendar'
 import CalendarEventDialog, { type EventDialogView } from '../EventDialog/Dialog'
 import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
-import useSWR, { type MutatorOptions } from 'swr'
-import {
-  fetchCalendarEventsBetweenDates,
-  getBlankEventForDate,
-  mapServerToClient,
-} from '@/utils/calendar'
+import useSWR from 'swr'
+import { fetchCalendarEventsBetweenDates, mapServerToClient } from '@/utils/calendar'
 
 export default function ScheduleView({
   events: initEvents = [],
@@ -21,11 +17,11 @@ export default function ScheduleView({
   events?: IServerCalendarEvent[]
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
-  const firstDate = React.useMemo(() => {
-    return date.startOf('day')
-  }, [date])
-  const lastDate = React.useMemo(() => {
-    return date.add(2, 'months').endOf('day')
+  const { firstDate, lastDate } = React.useMemo(() => {
+    const firstDate = date.startOf('day')
+    const lastDate = date.add(2, 'months').endOf('day')
+
+    return { firstDate, lastDate }
   }, [date])
   const { data: events, mutate } = useSWR(
     `${firstDate.format()}|${lastDate.format()}`,
@@ -34,7 +30,6 @@ export default function ScheduleView({
       fallbackData: initEvents.map(mapServerToClient),
     },
   )
-  const [newEvent, setNewEvent] = React.useState<ICalendarEvent>()
   const activeEvent = React.useMemo<ICalendarEvent | string | null>(() => {
     const event = events.find((e) => e.id === eventId)
 
@@ -42,10 +37,6 @@ export default function ScheduleView({
 
     return eventId
   }, [events, eventId])
-
-  function handleMutate(data: ICalendarEvent[], options?: MutatorOptions<ICalendarEvent[]>): void {
-    void mutate(data, options)
-  }
   function handleCalendarEventDelete(
     deletedEvent: ICalendarEvent,
     options: RecurrenceOptions,
@@ -81,44 +72,25 @@ export default function ScheduleView({
       const newData = [...events]
 
       newData.splice(index, 1, newEvent)
-      handleMutate(newData)
+      void mutate(newData)
     } else {
       void mutate()
     }
   }
-  function handleCalendarEventCreate(newEvent: ICalendarEvent): void {
-    const newData = events.filter((e) => !e.isNew)
-
-    handleMutate([...newData, newEvent])
-  }
-  function handleNewCalendarEvent(createDate: Dayjs): void {
-    const createEvent = getBlankEventForDate(createDate)
-    handleMutate([...events, createEvent], { revalidate: false })
-    setEventId(null)
-    setNewEvent(createEvent)
-  }
   function handleDialogClose(view: EventDialogView): void {
-    if (view === 'create' && newEvent) {
-      const newEvents = events.filter((e) => e.id !== newEvent.id)
-
-      handleMutate(newEvents, { revalidate: false })
-      setNewEvent(undefined)
-    } else {
-      setEventId(null)
-    }
+    setEventId(null)
   }
 
   return (
     <React.Fragment>
       <Box>Schedule View</Box>
-      {(newEvent ?? activeEvent) && (
+      {activeEvent && (
         <CalendarEventDialog
           key={eventId}
           open={true}
-          event={newEvent ?? activeEvent}
+          event={activeEvent}
           onDelete={handleCalendarEventDelete}
           onUpdate={handleCalendarEventUpdate}
-          onCreate={handleCalendarEventCreate}
           onClose={handleDialogClose}
         />
       )}

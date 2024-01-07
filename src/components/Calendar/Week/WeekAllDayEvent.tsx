@@ -18,8 +18,8 @@ export default function WeekAllDayEvent({
   return (
     <AllDayEvent
       event={event}
-      hasRightArrow={() => dayOfWeek === 6 && event.endDate.isAfter(endDate)}
-      hasLeftArrow={() => dayOfWeek === 0 && event.startDate.isBefore(startDate)}
+      hasRightArrow={dayOfWeek === 6 && event.endDate.isAfter(endDate)}
+      hasLeftArrow={dayOfWeek === 0 && event.startDate.isBefore(startDate)}
       dragOptions={{ id: event.id, data: { allDayEvent: true } }}
       sx={{ mb: 0.25 }}
       draggable

@@ -10,6 +10,7 @@ import {
   Stack,
   Typography,
   ButtonBase,
+  Box,
 } from '@mui/material'
 import React from 'react'
 
@@ -28,6 +29,7 @@ interface TimedEventProps extends ButtonBaseProps {
   iconProps?: SvgIconProps
   backgroundColor?: string
   hoverColor?: string
+  variant?: 'block' | 'inline'
 }
 
 export default function CalendarTimedEvent({
@@ -93,12 +95,21 @@ function DraggableTimedEvent({
 }
 
 const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function TimedEvent(
-  { event, hourHeight = 48, iconProps, backgroundColor: initBackgroundColor, sx, ...boxProps },
+  {
+    event,
+    hourHeight = 48,
+    iconProps,
+    backgroundColor: initBackgroundColor,
+    sx,
+    variant = 'block',
+    ...boxProps
+  },
   ref,
 ) {
-  const { backgroundColor, hoverColor, textColor, duration, location, title, time } =
+  const { backgroundColor, hoverColor, textColor, duration, location, title, time, icon } =
     React.useMemo(() => {
-      const backgroundColor: string = initBackgroundColor ?? event.color
+      const backgroundColor: string =
+        initBackgroundColor ?? variant === 'block' ? event.color : 'inherit'
       const locString = event.location ? parseLocationString(event.location) : ''
       const endFormat = 'h:mma'
       let startFormat = 'h:mm'
@@ -108,25 +119,39 @@ const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function
       }
 
       return {
-        backgroundColor: event.isPastEvent ? darken(backgroundColor, 0.75) : backgroundColor,
-        hoverColor: event.isPastEvent
-          ? darken(backgroundColor, 0.35)
-          : lighten(backgroundColor, 0.25),
+        backgroundColor:
+          variant === 'inline'
+            ? backgroundColor
+            : event.isPastEvent
+              ? darken(backgroundColor, 0.75)
+              : backgroundColor,
+        hoverColor:
+          variant === 'block'
+            ? event.isPastEvent
+              ? darken(backgroundColor, 0.35)
+              : lighten(backgroundColor, 0.25)
+            : 'rgba(255, 255, 255, 0.08)',
         textColor: event.isPastEvent ? 'text.secondary' : event.textColor,
-        icon: getCalendarEventTypeIcon(event.eventType, iconProps),
+        icon: getCalendarEventTypeIcon(event.eventType, {
+          sx: { color: event.isPastEvent ? darken(event.color as string, 0.35) : event.color },
+          ...iconProps,
+        }),
         title: event.summary ?? '(No Title)',
         duration: event.endDate.diff(event.startDate, 'minutes'),
         location: Array.isArray(locString) ? locString[0] : locString,
-        time: `${event.startDate.format(startFormat)} \u2013 ${event.endDate.format(endFormat)}`,
+        time:
+          variant === 'block'
+            ? `${event.startDate.format(startFormat)} \u2013 ${event.endDate.format(endFormat)}`
+            : event.startDate.format('h:mma'),
       }
-    }, [event, iconProps, initBackgroundColor])
+    }, [event, iconProps, initBackgroundColor, variant])
 
   return (
     <ButtonBase
       ref={ref}
       {...boxProps}
       sx={{
-        position: 'absolute',
+        position: variant === 'block' ? 'absolute' : undefined,
         backgroundColor,
         color: textColor,
         transition: (theme) =>
@@ -139,73 +164,94 @@ const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function
         borderRadius: 0.75,
         px: 0.5,
         cursor: 'pointer',
-        border: '1px solid rgba(0, 0, 0, 0.25)',
+        border: variant === 'block' ? '1px solid rgba(0, 0, 0, 0.25)' : undefined,
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
+        width: variant === 'inline' ? '100%' : undefined,
         ...sx,
       }}
     >
-      {duration > 60 ? (
-        <Stack sx={{ width: '100%', textAlign: 'left' }}>
-          <Typography
-            variant='caption'
-            component='div'
-            fontWeight='fontWeightBold'
-            lineHeight={1.4}
-            noWrap
-          >
-            {title}
-          </Typography>
-          <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
-            {time}
-          </Typography>
-          {location && (
-            <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
-              {location}
+      {variant === 'block' ? (
+        <Box component={'span'} sx={{ overflow: 'hidden' }}>
+          {duration > 60 ? (
+            <Stack sx={{ width: '100%', textAlign: 'left' }}>
+              <Typography
+                variant='caption'
+                component='div'
+                fontWeight='fontWeightBold'
+                lineHeight={1.4}
+                noWrap
+              >
+                {title}
+              </Typography>
+              <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
+                {time}
+              </Typography>
+              {location && (
+                <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
+                  {location}
+                </Typography>
+              )}
+            </Stack>
+          ) : duration > 45 ? (
+            <Stack sx={{ width: '100%', textAlign: 'left' }}>
+              <Typography
+                variant='caption'
+                component='div'
+                fontWeight='fontWeightBold'
+                lineHeight={1.4}
+                noWrap
+              >
+                {title}
+              </Typography>
+              <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
+                {`${time}${location ? `, ${location}` : ''}`}
+              </Typography>
+            </Stack>
+          ) : duration > 30 ? (
+            <Stack sx={{ width: '100%', textAlign: 'left' }}>
+              <Typography
+                variant='caption'
+                component='div'
+                fontWeight='fontWeightBold'
+                lineHeight={1.4}
+                noWrap
+              >
+                {title}
+              </Typography>
+              <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
+                {`${time}${location ? `, ${location}` : ''}`}
+              </Typography>
+            </Stack>
+          ) : duration > 15 ? (
+            <Typography variant='caption' component='div' lineHeight={1.9} noWrap>
+              <b>{title}</b> @ {time}
+              {`${location ? `, ${location}` : ''}`}
+            </Typography>
+          ) : (
+            <Typography variant='caption' component='div' lineHeight={0.9} noWrap>
+              <b>{title}</b> @ {time}
+              {`${location ? `, ${location}` : ''}`}
             </Typography>
           )}
-        </Stack>
-      ) : duration > 45 ? (
-        <Stack sx={{ width: '100%', textAlign: 'left' }}>
-          <Typography
-            variant='caption'
-            component='div'
-            fontWeight='fontWeightBold'
-            lineHeight={1.4}
-            noWrap
-          >
-            {title}
-          </Typography>
-          <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
-            {`${time}${location ? `, ${location}` : ''}`}
-          </Typography>
-        </Stack>
-      ) : duration > 30 ? (
-        <Stack sx={{ width: '100%', textAlign: 'left' }}>
-          <Typography
-            variant='caption'
-            component='div'
-            fontWeight='fontWeightBold'
-            lineHeight={1.4}
-            noWrap
-          >
-            {title}
-          </Typography>
-          <Typography variant='caption' component='div' lineHeight={1.4} noWrap>
-            {`${time}${location ? `, ${location}` : ''}`}
-          </Typography>
-        </Stack>
-      ) : duration > 15 ? (
-        <Typography variant='caption' component='div' lineHeight={1.9} noWrap>
-          <b>{title}</b> @ {time}
-          {`${location ? `, ${location}` : ''}`}
-        </Typography>
+        </Box>
       ) : (
-        <Typography variant='caption' component='div' lineHeight={0.9} noWrap>
-          <b>{title}</b> @ {time}
-          {`${location ? `, ${location}` : ''}`}
-        </Typography>
+        <Box
+          component={'span'}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: '6px',
+            overflow: 'hidden',
+          }}
+        >
+          {icon}
+          <Typography component='span' variant='caption' fontWeight='fontWeightBold' noWrap>
+            {`${time} ${title}`}
+          </Typography>
+        </Box>
       )}
     </ButtonBase>
   )
