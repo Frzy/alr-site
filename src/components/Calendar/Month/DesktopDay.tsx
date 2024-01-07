@@ -4,12 +4,14 @@ import { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { getCalendarEventTypeIcon, sortDayEvents } from '@/utils/calendar'
+import EventMenu from '../EventMenu'
 
 interface DesktopMonthDayProps {
   activeMonth: number
   date: Dayjs
   events: ICalendarEvent[]
   selected?: boolean
+  maxEvents?: number
   onDateClick?: (date: Dayjs) => void
   onEventClick?: (event: ICalendarEvent) => void
   onEventCreate?: (date: Dayjs) => void
@@ -97,9 +99,9 @@ function DesktopMonthDayEvent({
       onClick={
         !isDisabled
           ? (clickEvent) => {
-              clickEvent.stopPropagation()
-              if (onEventClick) onEventClick(event)
-            }
+            clickEvent.stopPropagation()
+            if (onEventClick) onEventClick(event)
+          }
           : undefined
       }
     />
@@ -110,19 +112,47 @@ function EventPlaceholder(): JSX.Element {
   return <Box height={24} width='100%' mb='2px' />
 }
 
+function MoreEventButton({ numOfEvents, onClick }: { numOfEvents: number, onClick: (event: React.MouseEvent<HTMLDivElement>) => void }): JSX.Element {
+  return (
+    <Chip label={`${numOfEvents} More`} onClick={onClick} size='small' sx={{
+      touchAction: 'none',
+      border: 'none',
+      mb: '2px',
+      borderRadius: 0.75,
+      justifyContent: 'flex-start',
+      backgroundColor: 'inherit',
+      px: 0.5,
+    }} />
+  )
+}
+
 export default function DesktopMonthDay({
   date,
   activeMonth,
   selected,
-  events,
+  events: data,
+  maxEvents = Infinity,
   onEventClick,
   onEventCreate,
 }: DesktopMonthDayProps): JSX.Element {
   const { setNodeRef, isOver } = useDroppable({
     id: date.format(),
   })
+  const events = React.useMemo(() => {
+    return sortDayEvents(data)
+  }, [data])
+  const [anchorEl, setAnchorEl] = React.useState<Element | null>(null)
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
+
+  function handleShowMoreEvents(clickEvent: React.MouseEvent<HTMLDivElement>): void {
+    clickEvent.stopPropagation()
+    if (clickEvent.target) setAnchorEl(clickEvent.target as Element)
+  }
+
+  function handleEventMenuClose(): void {
+    setAnchorEl(null)
+  }
 
   return (
     <Box
@@ -163,7 +193,7 @@ export default function DesktopMonthDay({
         </IconButton>
       </Box>
       <Box sx={{ px: 0.5 }}>
-        {sortDayEvents(events).map((e, index) => {
+        {events.slice(0, maxEvents).map((e, index) => {
           if (e)
             return (
               <DesktopMonthDayEvent
@@ -176,7 +206,13 @@ export default function DesktopMonthDay({
 
           return <EventPlaceholder key={index} />
         })}
+        {maxEvents < events.length && (
+          <MoreEventButton numOfEvents={events.length - maxEvents} onClick={handleShowMoreEvents} />
+        )}
       </Box>
+      {maxEvents < events.length && (
+        <EventMenu events={events.filter(Boolean) as ICalendarEvent[]} anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleEventMenuClose} />
+      )}
     </Box>
   )
 }

@@ -44,6 +44,9 @@ export default function DesktopMonthView({
       },
     }),
   )
+  const dayRef = React.useRef<HTMLDivElement | null>(null)
+  const [maxEvents, setMaxEvents] = React.useState<number>()
+
   function handleEventClick(event: ICalendarEvent): void {
     setEventId(event.id)
   }
@@ -96,6 +99,16 @@ export default function DesktopMonthView({
     if (onMutate) onMutate([...data])
   }
 
+  React.useLayoutEffect(() => {
+    if (dayRef.current) {
+      const bounds = dayRef.current.getBoundingClientRect()
+      const boxHeight = bounds.height - 32
+      const maxEvents = Math.floor(boxHeight / 26) - 1
+
+      setMaxEvents(maxEvents)
+    }
+  }, [])
+
   return (
     <DndContext
       onDragCancel={handleDragCancel}
@@ -138,6 +151,7 @@ export default function DesktopMonthView({
             <Grid
               key={d}
               xs={1}
+              ref={dayRef}
               sx={{
                 borderColor: (theme) => theme.palette.divider,
                 display: 'flex',
@@ -158,6 +172,7 @@ export default function DesktopMonthView({
                 selected={date.isSame(firstDate.add(d, 'days'), 'day')}
                 onEventClick={handleEventClick}
                 onEventCreate={onCalendarEventCreate}
+                maxEvents={maxEvents}
               />
             </Grid>
           ))}
