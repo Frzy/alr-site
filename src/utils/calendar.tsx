@@ -55,8 +55,11 @@ export function mapGoogleToServer(calendarEvent: calendar_v3.Schema$Event): ISer
   const originalStartDate = calendarEvent.originalStartTime
     ? dayjs(calendarEvent.originalStartTime.date ?? calendarEvent.originalStartTime.dateTime)
     : undefined
-  const dayTotal = endDate.diff(startDate, 'day')
-  const isMultipleDayEvent = dayTotal > 1
+  const isMultipleDayEvent = !startDate.isSame(
+    endDate.subtract(isAllDayEvent ? 1 : 0, 'hour'),
+    'day',
+  )
+  const dayTotal = endDate.diff(startDate, 'day') + (!isAllDayEvent && isMultipleDayEvent ? 1 : 0)
   const isPastEvent = now.isAfter(endDate)
   const eventType = getCalendarEventType(calendarEvent)
   const color = getCalendarEventColor(calendarEvent)
@@ -552,7 +555,6 @@ export function getEventfromMousePosition(
 
   return null
 }
-
 export function getEventClusters(events: ICalendarEvent[]): ICalendarEvent[][] {
   const clusters: ICalendarEvent[][] = []
 
@@ -582,7 +584,6 @@ export function getEventClusters(events: ICalendarEvent[]): ICalendarEvent[][] {
 
   return clusters
 }
-
 export function getSortedTimelineEvents(
   events: ICalendarEvent[],
   pxRatio: number = 0.8,
@@ -624,4 +625,13 @@ export function getSortedTimelineEvents(
   })
 
   return timedProps
+}
+export function getEventPartNumber(event: ICalendarEvent, date: Dayjs): number | undefined {
+  if (!event.isMultipleDayEvent) return undefined
+
+  const partDiff = date.diff(event.startDate, 'day') + 1
+
+  if (partDiff <= event.dayTotal) return partDiff
+
+  return undefined
 }

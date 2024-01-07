@@ -1,14 +1,15 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
+import { List } from '@mui/material'
 import { RECURRENCE_MODE } from '@/utils/constants'
-import { type Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import { useCalendar } from '@/hooks/useCalendar'
 import CalendarEventDialog, { type EventDialogView } from '../EventDialog/Dialog'
 import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/types/common'
 import useSWR from 'swr'
-import { fetchCalendarEventsBetweenDates, mapServerToClient } from '@/utils/calendar'
+import { fetchCalendarEventsBetweenDates, getDaysEvents, mapServerToClient } from '@/utils/calendar'
+import ScheduleDay from './ScheduleDay'
 
 export default function ScheduleView({
   events: initEvents = [],
@@ -19,7 +20,7 @@ export default function ScheduleView({
   const { date, eventId, setEventId } = useCalendar()
   const { firstDate, lastDate } = React.useMemo(() => {
     const firstDate = date.startOf('day')
-    const lastDate = date.add(2, 'months').endOf('day')
+    const lastDate = date.add(3, 'months').endOf('day')
 
     return { firstDate, lastDate }
   }, [date])
@@ -37,6 +38,37 @@ export default function ScheduleView({
 
     return eventId
   }, [events, eventId])
+  const dayBuckets = React.useMemo(() => {
+    const totalDays = lastDate.diff(firstDate, 'days')
+    const buckets = Array.from(Array(totalDays), (_, day) => {
+      const date = dayjs(firstDate.add(day, 'days'))
+      const dayEvents = getDaysEvents(events, date).sort((a, b) => {
+        const aAllDay = a.isAllDayEvent || a.isMultipleDayEvent
+        const bAllDay = b.isAllDayEvent || b.isMultipleDayEvent
+        const aSummary = a?.summary ?? '(No Title)'
+        const bSummary = b?.summary ?? '(No Title)'
+
+        if (aAllDay && bAllDay) {
+          return aSummary.localeCompare(bSummary)
+        } else if (!aAllDay && bAllDay) {
+          return 1
+        } else if (aAllDay && !bAllDay) {
+          return -1
+        }
+
+        if (a.startDate.isSame(b.startDate, 'minute')) return aSummary.localeCompare(bSummary)
+        if (a.startDate.isBefore(b.startDate)) return -1
+        if (a.startDate.isAfter(b.startDate)) return 1
+
+        return 0
+      })
+
+      return { date, events: dayEvents }
+    })
+
+    return buckets.filter((b) => b.events.length).slice(0, 30)
+  }, [events, firstDate, lastDate])
+
   function handleCalendarEventDelete(
     deletedEvent: ICalendarEvent,
     options: RecurrenceOptions,
@@ -62,7 +94,7 @@ export default function ScheduleView({
       })
     }
 
-    handleMutate(newData)
+    void mutate(newData)
   }
   function handleCalendarEventUpdate(newEvent: ICalendarEvent, options: RecurrenceOptions): void {
     const { mode } = options
@@ -83,7 +115,16 @@ export default function ScheduleView({
 
   return (
     <React.Fragment>
-      <Box>Schedule View</Box>
+      <List sx={{ width: '100%' }}>
+        {dayBuckets.map(({ date, events }, index) => (
+          <ScheduleDay
+            key={index}
+            date={date}
+            events={events}
+            divider={dayBuckets.length - 1 !== index}
+          />
+        ))}
+      </List>
       {activeEvent && (
         <CalendarEventDialog
           key={eventId}
