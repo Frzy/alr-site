@@ -5,6 +5,7 @@ import { Box, type BoxProps, Chip, Collapse, IconButton, Typography } from '@mui
 import dayjs, { type Dayjs } from 'dayjs'
 import React from 'react'
 import CalendarAllDayEvent from '../AllDayEvent'
+import { useCalendar } from '@/hooks/useCalendar'
 
 interface WeekDayHeaderProps {
   date: Dayjs
@@ -38,11 +39,13 @@ export default function WeekHeaderDay({
   onEventOut,
   onEventOver,
 }: WeekDayHeaderProps): JSX.Element {
+  const { date: selectedDate } = useCalendar()
   const { setNodeRef } = useDroppable({
     id: date.format(),
     data: { allDayDroppable: true },
   })
   const isToday = dayjs().isSame(date, 'day')
+  const isSelected = selectedDate.isSame(date, 'day')
   const events = React.useMemo(() => {
     return sortDayEvents(data)
   }, [data])
@@ -73,13 +76,14 @@ export default function WeekHeaderDay({
             clickEvent.stopPropagation()
           }}
           sx={{
-            bgcolor: isToday ? 'primary.main' : 'inherit',
             width: 48,
             height: 48,
             fontSize: '1.85rem',
+            backgroundColor: isToday ? 'primary.main' : 'inherit',
+            color: !isToday && isSelected ? 'primary.main' : undefined,
             '&:hover': isToday
               ? {
-                  bgcolor: 'primary.dark',
+                  backgroundColor: 'primary.dark',
                 }
               : undefined,
           }}

@@ -171,7 +171,7 @@ export default function DialogView({
                 {Array.isArray(musterLocationString) ? (
                   <Box>
                     <Typography>
-                      Muster @ {musterLocationString[0]} {'\u2013'} {event.muster?.format('H:mm a')}
+                      Muster @ {event.muster?.format('H:mm a')} {'\u2013'} {musterLocationString[0]}
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
                       {musterLocationString[1]}
@@ -179,7 +179,7 @@ export default function DialogView({
                   </Box>
                 ) : (
                   <Typography sx={{ flexGrow: 1 }}>
-                    Muster @ {musterLocationString} {'\u2013'} {event.muster?.format('H:mm a')}{' '}
+                    Muster @ {event.muster?.format('H:mm a')} {'\u2013'} {musterLocationString}
                   </Typography>
                 )}
               </Box>

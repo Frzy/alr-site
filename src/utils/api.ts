@@ -38,10 +38,10 @@ export async function createCalendarEvent(
   try {
     const requestBody = mapClientToRequest(event)
     const response = await bodyRequest('POST', '/api/calendar/events', requestBody)
-    const data = (await response.json()) as IServerCalendarEvent
+    const { data } = await response.json()
     if (!skipNotification) SendNotification(`Event was create`, 'success')
 
-    return mapServerToClient(data)
+    return mapServerToClient(data as IServerCalendarEvent)
   } catch (error) {
     if (!skipNotification) SendNotification(`Failed to create event`, 'error')
   }
@@ -61,10 +61,10 @@ export async function udpateCalendarEvent(
           `/api/calendar/event/${event?._event?.recurringEventId}`,
           requestBody,
         )
-        const data = (await response.json()) as IServerCalendarEvent
+        const { data } = await response.json()
 
         SendNotification(`Events were updated`, 'success')
-        return mapServerToClient(data)
+        return mapServerToClient(data as IServerCalendarEvent)
       }
       case RECURRENCE_MODE.FUTURE: {
         await deleteCalendarEvent(event, options, true)
@@ -80,11 +80,11 @@ export async function udpateCalendarEvent(
       case RECURRENCE_MODE.SINGLE: {
         const requestBody = mapClientToRequest(event)
         const response = await bodyRequest('PUT', `/api/calendar/event/${event.id}`, requestBody)
-        const data = (await response.json()) as IServerCalendarEvent
+        const { data } = await response.json()
 
         SendNotification(`Event was updated`, 'success')
 
-        return mapServerToClient(data)
+        return mapServerToClient(data as IServerCalendarEvent)
       }
     }
   } catch (error) {

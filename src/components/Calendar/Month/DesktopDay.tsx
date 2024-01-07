@@ -1,6 +1,6 @@
 import React from 'react'
-import { Box, Chip, IconButton, Typography } from '@mui/material'
-import { type Dayjs } from 'dayjs'
+import { Box, Chip, IconButton, Stack, Typography } from '@mui/material'
+import dayjs, { type Dayjs } from 'dayjs'
 import type { ICalendarEvent } from '@/types/common'
 import { useDroppable } from '@dnd-kit/core'
 import { sortDayEvents } from '@/utils/calendar'
@@ -76,6 +76,7 @@ export default function DesktopMonthDay({
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null)
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
+  const isToday = dayjs().isSame(date, 'day')
 
   function handleShowMoreEvents(clickEvent: React.MouseEvent<HTMLDivElement>): void {
     clickEvent.stopPropagation()
@@ -109,12 +110,18 @@ export default function DesktopMonthDay({
               event.stopPropagation()
             }}
             color={selected ? 'primary' : 'default'}
-            sx={{ ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH) }}
+            sx={{
+              ...(isFirstOfMonth ? MONTH_DAY_ICON_WIDTH : DAY_ICON_WIDTH),
+              backgroundColor: isToday ? 'primary.main' : undefined,
+              '&:hover': {
+                backgroundColor: isToday ? 'primary.dark' : undefined,
+              },
+            }}
           >
             <Typography
               sx={{
                 color: isActiveMonth
-                  ? selected
+                  ? selected && !isToday
                     ? 'primary.main'
                     : 'text.primary'
                   : 'rgba(255, 255, 255, 0.25)',
@@ -125,7 +132,7 @@ export default function DesktopMonthDay({
             </Typography>
           </IconButton>
         </Box>
-        <Box sx={{ px: 0.5 }}>
+        <Stack sx={{ px: 0.5 }} spacing={0.25}>
           {events.slice(0, maxEvents).map((e, index) => {
             if (!!e?.isAllDayEvent || !!e?.isMultipleDayEvent) {
               return (
@@ -169,7 +176,7 @@ export default function DesktopMonthDay({
               onClick={handleShowMoreEvents}
             />
           )}
-        </Box>
+        </Stack>
       </Box>
       {maxEvents < events.length && (
         <EventMenu
