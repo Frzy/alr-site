@@ -1,10 +1,19 @@
 import { useCalendar } from '@/hooks/useCalendar'
 import type { ICalendarEvent } from '@/types/common'
 import { getCalendarEventTypeIcon } from '@/utils/calendar'
+import { isMemberAdmin } from '@/utils/member'
 import { useDraggable, type UseDraggableArguments } from '@dnd-kit/core'
 import { ButtonBase, darken, type ButtonBaseProps, type SvgIconProps } from '@mui/material'
+import { useSession } from 'next-auth/react'
 import React from 'react'
 
+interface CalendarAllDayEventProps extends Omit<DraggableEventProps, 'onClick'> {
+  draggable?: boolean
+  onClick?: (event: ICalendarEvent) => void
+}
+interface DraggableEventProps extends AllDayEventProps {
+  dragOptions?: UseDraggableArguments
+}
 interface AllDayEventProps extends ButtonBaseProps {
   event: ICalendarEvent
   hasLeftArrow?: boolean | (() => boolean)
@@ -16,17 +25,6 @@ interface AllDayEventProps extends ButtonBaseProps {
   selected?: boolean
 }
 
-interface DraggableEventProps extends AllDayEventProps {
-  dragOptions?: UseDraggableArguments
-}
-
-interface CalendarAllDayEventProps extends Omit<AllDayEventProps, 'onClick'> {
-  draggable?: boolean
-  dragOptions?: UseDraggableArguments
-  event: ICalendarEvent
-  onClick?: (event: ICalendarEvent) => void
-}
-
 export default function CalendarAllDayEvent({
   draggable,
   dragOptions,
@@ -35,6 +33,8 @@ export default function CalendarAllDayEvent({
   ...other
 }: CalendarAllDayEventProps): JSX.Element {
   const { setEventId } = useCalendar()
+  const { data: session } = useSession()
+  const isAdmin = isMemberAdmin(session?.user)
 
   function handleOnClick(clickEvent: React.MouseEvent<HTMLButtonElement>): void {
     clickEvent.stopPropagation()
@@ -43,10 +43,10 @@ export default function CalendarAllDayEvent({
     if (onClick) onClick(event)
   }
 
-  return draggable && dragOptions ? (
-    <DraggableEvent event={event} dragOptions={dragOptions} onClick={handleOnClick} {...other} />
+  return isAdmin && draggable ? (
+    <DraggableEvent event={event} onClick={handleOnClick} dragOptions={dragOptions} {...other} />
   ) : (
-    <AllDayEvent {...other} event={event} onClick={handleOnClick} />
+    <AllDayEvent event={event} onClick={handleOnClick} {...other} />
   )
 }
 

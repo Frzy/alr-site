@@ -20,7 +20,7 @@ export default async function CalendarSchedulePage({
 
   const googleEvents = await getCalendarEvents({
     timeMin: date.startOf('day').format(),
-    timeMax: date.add(2, 'months').endOf('day').format(),
+    timeMax: date.add(3, 'months').endOf('day').format(),
     orderBy: 'startTime',
     singleEvents: true,
   })

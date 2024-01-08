@@ -1,7 +1,7 @@
 import { useCalendar } from '@/hooks/useCalendar'
 import type { ICalendarEvent } from '@/types/common'
 import { getCalendarEventTypeIcon, getEventPartNumber, parseLocationString } from '@/utils/calendar'
-import { Paper, Typography, darken } from '@mui/material'
+import { Box, ButtonBase, Typography, darken } from '@mui/material'
 import { type Dayjs } from 'dayjs'
 import React from 'react'
 
@@ -37,50 +37,73 @@ export default function ScheduleEvent({ date, event }: ScheduleEventProps): JSX.
   }, [event, date])
 
   return (
-    <Paper
-      elevation={event.id === eventId ? 8 : 0}
+    <ButtonBase
       onClick={() => {
         setEventId(event.id)
       }}
       sx={{
         display: 'flex',
+        justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 1,
+        boxShadow: eventId === event.id ? (theme) => theme.shadows[4] : undefined,
         py: 0.5,
         px: 1,
+        width: '100%',
         borderRadius: '12px',
         cursor: 'pointer',
+        backgroundColor: 'transparent',
         '&:hover': {
           backgroundColor: 'rgba(255, 255, 255, 0.08)',
         },
       }}
     >
-      {icon}
-      <Typography
-        component='span'
-        variant='body2'
-        color={event.isPastEvent ? 'text.secondary' : undefined}
+      <Box
         sx={{
-          minWidth: { xs: 125, md: 150 },
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: 1,
         }}
       >
-        {allDay ? 'All Day' : time}
-      </Typography>
-      <Typography
-        component='span'
-        variant='body2'
-        color={event.isPastEvent ? 'text.secondary' : undefined}
-      >
-        <Typography component='span' variant='body2' fontWeight='fontWeightBold'>
+        {icon}
+        <Typography
+          component='span'
+          variant='body2'
+          textAlign='left'
+          color={event.isPastEvent ? 'text.secondary' : undefined}
+          sx={{
+            minWidth: { xs: 120, md: 150 },
+          }}
+        >
+          {allDay ? 'All Day' : time}
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, overflow: 'hidden' }}>
+        <Typography
+          component='span'
+          variant='body2'
+          textAlign='left'
+          fontWeight='fontWeightBold'
+          color={event.isPastEvent ? 'text.secondary' : undefined}
+          sx={{ overflow: 'hidden' }}
+          noWrap
+        >
           {event.summary}
           {part ? ` ${part}` : null}
         </Typography>
         {location && (
-          <Typography component='span' variant='body2' sx={{ pl: 1 }}>
+          <Typography
+            component='span'
+            variant='body2'
+            textAlign='left'
+            sx={{ pl: { xs: 0, md: 1 } }}
+            color={event.isPastEvent ? 'text.secondary' : undefined}
+          >
             {location}
           </Typography>
         )}
-      </Typography>
-    </Paper>
+      </Box>
+    </ButtonBase>
   )
 }

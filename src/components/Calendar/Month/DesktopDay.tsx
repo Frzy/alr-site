@@ -7,6 +7,8 @@ import { sortDayEvents } from '@/utils/calendar'
 import EventMenu from '../EventMenu'
 import CalendarAllDayEvent from '../AllDayEvent'
 import CalendarTimedEvent from '../TimedEvent'
+import { useSession } from 'next-auth/react'
+import { isMemberAdmin } from '@/utils/member'
 
 interface DesktopMonthDayProps {
   activeMonth: number
@@ -72,11 +74,13 @@ export default function DesktopMonthDay({
   const events = React.useMemo(() => {
     return sortDayEvents(data)
   }, [data])
+  const { data: session } = useSession()
   const dayRef = React.useRef<HTMLDivElement | null>(null)
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null)
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
   const isToday = dayjs().isSame(date, 'day')
+  const isAdmin = isMemberAdmin(session?.user)
 
   function handleShowMoreEvents(clickEvent: React.MouseEvent<HTMLDivElement>): void {
     clickEvent.stopPropagation()
@@ -91,9 +95,13 @@ export default function DesktopMonthDay({
     <React.Fragment>
       <Box
         ref={setNodeRef}
-        onClick={(event) => {
-          if (onEventCreate) onEventCreate(date)
-        }}
+        onClick={
+          isAdmin
+            ? (event) => {
+                if (onEventCreate) onEventCreate(date)
+              }
+            : undefined
+        }
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -164,6 +172,7 @@ export default function DesktopMonthDay({
                   variant='inline'
                   onClick={onEventClick}
                   draggable
+                  disableDragTransform
                 />
               )
             }

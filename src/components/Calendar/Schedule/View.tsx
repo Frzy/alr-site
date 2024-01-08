@@ -10,20 +10,25 @@ import type { ICalendarEvent, IServerCalendarEvent, RecurrenceOptions } from '@/
 import useSWR from 'swr'
 import { fetchCalendarEventsBetweenDates, getDaysEvents, mapServerToClient } from '@/utils/calendar'
 import ScheduleDay from './ScheduleDay'
+import duration, { type Duration } from 'dayjs/plugin/duration'
+
+dayjs.extend(duration)
 
 export default function ScheduleView({
   events: initEvents = [],
+  duration = dayjs.duration({ months: 3 }),
 }: {
   activeEvent?: IServerCalendarEvent
   events?: IServerCalendarEvent[]
+  duration?: Duration
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
   const { firstDate, lastDate } = React.useMemo(() => {
     const firstDate = date.startOf('day')
-    const lastDate = date.add(3, 'months').endOf('day')
+    const lastDate = firstDate.add(duration).endOf('day')
 
     return { firstDate, lastDate }
-  }, [date])
+  }, [date, duration])
   const { data: events, mutate } = useSWR(
     `${firstDate.format()}|${lastDate.format()}`,
     fetchCalendarEventsBetweenDates,
@@ -115,7 +120,7 @@ export default function ScheduleView({
 
   return (
     <React.Fragment>
-      <List sx={{ width: '100%' }}>
+      <List sx={{ width: '100%', px: { xs: 0, md: 1 } }}>
         {dayBuckets.map(({ date, events }, index) => (
           <ScheduleDay
             key={index}

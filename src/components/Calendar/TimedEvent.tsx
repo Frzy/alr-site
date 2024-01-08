@@ -1,6 +1,7 @@
 import { useCalendar } from '@/hooks/useCalendar'
 import type { ICalendarEvent } from '@/types/common'
 import { getCalendarEventTypeIcon, parseLocationString } from '@/utils/calendar'
+import { isMemberAdmin } from '@/utils/member'
 import { useDraggable, type UseDraggableArguments } from '@dnd-kit/core'
 import {
   lighten,
@@ -12,34 +13,36 @@ import {
   ButtonBase,
   Box,
 } from '@mui/material'
+import { useSession } from 'next-auth/react'
 import React from 'react'
 
-interface CalendarTimedEventProps extends Omit<TimedEventProps, 'onClick'> {
+interface CalendarTimedEventProps extends Omit<DraggableTimedEventProps, 'onClick'> {
   draggable?: boolean
-  dragOptions?: UseDraggableArguments
-  event: ICalendarEvent
   onClick?: (event: ICalendarEvent) => void
 }
 interface DraggableTimedEventProps extends TimedEventProps {
   dragOptions?: UseDraggableArguments
+  disableDragTransform?: boolean
 }
 interface TimedEventProps extends ButtonBaseProps {
   event: ICalendarEvent
   hourHeight?: number
   iconProps?: SvgIconProps
-  backgroundColor?: string
   hoverColor?: string
   variant?: 'block' | 'inline'
 }
 
 export default function CalendarTimedEvent({
   draggable,
-  dragOptions,
   event,
   onClick,
+  disableDragTransform,
+  dragOptions,
   ...other
 }: CalendarTimedEventProps): JSX.Element {
   const { setEventId } = useCalendar()
+  const { data: session } = useSession()
+  const isAdmin = isMemberAdmin(session?.user)
 
   function handleOnClick(clickEvent: React.MouseEvent<HTMLButtonElement>): void {
     clickEvent.stopPropagation()
@@ -48,11 +51,12 @@ export default function CalendarTimedEvent({
     if (onClick) onClick(event)
   }
 
-  return draggable && dragOptions ? (
+  return isAdmin && draggable ? (
     <DraggableTimedEvent
       event={event}
-      dragOptions={dragOptions}
       onClick={handleOnClick}
+      dragOptions={dragOptions}
+      disableDragTransform={disableDragTransform}
       {...other}
     />
   ) : (
@@ -63,6 +67,7 @@ export default function CalendarTimedEvent({
 function DraggableTimedEvent({
   event,
   dragOptions,
+  disableDragTransform,
   sx,
   ...other
 }: DraggableTimedEventProps): JSX.Element {
@@ -77,13 +82,18 @@ function DraggableTimedEvent({
       {...listeners}
       event={event}
       ref={setNodeRef}
-      backgroundColor={isDragging ? 'rgba(0, 255, 0, 0.25)' : undefined}
       sx={{
         ...sx,
         ...(isDragging
           ? {
+              backgroundColor: 'rgba(0, 255, 0, 0.25)',
               transition: 'none',
-              transform: `translate3d(${transform?.x}px, ${transform?.y}px, 0)`,
+              transform: disableDragTransform
+                ? undefined
+                : `translate3d(${transform?.x}px, ${transform?.y}px, 0)`,
+              '&:hover': {
+                backgroundColor: 'rgba(0, 255, 0, 0.25)',
+              },
               left: 0,
               width: '100%',
               zIndex: 1000,
@@ -95,21 +105,12 @@ function DraggableTimedEvent({
 }
 
 const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function TimedEvent(
-  {
-    event,
-    hourHeight = 48,
-    iconProps,
-    backgroundColor: initBackgroundColor,
-    sx,
-    variant = 'block',
-    ...boxProps
-  },
+  { event, hourHeight = 48, iconProps, sx, variant = 'block', ...boxProps },
   ref,
 ) {
   const { backgroundColor, hoverColor, textColor, duration, location, title, time, icon } =
     React.useMemo(() => {
-      const backgroundColor: string =
-        initBackgroundColor ?? variant === 'block' ? event.color : 'inherit'
+      const backgroundColor: string = variant === 'block' ? event.color : 'inherit'
       const locString = event.location ? parseLocationString(event.location) : ''
       const endFormat = 'h:mma'
       let startFormat = 'h:mm'
@@ -144,7 +145,7 @@ const TimedEvent = React.forwardRef<HTMLButtonElement, TimedEventProps>(function
             ? `${event.startDate.format(startFormat)} \u2013 ${event.endDate.format(endFormat)}`
             : event.startDate.format('h:mma'),
       }
-    }, [event, iconProps, initBackgroundColor, variant])
+    }, [event, iconProps, variant])
 
   return (
     <ButtonBase

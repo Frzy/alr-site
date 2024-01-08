@@ -30,6 +30,8 @@ import {
   useSensors,
   type Modifier,
 } from '@dnd-kit/core'
+import { useSession } from 'next-auth/react'
+import { isMemberAdmin } from '@/utils/member'
 
 const HOUR_HEIGHT = 48
 const PX_RATIO = HOUR_HEIGHT / 60
@@ -52,6 +54,8 @@ export default function DayView({
   events?: IServerCalendarEvent[]
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
+  const { data: session } = useSession()
+  const isAdmin = isMemberAdmin(session?.user)
   const now = dayjs()
   const isToday = now.isSame(date, 'day')
   const firstDate = React.useMemo(() => {
@@ -237,7 +241,7 @@ export default function DayView({
           flexShrink: 1,
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
         }}
-        onClick={handleCreateAllDayEvent}
+        onClick={isAdmin ? handleCreateAllDayEvent : undefined}
       >
         <Box
           sx={{
@@ -340,7 +344,7 @@ export default function DayView({
             <WeekDayTimedEvents
               date={date}
               events={getDaysEvents(timedEvents, date)}
-              onBackgroundClick={handleCreateTimedEvent}
+              onBackgroundClick={isAdmin ? handleCreateTimedEvent : undefined}
               disableBorder
             />
           </DndContext>

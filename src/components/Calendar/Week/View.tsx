@@ -34,6 +34,8 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
+import { useSession } from 'next-auth/react'
+import { isMemberAdmin } from '@/utils/member'
 
 const HOUR_HEIGHT = 48
 const PX_RATIO = HOUR_HEIGHT / 60
@@ -67,6 +69,8 @@ export default function WeekView({
   events?: IServerCalendarEvent[]
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
+  const { data: session } = useSession()
+  const isAdmin = isMemberAdmin(session?.user)
   const firstDate = React.useMemo(() => {
     return date.startOf('week').startOf('day')
   }, [date])
@@ -287,7 +291,7 @@ export default function WeekView({
         <WeekHeader
           startDate={firstDate}
           events={allDayEvents}
-          onCreateAllDayEvent={handleCreateAllDayCalendarEvent}
+          onCreateAllDayEvent={isAdmin ? handleCreateAllDayCalendarEvent : undefined}
         />
       </DndContext>
       <HourTicker height={48}>
@@ -303,7 +307,7 @@ export default function WeekView({
                 key={i}
                 date={firstDate.add(i, 'days')}
                 events={getDaysEvents(timedEvents, firstDate.add(i, 'days'))}
-                onBackgroundClick={handleCreateTimedCalendarEvent}
+                onBackgroundClick={isAdmin ? handleCreateTimedCalendarEvent : undefined}
                 disableBorder={i === 0}
               />
             ))}
