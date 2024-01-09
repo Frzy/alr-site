@@ -10,6 +10,8 @@ function getTitle(path: string): string {
   switch (path) {
     case '/':
       return 'ALR 91 Portal'
+    case '/activity-log/form':
+      return 'Activity Log Entry Form'
     default:
       return ''
   }

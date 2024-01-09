@@ -16,7 +16,6 @@ import LoginIcon from '@mui/icons-material/Login'
 import LogoutIcon from '@mui/icons-material/Logout'
 import PersonIcon from '@mui/icons-material/Person'
 import CalendarIcon from '@mui/icons-material/CalendarToday'
-import Link from 'next/link'
 
 export default function HeaderDrawer(): React.ReactNode {
   const { data, status } = useSession()
@@ -52,7 +51,7 @@ export default function HeaderDrawer(): React.ReactNode {
               </ListItemIcon>
               <ListItemText primary={user.name} />
             </ListItem>
-            <ListItemButton LinkComponent={Link} href={`/member/${user.id}`}>
+            <ListItemButton href={`/member/${user.id}`}>
               <ListItemIcon>
                 <PersonIcon />
               </ListItemIcon>
@@ -74,11 +73,19 @@ export default function HeaderDrawer(): React.ReactNode {
       <Divider />
       <List disablePadding>
         <ListItem disablePadding>
-          <ListItemButton LinkComponent={Link} href='/calendar/month'>
+          <ListItemButton href='/calendar/month'>
             <ListItemIcon>
               <CalendarIcon />
             </ListItemIcon>
             <ListItemText primary={'Calendar'} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton href='/calendar/month'>
+            <ListItemIcon>
+              <CalendarIcon />
+            </ListItemIcon>
+            <ListItemText primary={'Add Log Entry'} />
           </ListItemButton>
         </ListItem>
       </List>

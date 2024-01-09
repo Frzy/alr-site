@@ -1,5 +1,5 @@
 import React from 'react'
-import Header from '../Header/Header'
+import Header from './Header/Header'
 import { Box, Container } from '@mui/material'
 import { DRAWER_WIDTH, HEADER_MAX_HEIGHT } from '@/utils/constants'
 
