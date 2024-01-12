@@ -57,6 +57,7 @@ export default function MemberEditDialog({
   fullScreen,
   member: initMember,
   onClose,
+  onUpdate,
   title,
   ...props
 }: MemberEditDialogProps): JSX.Element {
@@ -88,6 +89,12 @@ export default function MemberEditDialog({
     const { name, value } = event.target
 
     updateMember({ [name]: value })
+  }
+  function handleNumberChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    const { name, value } = event.target
+    const number = parseFloat(value)
+
+    updateMember({ [name]: isNaN(number) ? 0 : number })
   }
   function handleSelectChange(event: SelectChangeEvent): void {
     const { name, value } = event.target
@@ -165,8 +172,8 @@ export default function MemberEditDialog({
 
       setMember(data)
 
+      if (onUpdate) onUpdate(data)
       if (onClose) onClose({}, 'updateCompleted')
-
       SendNotification('Updated successfully', 'success')
     } catch (error) {
       SendNotification('Failed to update information', 'error')
@@ -221,7 +228,7 @@ export default function MemberEditDialog({
               fullWidth
             />
           </Grid>
-          <Grid xs={12} md={4}>
+          <Grid xs={12} md={6}>
             <TextField
               label='Nickname'
               name='nickName'
@@ -232,7 +239,22 @@ export default function MemberEditDialog({
               fullWidth
             />
           </Grid>
-          <Grid xs={12} md={4}>
+          <Grid xs={12} md={6}>
+            <TextField
+              label='Miles to Post'
+              name='milesToPost'
+              value={member.milesToPost || ''}
+              autoComplete='off'
+              onChange={handleNumberChange}
+              type='number'
+              inputProps={{
+                min: 0,
+              }}
+              disabled={loading}
+              fullWidth
+            />
+          </Grid>
+          <Grid xs={12} md={6}>
             <TextField
               label='Email'
               name='email'
@@ -243,7 +265,7 @@ export default function MemberEditDialog({
               fullWidth
             />
           </Grid>
-          <Grid xs={12} md={4}>
+          <Grid xs={12} md={6}>
             <PhoneField
               label='Phone Number'
               name='phoneNumber'

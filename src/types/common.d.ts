@@ -42,11 +42,12 @@ export interface Member {
 }
 
 export interface SessionUser {
+  email?: string
   id: string
   image?: string
+  isAdmin: boolean
   milesToPost: number
   name: string
-  isAdmin: boolean
 }
 
 export interface MemberGoogleRow {

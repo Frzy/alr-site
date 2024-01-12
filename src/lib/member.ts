@@ -130,6 +130,7 @@ function memberToRow(m: Member): MemberGoogleRow {
     lifttimeMember: m.isLifeTimeMember ? 'TRUE' : '',
     pastPresident: m.isPastPresident ? 'TRUE' : '',
     rides: m.rides ? `${m.rides}` : '',
+    milesToPost: m.milesToPost ? `${m.milesToPost}` : '',
     image: m.image ? m.image : '',
     username: m.username ? m.username.toLowerCase() : '',
     eNameOne: '',

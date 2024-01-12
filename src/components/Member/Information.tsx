@@ -8,6 +8,7 @@ import { type ENTITY, ENTITY_OBJECT, ROLE } from '@/utils/constants'
 import React from 'react'
 import { getFormatedPhoneNumber } from '@/utils/member'
 import AvatarDisplay from '../AvatarDisplay'
+import { formatNumber } from '@/utils/helpers'
 
 interface MemberInformationProps {
   member: Member
@@ -92,6 +93,16 @@ export default function MemberInformation({
               label='Phone Number'
               value={member.phoneNumber}
               formatValue={getFormatedPhoneNumber}
+              fullWidth
+            />
+          </Grid>
+        )}
+        {isMember && (
+          <Grid xs={12} sm={6} lg={3}>
+            <TextDisplay
+              label='Home to Post Mileage'
+              value={member.milesToPost}
+              formatValue={(val: number) => `${formatNumber(val)} mi`}
               fullWidth
             />
           </Grid>

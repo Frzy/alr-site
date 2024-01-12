@@ -53,19 +53,12 @@ export const authOptions: NextAuthOptions = {
         user: token,
       }
     },
-    jwt: ({ token, trigger, user, session, account, profile }) => {
-      console.log({ token, trigger, user, session, account, profile })
+    jwt: ({ token, trigger, user, account, profile, session }) => {
       // user is not always defined as stated in the type of nextAuth
-      if (user) {
-        return {
-          ...token,
-          ...user,
-        }
-      } else if (trigger === 'update' && Boolean(session)) {
-        return {
-          ...token,
-          ...session,
-        }
+      if (trigger === 'signIn') {
+        return { ...user }
+      } else if (trigger === 'update' && session) {
+        return { ...session }
       }
 
       return token

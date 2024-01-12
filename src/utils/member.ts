@@ -3,13 +3,14 @@ import { OFFICER_ORDER } from './constants'
 import { stringToColor, stripAllButNumbers } from './helpers'
 
 export function memberToSessionUser(member: Member): SessionUser {
-  const { id, image, milesToPost, name } = member
+  const { id, image, milesToPost, firstName, lastName, suffix, email } = member
 
   return {
     id,
+    email,
     image,
     milesToPost,
-    name,
+    name: `${firstName} ${lastName}${suffix ? ` ${suffix}` : ''}`,
     isAdmin: isMemberAdmin(member),
   }
 }
