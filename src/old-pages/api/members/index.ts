@@ -1,5 +1,5 @@
 import { authOptions } from '@/lib/auth'
-import { createMember, getMembersBy, memberToUnAuthMember } from '@/lib/roster'
+import { createMember, getMembersBy, memberToUnAuthMember } from '@/lib/member'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import type { Member } from '@/types/common'

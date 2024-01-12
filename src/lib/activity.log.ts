@@ -1,4 +1,4 @@
-import {
+import type {
   ActivityLog,
   ActivityLogStats,
   BaseLog,
@@ -6,13 +6,16 @@ import {
   LogStats,
   LogsByMember,
   Member,
+  RawRowData,
 } from '@/types/common'
-import { ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
-import { roundNumber } from '@/utils/helpers'
+import { type ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
+import { formatNumber } from '@/utils/helpers'
 import { JWT } from 'google-auth-library'
-import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet'
-import moment from 'moment'
-import { getMembersBy } from './roster'
+import { GoogleSpreadsheet, type GoogleSpreadsheetRow } from 'google-spreadsheet'
+import { getMembersBy } from './member'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -24,36 +27,42 @@ const BASE_STATS: BaseLog = {
   hours: 0,
   events: 0,
 }
-function getBaseGroupLog() {
-  return {
-    breakdown: ACTIVITY_TYPES.reduce((acc, curr) => {
-      acc[curr] = { ...BASE_STATS }
 
-      return acc
-    }, {} as { [key in ACTIVITY_TYPE]: BaseLog }),
+function getBaseGroupLog(): LogStats {
+  return {
+    breakdown: ACTIVITY_TYPES.reduce(
+      (acc, curr) => {
+        acc[curr] = { ...BASE_STATS }
+
+        return acc
+      },
+      // eslint-disable-next-line
+      {} as Record<ACTIVITY_TYPE, BaseLog>,
+    ),
     ...BASE_STATS,
   }
 }
-function groupLogsByMemberObject(logs: ActivityLog[]) {
+function groupLogsByMemberObject(logs: ActivityLog[]): GroupLogs {
   return logs.reduce((groups, log) => {
     if (!groups[log.name]) {
       groups[log.name] = getBaseGroupLog()
     }
 
-    groups[log.name].events = roundNumber(groups[log.name].events + 1)
-    groups[log.name].hours = roundNumber(groups[log.name].hours + (log.hours || 0))
-    groups[log.name].miles = roundNumber(groups[log.name].miles + (log.miles || 0))
-    groups[log.name].breakdown[log.activityType].events = roundNumber(
+    groups[log.name].events = formatNumber(groups[log.name].events + 1)
+    groups[log.name].hours = formatNumber(groups[log.name].hours + (log.hours ?? 0))
+    groups[log.name].miles = formatNumber(groups[log.name].miles + (log.miles ?? 0))
+    groups[log.name].breakdown[log.activityType].events = formatNumber(
       groups[log.name].breakdown[log.activityType].events + 1,
     )
-    groups[log.name].breakdown[log.activityType].hours = roundNumber(
-      groups[log.name].breakdown[log.activityType].hours + (log.hours || 0),
+    groups[log.name].breakdown[log.activityType].hours = formatNumber(
+      groups[log.name].breakdown[log.activityType].hours + (log.hours ?? 0),
     )
-    groups[log.name].breakdown[log.activityType].miles = roundNumber(
-      groups[log.name].breakdown[log.activityType].miles + (log.miles || 0),
+    groups[log.name].breakdown[log.activityType].miles = formatNumber(
+      groups[log.name].breakdown[log.activityType].miles + (log.miles ?? 0),
     )
 
     return groups
+    // eslint-disable-next-line
   }, {} as GroupLogs)
 }
 
@@ -79,30 +88,35 @@ export async function groupLogsByMember(
 function rowToActivityLog(r: GoogleSpreadsheetRow, index: number): ActivityLog {
   const log = {
     id: index,
-    date: moment(r.get('finalDate'), 'M/D/YYYY H:mm:ss').format(),
+    date: dayjs(r.get('finalDate') as string, 'M/D/YYYY H:mm:ss').format(),
     name: r.get('Name'),
     activityName: r.get('Activity'),
     activityType: r.get('Activity Type'),
-    hours: r.get('Hours') ? roundNumber(parseFloat(r.get('Hours'))) : 0,
-    monies: r.get('Monies') ? roundNumber(parseFloat(r.get('Monies').replace('$', ''))) : undefined,
-    miles: r.get('Miles') ? roundNumber(parseFloat(r.get('Miles'))) : undefined,
-    created: moment(r.get('Timestamp'), 'M/D/YYYY H:mm:ss').format(),
+    hours: r.get('Hours') ? formatNumber(parseFloat(r.get('Hours') as string)) : 0,
+    monies: r.get('Monies')
+      ? formatNumber(parseFloat((r.get('Monies') as string).replace('$', '')))
+      : undefined,
+    miles: r.get('Miles') ? formatNumber(parseFloat(r.get('Miles') as string)) : undefined,
+    created: dayjs(r.get('Timestamp') as string, 'M/D/YYYY H:mm:ss').format(),
   }
 
   Object.keys(log).forEach(
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     (key) => log[key as keyof ActivityLog] === undefined && delete log[key as keyof ActivityLog],
   )
 
   return log
 }
 
-export function convertToPublicActivityLog(log: ActivityLog) {
+export function convertToPublicActivityLog(log: ActivityLog): Omit<ActivityLog, 'monies'> {
   const { monies, ...publicLog } = log
 
   return publicLog
 }
 
-export async function getActivityLogEntries(filter?: (log: ActivityLog) => boolean) {
+export async function getActivityLogEntries(
+  filter?: (log: ActivityLog) => boolean,
+): Promise<ActivityLog[]> {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -126,13 +140,15 @@ export async function getActivityLogEntries(filter?: (log: ActivityLog) => boole
   return logs
 }
 
-export async function getActivityLogEntriesGroupedByPerson(filter?: (log: ActivityLog) => boolean) {
+export async function getActivityLogEntriesGroupedByPerson(
+  filter?: (log: ActivityLog) => boolean,
+): Promise<LogsByMember[]> {
   const logs = await getActivityLogEntries(filter)
 
-  return groupLogsByMember(logs)
+  return await groupLogsByMember(logs)
 }
 
-export async function udpateActivityLogName(oldName: string, newName: string) {
+export async function udpateActivityLogName(oldName: string, newName: string): Promise<void> {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -162,8 +178,8 @@ export async function getActivityLogStats(
   const groups = await groupLogsByMember(logs, memberFilter)
   const latestEntries = [...logs]
     .sort((a, b) => {
-      const firstDate = moment(a.created)
-      const secondDate = moment(b.created)
+      const firstDate = dayjs(a.created)
+      const secondDate = dayjs(b.created)
 
       if (firstDate.isBefore(secondDate)) return -1
 
@@ -175,28 +191,33 @@ export async function getActivityLogStats(
 
   const stats = groups.reduce(
     (cur, next) => {
-      cur.events = roundNumber(cur.events + next.events)
-      cur.hours = roundNumber(cur.hours + next.hours)
-      cur.miles = roundNumber(cur.miles + next.miles)
+      cur.events = formatNumber(cur.events + next.events)
+      cur.hours = formatNumber(cur.hours + next.hours)
+      cur.miles = formatNumber(cur.miles + next.miles)
 
-      for (let [key, value] of Object.entries(next.breakdown)) {
+      for (const [key, value] of Object.entries(next.breakdown)) {
         const bKey = key as ACTIVITY_TYPE
 
-        cur.breakdown[bKey].events = roundNumber(cur.breakdown[bKey].events + value.events)
-        cur.breakdown[bKey].hours = roundNumber(cur.breakdown[bKey].hours + value.hours)
-        cur.breakdown[bKey].miles = roundNumber(cur.breakdown[bKey].miles + value.miles)
+        cur.breakdown[bKey].events = formatNumber(cur.breakdown[bKey].events + value.events)
+        cur.breakdown[bKey].hours = formatNumber(cur.breakdown[bKey].hours + value.hours)
+        cur.breakdown[bKey].miles = formatNumber(cur.breakdown[bKey].miles + value.miles)
       }
 
       return cur
     },
+    // eslint-disable-next-line
     {
       events: 0,
       miles: 0,
       hours: 0,
-      breakdown: ACTIVITY_TYPES.reduce((cur, event) => {
-        cur[event] = { miles: 0, hours: 0, events: 0 }
-        return cur
-      }, {} as { [key in ACTIVITY_TYPE]: BaseLog }),
+      breakdown: ACTIVITY_TYPES.reduce(
+        (cur, event) => {
+          cur[event] = { miles: 0, hours: 0, events: 0 }
+          return cur
+        },
+        // eslint-disable-next-line
+        {} as { [key in ACTIVITY_TYPE]: BaseLog },
+      ),
     } as LogStats,
   )
 
@@ -209,7 +230,7 @@ export async function getActivityLogStats(
   }
 }
 
-export async function addActivityLogEntries(rows: any[]) {
+export async function addActivityLogEntries(rows: RawRowData[]): Promise<void> {
   const jwt = new JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),

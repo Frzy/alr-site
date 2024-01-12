@@ -2,7 +2,7 @@ import { ActivityLog } from '@/types/common'
 import { ACTIVITY_TYPE } from './constants'
 import moment, { Moment } from 'moment'
 import FuzzySearch from 'fuzzy-search'
-import { roundNumber } from './helpers'
+import { formatNumber } from './helpers'
 
 type Filter = (log: ActivityLog) => boolean
 export type TotalStats = {
@@ -113,10 +113,10 @@ export default class Logs {
       this._statCache = {
         data,
         totals: {
-          hours: roundNumber(tHours),
-          miles: roundNumber(tMiles),
+          hours: formatNumber(tHours),
+          miles: formatNumber(tMiles),
           events: tEvents,
-          money: roundNumber(tMoney),
+          money: formatNumber(tMoney),
         },
       }
     }

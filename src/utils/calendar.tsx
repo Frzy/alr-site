@@ -7,6 +7,7 @@ import OtherIcon from '@mui/icons-material/Event'
 import RideIcon from '@mui/icons-material/TwoWheeler'
 import type { calendar_v3 } from 'googleapis'
 import type { Fetcher } from 'swr'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import type {
   ICalendarEvent,
   IServerCalendarEvent,
@@ -24,6 +25,7 @@ import {
   DEFAULT_CALENDAR_COLOR_ID,
 } from './constants'
 
+dayjs.extend(customParseFormat)
 const EVENTS_ENDPOINT = '/api/calendar/events'
 
 export async function fetchEventsBetween(start: Dayjs, end: Dayjs): Promise<ICalendarEvent[]> {

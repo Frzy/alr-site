@@ -1,7 +1,6 @@
 import { useCalendar } from '@/hooks/useCalendar'
 import type { ICalendarEvent } from '@/types/common'
 import { getCalendarEventTypeIcon } from '@/utils/calendar'
-import { isMemberAdmin } from '@/utils/member'
 import { useDraggable, type UseDraggableArguments } from '@dnd-kit/core'
 import { ButtonBase, darken, type ButtonBaseProps, type SvgIconProps } from '@mui/material'
 import { useSession } from 'next-auth/react'
@@ -34,7 +33,7 @@ export default function CalendarAllDayEvent({
 }: CalendarAllDayEventProps): JSX.Element {
   const { setEventId } = useCalendar()
   const { data: session } = useSession()
-  const isAdmin = isMemberAdmin(session?.user)
+  const isAdmin = session?.user.isAdmin ?? false
 
   function handleOnClick(clickEvent: React.MouseEvent<HTMLButtonElement>): void {
     clickEvent.stopPropagation()

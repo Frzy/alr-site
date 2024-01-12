@@ -39,7 +39,7 @@ export async function createCalendarEvent(
     const requestBody = mapClientToRequest(event)
     const response = await bodyRequest('POST', '/api/calendar/events', requestBody)
     const { data } = await response.json()
-    if (!skipNotification) SendNotification(`Event was create`, 'success')
+    if (!skipNotification) SendNotification(`Event was created`, 'success')
 
     return mapServerToClient(data as IServerCalendarEvent)
   } catch (error) {

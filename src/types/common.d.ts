@@ -30,14 +30,23 @@ export interface Member {
   phoneNumber?: string
   rides?: number
   role: ROLE
-  suffix?: string
+  suffix: string
   yearsActive: number | null
   lastPaidDues?: number
   username: string
+  milesToPost: number
   emergencyContacts: {
     name: string
     phone: string
   }[]
+}
+
+export interface SessionUser {
+  id: string
+  image?: string
+  milesToPost: number
+  name: string
+  isAdmin: boolean
 }
 
 export interface MemberGoogleRow {
@@ -57,6 +66,7 @@ export interface MemberGoogleRow {
   firstName: string
   lastName: string
   suffix?: string
+  milesToPost?: string
   nickname?: string
   image?: string
   eNameOne?: string
@@ -217,3 +227,10 @@ export interface TimedEventProps {
   left: number
   width: number
 }
+export interface PageProps {
+  params: { id: string }
+  searchParams: Record<string, string | string[] | undefined>
+}
+
+export type RowCellData = string | number | boolean | Date
+export type RawRowData = RowCellData[] | Record<string, RowCellData>

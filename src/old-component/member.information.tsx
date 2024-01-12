@@ -55,11 +55,11 @@ export default function MemberInformation({
   onSave,
 }: MemberInformationProps) {
   const [mode, setMode] = React.useState<Mode>(Mode.View)
-  const session = useSession()
-  const isOfficer = !!session.data?.user.office
-  const isMember = !!session.data?.user
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.isAdmin ?? false
+  const isMember = !!session?.user
   const isEditing = mode === Mode.Edit && isMember
-  const isCurrentlyLoggedIn = session.data?.user.id === member.id
+  const isCurrentlyLoggedIn = session?.user.id === member.id
   const [loading, setLoading] = React.useState(false)
   const [fetchingId, setFetchingId] = React.useState(false)
   const hasEmergencyContacts = React.useMemo(() => {
@@ -132,7 +132,7 @@ export default function MemberInformation({
           <Typography component={'h2'} variant='h4' sx={{ flexGrow: 1 }} gutterBottom>
             Profile
           </Typography>
-          {(isCurrentlyLoggedIn || isOfficer) && mode === Mode.View && (
+          {(isCurrentlyLoggedIn || isAdmin) && mode === Mode.View && (
             <Button
               sx={{ px: 2, height: 36 }}
               onClick={() => setMode(Mode.Edit)}
@@ -147,7 +147,7 @@ export default function MemberInformation({
             <Grid xs={6} md={4} lg={3}>
               <TextDisplay label='Name' value={member.name} />
             </Grid>
-            {(isOfficer || isCurrentlyLoggedIn) && (
+            {(isAdmin || isCurrentlyLoggedIn) && (
               <Grid xs={6} md={4} lg={3}>
                 <TextDisplay label='Membership Id' value={member.membershipId || '{Empty}'} />
               </Grid>
@@ -301,7 +301,7 @@ export default function MemberInformation({
                 fullWidth
               />
             </Grid>
-            <Grid xs={12} md={isOfficer ? 4 : 6}>
+            <Grid xs={12} md={isAdmin ? 4 : 6}>
               <TextDisplay
                 label='Email'
                 name='email'
@@ -314,7 +314,7 @@ export default function MemberInformation({
                 fullWidth
               />
             </Grid>
-            <Grid xs={12} md={isOfficer ? 4 : 6}>
+            <Grid xs={12} md={isAdmin ? 4 : 6}>
               <PhoneField
                 label='Phone Number'
                 name='phoneNumber'
@@ -445,7 +445,7 @@ export default function MemberInformation({
                 fullWidth
               />
             </Grid>
-            {isOfficer && (
+            {isAdmin && (
               <React.Fragment>
                 <Grid xs={12}>
                   <Box display='flex' alignItems='center' justifyContent='center'>
@@ -480,18 +480,18 @@ export default function MemberInformation({
                             ),
                           }
                         : !member.membershipId
-                        ? {
-                            endAdornment: (
-                              <InputAdornment position='end'>
-                                <Tooltip title='Get next MembershipId'>
-                                  <IconButton onClick={getNextMembershipId}>
-                                    <NumbersIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </InputAdornment>
-                            ),
-                          }
-                        : undefined
+                          ? {
+                              endAdornment: (
+                                <InputAdornment position='end'>
+                                  <Tooltip title='Get next MembershipId'>
+                                    <IconButton onClick={getNextMembershipId}>
+                                      <NumbersIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </InputAdornment>
+                              ),
+                            }
+                          : undefined
                     }
                     fullWidth
                   />
@@ -522,7 +522,7 @@ export default function MemberInformation({
                   <DateDisplay
                     label='Joined On'
                     value={member.joined ? moment(member.joined, 'MM-DD-YYYY') : null}
-                    editing={isEditing && isOfficer}
+                    editing={isEditing && isAdmin}
                     size={isEditing ? 'medium' : 'small'}
                     onChange={handleDateChange}
                     disabled={disabled || loading}
@@ -548,7 +548,7 @@ export default function MemberInformation({
                       name='rides'
                       value={member.rides ? member.rides : '0'}
                       type='number'
-                      editing={isEditing && isOfficer}
+                      editing={isEditing && isAdmin}
                       size={isEditing ? 'medium' : 'small'}
                       onChange={handleTextChange}
                       disabled={disabled || loading}

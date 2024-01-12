@@ -1,6 +1,18 @@
-import type { Member } from '@/types/common'
+import type { Member, SessionUser } from '@/types/common'
 import { OFFICER_ORDER } from './constants'
 import { stringToColor, stripAllButNumbers } from './helpers'
+
+export function memberToSessionUser(member: Member): SessionUser {
+  const { id, image, milesToPost, name } = member
+
+  return {
+    id,
+    image,
+    milesToPost,
+    name,
+    isAdmin: isMemberAdmin(member),
+  }
+}
 
 export function officerSort(a: Member, b: Member): number {
   if (!a.office || !b.office) return 0
@@ -34,3 +46,5 @@ export function getFormatedPhoneNumber(phoneNumber: string): string {
 export function isMemberAdmin(member?: Member): boolean {
   return member ? !!member.office : false
 }
+
+export const MEMBER_JOINED_FORMAT = 'MM-DD-YYYY'

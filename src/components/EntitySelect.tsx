@@ -1,12 +1,6 @@
 import * as React from 'react'
-import {
-  ENTITY,
-  ENTITY_OBJECTS,
-  ENTITY_COLORS,
-  ENTITY_OBJECT_ARRAY,
-  ENTITY_OBJECT,
-} from '@/utils/constants'
-import { Theme, useTheme } from '@mui/material/styles'
+import { type ENTITY, ENTITY_OBJECT_ARRAY, ENTITY_OBJECT } from '@/utils/constants'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Chip,
@@ -14,24 +8,23 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  SelectProps,
+  type SelectProps,
   useMediaQuery,
 } from '@mui/material'
 
-interface EntityDisplayProps extends SelectProps<ENTITY | ENTITY[]> {
-  editing?: boolean
+interface EntitySelectProps extends SelectProps<ENTITY | ENTITY[]> {
   values?: ENTITY[]
 }
 
-export default function EntityDisplay({
+export default function EntitySelect({
   fullWidth,
   id = 'entity-select',
   variant,
   values = [],
   ...selectProps
-}: EntityDisplayProps): JSX.Element {
+}: EntitySelectProps): JSX.Element {
   const theme = useTheme()
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+  const isSmall = useMediaQuery(theme.breakpoints.down('md'))
 
   return (
     <FormControl fullWidth>
@@ -52,10 +45,11 @@ export default function EntityDisplay({
                   <Chip
                     key={value}
                     sx={{
-                      bgcolor: ENTITY_COLORS[value].background,
-                      color: ENTITY_COLORS[value].text,
+                      bgcolor: ENTITY_OBJECT[value].color.background,
+                      color: ENTITY_OBJECT[value].color.text,
                     }}
                     label={isSmall ? ENTITY_OBJECT[value].short : ENTITY_OBJECT[value].label}
+                    size='small'
                   />
                 )
               })}
@@ -66,12 +60,8 @@ export default function EntityDisplay({
         label={values.length > 1 ? 'Entities' : 'Entity'}
       >
         {ENTITY_OBJECT_ARRAY.map((entity) => (
-          <MenuItem
-            key={entity.value}
-            value={entity.value}
-            style={getStyles(entity.value, values, theme)}
-          >
-            {isSmall ? entity.value : entity.label}
+          <MenuItem key={entity.value} value={entity.value}>
+            {isSmall ? entity.short : entity.label}
           </MenuItem>
         ))}
       </Select>

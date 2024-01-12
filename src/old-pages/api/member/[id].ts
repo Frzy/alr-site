@@ -1,6 +1,6 @@
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth'
-import { deleteMember, findMember, memberToUnAuthMember, updateMember } from '@/lib/roster'
+import { deleteMember, findMember, memberToUnAuthMember, updateMember } from '@/lib/member'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import type { Member } from '@/types/common'

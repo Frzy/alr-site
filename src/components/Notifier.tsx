@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import { Alert, Slide, Snackbar, type SlideProps, type SnackbarProps } from '@mui/material'
 import type { Notification } from '@/types/common'

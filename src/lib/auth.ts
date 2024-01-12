@@ -1,7 +1,8 @@
 import { ACTIVE_ROLES } from '@/utils/constants'
-import { findMember } from './roster'
+import { findMember } from './member'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import type { NextAuthOptions } from 'next-auth'
+import { getServerSession, type Session, type NextAuthOptions } from 'next-auth'
+import { memberToSessionUser } from '@/utils/member'
 
 export const authOptions: NextAuthOptions = {
   pages: {
@@ -37,7 +38,7 @@ export const authOptions: NextAuthOptions = {
 
         if (member) {
           // Any object returned will be saved in `user` property of the JWT
-          return member
+          return memberToSessionUser(member)
         }
 
         // If you return null then an error will be displayed advising the user to check their details.
@@ -52,9 +53,9 @@ export const authOptions: NextAuthOptions = {
         user: token,
       }
     },
-    jwt: ({ token, trigger, user, session }) => {
+    jwt: ({ token, trigger, user, session, account, profile }) => {
+      console.log({ token, trigger, user, session, account, profile })
       // user is not always defined as stated in the type of nextAuth
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (user) {
         return {
           ...token,
@@ -70,4 +71,8 @@ export const authOptions: NextAuthOptions = {
       return token
     },
   },
+}
+
+export async function getServerAuthSession(): Promise<Session | null> {
+  return await getServerSession(authOptions)
 }

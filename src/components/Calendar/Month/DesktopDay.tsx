@@ -8,7 +8,6 @@ import EventMenu from '../EventMenu'
 import CalendarAllDayEvent from '../AllDayEvent'
 import CalendarTimedEvent from '../TimedEvent'
 import { useSession } from 'next-auth/react'
-import { isMemberAdmin } from '@/utils/member'
 
 interface DesktopMonthDayProps {
   activeMonth: number
@@ -80,7 +79,7 @@ export default function DesktopMonthDay({
   const isFirstOfMonth = date.get('date') === 1
   const isActiveMonth = date.month() === activeMonth
   const isToday = dayjs().isSame(date, 'day')
-  const isAdmin = isMemberAdmin(session?.user)
+  const isAdmin = session?.user.isAdmin
 
   function handleShowMoreEvents(clickEvent: React.MouseEvent<HTMLDivElement>): void {
     clickEvent.stopPropagation()

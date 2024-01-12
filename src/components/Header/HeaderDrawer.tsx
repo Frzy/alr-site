@@ -18,8 +18,8 @@ import PersonIcon from '@mui/icons-material/Person'
 import CalendarIcon from '@mui/icons-material/CalendarToday'
 
 export default function HeaderDrawer(): React.ReactNode {
-  const { data, status } = useSession()
-  const user = data?.user
+  const { data: session, status } = useSession()
+  const user = session?.user
 
   return (
     <div>
@@ -41,7 +41,7 @@ export default function HeaderDrawer(): React.ReactNode {
           </List>
         </React.Fragment>
       )}
-      {status === 'authenticated' && user && (
+      {user && (
         <React.Fragment>
           <Divider />
           <List disablePadding>
@@ -51,7 +51,7 @@ export default function HeaderDrawer(): React.ReactNode {
               </ListItemIcon>
               <ListItemText primary={user.name} />
             </ListItem>
-            <ListItemButton href={`/member/${user.id}`}>
+            <ListItemButton href='/profile'>
               <ListItemIcon>
                 <PersonIcon />
               </ListItemIcon>

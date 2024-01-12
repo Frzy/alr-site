@@ -7,6 +7,8 @@ import dayjs, { type Dayjs } from 'dayjs'
 import store from 'storejs'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import {
+  Alert,
+  AlertTitle,
   Autocomplete,
   Box,
   Button,
@@ -15,6 +17,7 @@ import {
   FormControl,
   FormControlLabel,
   InputLabel,
+  Link,
   MenuItem,
   Paper,
   Select,
@@ -22,22 +25,66 @@ import {
   Typography,
 } from '@mui/material'
 import Grid from '@mui/material/Unstable_Grid2/Grid2'
-import { ACTIVITY_TYPES } from '@/utils/constants'
+import { type ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
 import { LoadingButton } from '@mui/lab'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { SendNotification } from '@/utils/helpers'
 
-export default function ActivityLogForm({ members }: { members: Member[] }): JSX.Element {
+interface ActivityLogFormProps {
+  activityName?: string
+  activityType?: string
+  date?: string
+  hours?: number
+  miles?: number
+  monies?: number
+  selectedMembers?: Member[]
+  members: Member[]
+  fromCalendar?: boolean
+}
+
+interface ActivityLog {
+  activityName: string
+  activityType: string
+  date: Dayjs | null
+  hours?: number
+  miles?: number
+  monies?: number
+  selectedMembers: Member[]
+}
+
+const BASE_STATE = {
+  activityName: '',
+  activityType: '',
+  date: dayjs(),
+  hours: undefined,
+  miles: undefined,
+  monies: undefined,
+  selectedMembers: [],
+}
+
+export default function ActivityLogForm({
+  activityName: initActivityName = '',
+  activityType: initActivityType = '',
+  date: initDate,
+  fromCalendar,
+  hours: initHours,
+  members,
+  miles: initMiles,
+  monies: initMonies,
+  selectedMembers: initSelectedMembers = [],
+}: ActivityLogFormProps): JSX.Element {
   const { data: session, status } = useSession()
-  const [selectedMembers, setSelectedMembers] = React.useState<Member[]>([])
-  const [activityName, setActivityName] = React.useState<string>('')
-  const [activityType, setActivityType] = React.useState<string>('')
-  const [hours, setHours] = React.useState<number>()
-  const [miles, setMiles] = React.useState<number>()
-  const [monies, setMonies] = React.useState<number>()
-  const [date, setDate] = React.useState<Dayjs | null>(dayjs())
+  const [state, setState] = React.useState<ActivityLog>({
+    activityName: initActivityName,
+    activityType: initActivityType,
+    date: initDate ? dayjs(initDate) : null,
+    hours: initHours,
+    miles: initMiles,
+    monies: initMonies,
+    selectedMembers: initSelectedMembers,
+  })
   const [saveMembers, setSaveMember] = React.useState(false)
   const [hasLocalStorage, setHasLocalStoreage] = React.useState(false)
-  const [networkError, setNetworkError] = React.useState<unknown | null>(null)
   const [errors, setErrors] = React.useState({
     selectedMembers: false,
     activityName: false,
@@ -50,14 +97,15 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
   const [loading, setLoading] = React.useState(false)
 
   function isValid(): boolean {
+    const { selectedMembers, date, hours, miles, monies, activityName, activityType } = state
     let hasError = false
     const e = {
       selectedMembers: !selectedMembers.length,
       activityName: !activityName,
       activityType: !activityType,
-      hours: hours !== undefined && hours >= 0,
-      miles: miles !== undefined && !!isNaN(miles) && miles >= 0,
-      monies: monies !== undefined && !!(isNaN(monies) || monies <= 0),
+      hours: hours === undefined || (hours !== undefined && (isNaN(hours) || hours <= 0)),
+      miles: miles !== undefined && (isNaN(miles) || miles < 0),
+      monies: monies !== undefined && (isNaN(monies) || monies < 0),
       date: !date || date.isAfter(dayjs().endOf('day')),
     }
 
@@ -69,11 +117,18 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
 
     return !hasError
   }
+  function updateState(data: Partial<ActivityLog>): void {
+    setState((prev) => ({ ...prev, ...data }))
+  }
+  function resetForm(): void {
+    updateState({ ...BASE_STATE, selectedMembers: state.selectedMembers })
+  }
 
   async function handleSubmit(): Promise<void> {
+    const { selectedMembers, date, hours, miles, monies, activityName, activityType } = state
+
     if (isValid()) {
       setLoading(true)
-      setNetworkError(null)
 
       const payload = {
         members: selectedMembers.map((m) => ({
@@ -93,6 +148,8 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
           '_savedLogMembers',
           selectedMembers.map((m) => m.id),
         )
+        setHasLocalStoreage(true)
+        setSaveMember(false)
       }
 
       try {
@@ -105,18 +162,18 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
           body: JSON.stringify(payload),
         })
 
-        setActivityName('')
-        setActivityType('')
-        setHours(undefined)
-        setMiles(undefined)
-        setMonies(undefined)
-        setDate(dayjs())
+        resetForm()
+        SendNotification('Log entry created', 'success')
       } catch (error) {
-        setNetworkError(error)
+        SendNotification('Failed to creat log entry', 'error')
       } finally {
         setLoading(false)
       }
     }
+  }
+  function handleClearRemembered(): void {
+    store.remove('_savedLogMembers')
+    setHasLocalStoreage(false)
   }
 
   React.useEffect(() => {
@@ -130,13 +187,13 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
       })
 
       if (foundMembers.length) {
-        setSelectedMembers(foundMembers)
+        updateState({ selectedMembers: foundMembers })
       }
       setHasLocalStoreage(true)
     } else if (session?.user) {
       const loggedInUser = members.find((m) => m.id === session.user.id)
 
-      if (loggedInUser) setSelectedMembers([loggedInUser])
+      if (loggedInUser) updateState({ selectedMembers: [loggedInUser] })
     }
   }, [members, session, status])
 
@@ -144,6 +201,23 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Paper sx={{ p: 2 }}>
         <Grid container spacing={2}>
+          {fromCalendar && (
+            <Grid xs={12}>
+              <Typography>
+                Thank you for attending the ALR function {state.activityName}. We have tried to fill
+                out the activity form below as best we could based on the calendar event. Please
+                review the information below before submission.
+              </Typography>
+              {!!session?.user && !session.user.milesToPost && (
+                <Alert severity='info'>
+                  <AlertTitle>Mile Accuracy</AlertTitle>
+                  We have noticed that you do not have your home to post mileage saved on your
+                  profile. Be sure to add those miles below for a more accurate log entry. If you
+                  would like to update your profile click <Link href='/profile'>here</Link>.
+                </Alert>
+              )}
+            </Grid>
+          )}
           <Grid xs={12} md={10}>
             <Autocomplete
               options={members}
@@ -151,19 +225,21 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
               isOptionEqualToValue={(member, value) => {
                 return member.id === value.id
               }}
-              value={selectedMembers}
+              value={state.selectedMembers}
               onFocus={() => {
                 setErrors((prev) => ({ ...prev, selectedMembers: false }))
               }}
               onChange={(event, values, reason, details) => {
-                setSelectedMembers(values)
+                updateState({ selectedMembers: values })
               }}
-              renderTags={(value: readonly string[], getTagProps) =>
-                value.map((option: string, index: number) => {
-                  const {key, ...props} = getTagProps{{index}}
-                  return <Chip key={key} variant='outlined' label={option} {...props} />
+              renderTags={(tagValue, getTagProps) => {
+                return tagValue.map((option, index) => {
+                  const label = `${option.name} [ ${[option?.entity ?? [], 'ALR']
+                    .toSorted()
+                    .join(' | ')} ]`
+                  return <Chip {...getTagProps({ index })} key={index} label={label} />
                 })
-              }
+              }}
               disabled={loading}
               getOptionLabel={(m) =>
                 `${m.name} [ ${[...(m?.entity ?? []), 'ALR'].sort().join(' | ')} ]`
@@ -177,7 +253,7 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
           <Grid xs={12} md={2}>
             <DatePicker
               label='Date'
-              value={date}
+              value={state.date}
               disabled={loading}
               sx={{ width: '100%' }}
               slotProps={{
@@ -190,7 +266,7 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
               }}
               disableFuture
               onChange={(value) => {
-                setDate(value)
+                updateState({ date: value })
               }}
             />
           </Grid>
@@ -199,7 +275,7 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
               label='Activity Name'
               fullWidth
               disabled={loading}
-              value={activityName}
+              value={state.activityName}
               error={errors.activityName}
               onFocus={() => {
                 setErrors((prev) => ({ ...prev, activityName: false }))
@@ -207,7 +283,7 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
               onChange={(event) => {
                 const { value } = event.target
 
-                setActivityName(value)
+                updateState({ activityName: value })
               }}
             />
           </Grid>
@@ -225,11 +301,11 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
                 labelId='activity-log-type-label'
                 id='activity-log-type'
                 label='Activity Type'
-                value={activityType}
+                value={state.activityType}
                 onChange={(event) => {
                   const { value } = event.target
 
-                  setActivityType(value)
+                  updateState({ activityType: value as ACTIVITY_TYPE })
                 }}
               >
                 {ACTIVITY_TYPES.map((a, i) => (
@@ -250,13 +326,15 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
                 setErrors((prev) => ({ ...prev, hours: false }))
               }}
               helperText={errors.hours ? 'Hours must be a NUMBER greater than ZERO' : undefined}
-              value={hours ?? ''}
+              value={state.hours ?? ''}
               disabled={loading}
               onChange={(event) => {
                 const { value } = event.target
                 const parsed = parseFloat(value)
 
-                setHours(isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10)
+                updateState({
+                  hours: isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10,
+                })
               }}
             />
           </Grid>
@@ -265,9 +343,9 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
               label='Miles'
               type='number'
               error={errors.miles}
-              helperText={errors.miles ? 'Miles must be a NUMBER' : undefined}
+              helperText={errors.miles ? 'Hours must be a NUMBER greater than ZERO' : undefined}
               fullWidth
-              value={miles ?? ''}
+              value={state.miles ?? ''}
               disabled={loading}
               onFocus={() => {
                 setErrors((prev) => ({ ...prev, miles: false }))
@@ -276,7 +354,9 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
                 const { value } = event.target
                 const parsed = parseFloat(value)
 
-                setMiles(isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10)
+                updateState({
+                  miles: isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 10) / 10,
+                })
               }}
             />
           </Grid>
@@ -287,7 +367,7 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
               error={errors.monies}
               helperText={errors.monies ? 'Monies must be a NUMBER greater than ZERO' : undefined}
               fullWidth
-              value={monies ?? ''}
+              value={state.monies ?? ''}
               disabled={loading}
               onFocus={() => {
                 setErrors((prev) => ({ ...prev, monies: false }))
@@ -296,9 +376,10 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
                 const { value } = event.target
                 const parsed = parseFloat(value)
 
-                setMonies(
-                  isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 100) / 100,
-                )
+                updateState({
+                  monies:
+                    isNaN(parsed) || parsed === 0 ? undefined : Math.floor(parsed * 100) / 100,
+                })
               }}
             />
           </Grid>
@@ -319,7 +400,7 @@ export default function ActivityLogForm({ members }: { members: Member[] }): JSX
           </Grid>
           {hasLocalStorage && (
             <Grid xs={6} sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }}>
-              <Button onClick={() => store.remove('_savedLogMembers')} disabled={loading}>
+              <Button onClick={handleClearRemembered} disabled={loading}>
                 Clear Remembered
               </Button>
             </Grid>

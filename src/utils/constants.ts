@@ -31,48 +31,44 @@ export const ROLES = Object.values(ROLE)
 export const RIDER_ROLES = [ROLE.CHARTER, ROLE.MEMBER]
 export const MEMBER_ROLES = [...RIDER_ROLES, ROLE.SUPPORTER]
 export const ACTIVE_ROLES = [...MEMBER_ROLES, ROLE.PROSPECT, ROLE.CANIDATE_SUPPORTER]
+export const CANIDATE_ROLES = [ROLE.PROSPECT, ROLE.CANIDATE_SUPPORTER]
+
 export enum ENTITY {
   LEGION = 'AL',
   SAL = 'SAL',
   AUXILIARY = 'AUX',
 }
 export const ENTITIES = Object.values(ENTITY)
-// export const ENTITY_OBJECTS = ENTITIES.map((e) => {
-//   switch (e) {
-//     case ENTITY.LEGION:
-//       return {
-//         value: ENTITY.LEGION,
-//         label: 'American Legion',
-//         short: 'Legion',
-//         color: {
-//           background: 'rgb(0, 0, 0)',
-//           text: '#FFF',
-//         },
-//       }
-//     case ENTITY.SAL:
-//       return {
-//         value: ENTITY.SAL,
-//         label: 'Sons of the American Legion',
-//         short: 'Sons',
-//         color: {
-//           background: 'rgb(8, 107, 173)',
-//           text: '#FFF',
-//         },
-//       }
-//     case ENTITY.AUXILIARY:
-//       return {
-//         value: ENTITY.AUXILIARY,
-//         label: 'American Legion Auxiliary',
-//         short: 'Auxiliary',
-//         color: {
-//           background: 'rgb(173, 0, 0)',
-//           text: '#FFF',
-//         },
-//       }
-//     default:
-//       throw new Error('Unknown Entity')
-//   }
-// })
+export const ENTITY_OBJECT = {
+  [ENTITY.LEGION]: {
+    value: ENTITY.LEGION,
+    label: 'American Legion',
+    short: 'Legion',
+    color: {
+      background: 'rgb(0, 0, 0)',
+      text: '#FFF',
+    },
+  },
+  [ENTITY.AUXILIARY]: {
+    value: ENTITY.AUXILIARY,
+    label: 'American Legion Auxiliary',
+    short: 'AUX',
+    color: {
+      background: 'rgb(173, 0, 0)',
+      text: '#FFF',
+    },
+  },
+  [ENTITY.SAL]: {
+    value: ENTITY.SAL,
+    label: 'Sons of the American Legion',
+    short: 'SAL',
+    color: {
+      background: 'rgb(8, 107, 173)',
+      text: '#FFF',
+    },
+  },
+}
+export const ENTITY_OBJECT_ARRAY = Object.values(ENTITY_OBJECT)
 export enum ACTIVITY_TYPE {
   EVENT = 'Event',
   MEETING = 'Meeting',

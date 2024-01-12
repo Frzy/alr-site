@@ -31,7 +31,6 @@ import {
   type Modifier,
 } from '@dnd-kit/core'
 import { useSession } from 'next-auth/react'
-import { isMemberAdmin } from '@/utils/member'
 
 const HOUR_HEIGHT = 48
 const PX_RATIO = HOUR_HEIGHT / 60
@@ -55,7 +54,7 @@ export default function DayView({
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
   const { data: session } = useSession()
-  const isAdmin = isMemberAdmin(session?.user)
+  const isAdmin = session?.user.isAdmin ?? false
   const now = dayjs()
   const isToday = now.isSame(date, 'day')
   const firstDate = React.useMemo(() => {

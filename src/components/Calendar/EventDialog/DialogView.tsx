@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { isMemberAdmin } from '@/utils/member'
 import { startCase } from '@/utils/helpers'
 import { useSession } from 'next-auth/react'
 import CalendarIcon from '@mui/icons-material/InsertInvitation'
@@ -23,6 +22,8 @@ import {
   getLocationMapLink,
   parseLocationString,
 } from '@/utils/calendar'
+import { useRouter } from 'next/navigation'
+import { EVENT_TYPE } from '@/utils/constants'
 
 export default function DialogView({
   event,
@@ -33,80 +34,84 @@ export default function DialogView({
   onClose: () => void
   onViewChange: (mode: EventDialogView) => void
 }): JSX.Element {
+  const router = useRouter()
   const { data: session } = useSession()
-  const isAdmin = session?.user ? isMemberAdmin(session.user) : false
+  const isAdmin = session?.user?.isAdmin ?? false
   const isLoggedIn = !!session?.user
-  const recurrenceString = React.useMemo(() => {
+  const {
+    recurrenceString,
+    locationUrl,
+    locationString,
+    musterLocationString,
+    informationString,
+    dateString,
+    IconEvent,
+  } = React.useMemo(() => {
+    const locationUrl = event?.location ? getLocationMapLink(event?.location) : ''
+    const locationString = event?.location ? parseLocationString(event.location) : ''
+    const musterLocationString = event?.musterLocation
+      ? parseLocationString(event?.musterLocation)
+      : ''
+    let IconEvent = null
+    let dateString = ''
+    let informationString = ''
+    let recurrenceString = ''
+
     if (event) {
       const startDate = event.originalStartDate ?? event.startDate
+      IconEvent = getCalendarEventTypeIcon(event.eventType, {
+        sx: { fontSize: '2rem', color: event.color },
+      })
 
       if (Array.isArray(event.recurrence)) {
-        return getHumanReadableRecurrenceString(startDate, event.recurrence[0])
+        recurrenceString = getHumanReadableRecurrenceString(startDate, event.recurrence[0])
+      }
+
+      if (event.isAllDayEvent && !event.isMultipleDayEvent) {
+        dateString = event.startDate.format('dddd, MMMM D')
+      }
+      if (event.isAllDayEvent && event.isMultipleDayEvent) {
+        dateString = `${event.startDate.format('MMMM D')} \u2013 ${event.endDate
+          .subtract(1, 'day')
+          .format('D YYYY')}`
+      }
+      if (!event.isAllDayEvent && event.isMultipleDayEvent) {
+        dateString = `${event.startDate.format('MMMM D, YYYY, h:mm a')} \u2013 ${event.endDate
+          .subtract(1, 'day')
+          .format('MMMM D, YYYY, h:mm a')}`
+      }
+      if (!event.isAllDayEvent && !event.isMultipleDayEvent) {
+        dateString =
+          event.startDate.format('a') === event.endDate.format('a')
+            ? `${event.startDate.format('dddd, MMMM D')} \u22C5 ${event.startDate.format(
+                'h:mm',
+              )} - ${event.endDate.format('h:mma')}`
+            : `${event.startDate.format('dddd, MMMM D')} \u22C5 ${event.startDate.format(
+                'h:mma',
+              )} - ${event.endDate.format('h:mma')}`
+      }
+
+      if (event?._event) {
+        const created = dayjs(event._event.created)
+        const modified = dayjs(event._event.updated)
+
+        if (created.isSame(modified, 'day')) {
+          informationString = `Created ${created.fromNow()}`
+        }
+
+        informationString = `Updated ${modified.fromNow()}`
       }
     }
 
-    return ''
-  }, [event])
-  const locationUrl = React.useMemo(() => {
-    return event?.location ? getLocationMapLink(event?.location) : ''
-  }, [event])
-  const locationString = React.useMemo(() => {
-    return event?.location ? parseLocationString(event.location) : ''
-  }, [event])
-  const musterLocationString = React.useMemo(() => {
-    return event?.musterLocation ? parseLocationString(event?.musterLocation) : ''
-  }, [event])
-  const dateString = React.useMemo(() => {
-    if (!event) return ''
-
-    if (event.isAllDayEvent && !event.isMultipleDayEvent) {
-      return event.startDate.format('dddd, MMMM D')
+    return {
+      dateString,
+      IconEvent,
+      locationString,
+      locationUrl,
+      informationString,
+      musterLocationString,
+      recurrenceString,
     }
-
-    if (event.isAllDayEvent && event.isMultipleDayEvent) {
-      return `${event.startDate.format('MMMM D')} \u2013 ${event.endDate
-        .subtract(1, 'day')
-        .format('D YYYY')}`
-    }
-
-    if (!event.isAllDayEvent && event.isMultipleDayEvent) {
-      return `${event.startDate.format('MMMM D, YYYY, h:mm a')} \u2013 ${event.endDate
-        .subtract(1, 'day')
-        .format('MMMM D, YYYY, h:mm a')}`
-    }
-
-    if (!event.isAllDayEvent && !event.isMultipleDayEvent) {
-      return event.startDate.format('a') === event.endDate.format('a')
-        ? `${event.startDate.format('dddd, MMMM D')} \u22C5 ${event.startDate.format(
-            'h:mm',
-          )} - ${event.endDate.format('h:mma')}`
-        : `${event.startDate.format('dddd, MMMM D')} \u22C5 ${event.startDate.format(
-            'h:mma',
-          )} - ${event.endDate.format('h:mma')}`
-    }
-
-    return ''
-  }, [event])
-  const IconEvent = React.useMemo(() => {
-    if (!event) return null
-
-    return getCalendarEventTypeIcon(event.eventType, {
-      sx: { fontSize: '2rem', color: event.color },
-    })
-  }, [event])
-  const informationString = React.useMemo(() => {
-    if (event?._event) {
-      const created = dayjs(event._event.created)
-      const modified = dayjs(event._event.updated)
-
-      if (created.isSame(modified, 'day')) {
-        return `Created ${created.fromNow()}`
-      }
-
-      return `Updated ${modified.fromNow()}`
-    }
-
-    return ''
   }, [event])
   const canAttend = React.useMemo(() => {
     const now = dayjs()
@@ -274,10 +279,27 @@ export default function DialogView({
               variant='outlined'
               color='primary'
               onClick={() => {
-                onViewChange('activity_log')
+                const queryParams = new URLSearchParams({
+                  date: event.startDate.format(),
+                  type: event.eventType,
+                  calendar: 'true',
+                })
+
+                if (event?.summary) queryParams.set('name', event.summary)
+                if (!event.isAllDayEvent && !event.isMultipleDayEvent) {
+                  const hours = event.endDate.diff(event.startDate, 'minutes')
+                  queryParams.set('hours', (hours / 60).toFixed(1))
+                }
+                if (event.eventType === EVENT_TYPE.RIDE && event?.miles) {
+                  const userMiles = (session?.user?.milesToPost ?? 0) * 2
+
+                  queryParams.set('miles', (event.miles + userMiles).toFixed(1))
+                }
+
+                router.push(`/activity-log/form?${queryParams.toString()}`)
               }}
             >
-              I attended this event
+              Log Event
             </Button>
           )}
         </Stack>

@@ -1,9 +1,11 @@
 import { GoogleSpreadsheet, type GoogleSpreadsheetRow } from 'google-spreadsheet'
 import { JWT } from 'google-auth-library'
 import { MEMBER_ROLES, type ROLE } from '@/utils/constants'
-import moment from 'moment'
-import type { Member, MemberGoogleRow } from '@/types/common'
+import dayjs from 'dayjs'
+import type { Member, MemberGoogleRow, RawRowData } from '@/types/common'
 import { randomUUID } from 'crypto'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -56,13 +58,13 @@ function getLastPaidDues(
   lastPaidDues: string,
   isLifeTimeMember: boolean,
   isActive: boolean,
-): number | null {
+): number | undefined {
   const dueYear = parseInt(lastPaidDues)
 
-  if (isNaN(dueYear)) return null
+  if (isNaN(dueYear)) return undefined
 
   if (isLifeTimeMember && isActive) {
-    const now = moment()
+    const now = dayjs()
 
     return now.year() + (now.month() >= 10 ? 1 : 0)
   }
@@ -73,15 +75,15 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
   const isLifeTimeMember = r.get('lifttimeMember') === 'TRUE'
   const isActive = MEMBER_ROLES.includes(r.get('role') as ROLE)
   const lastPaidDues = getLastPaidDues(r.get('lastPaidDues') as string, isLifeTimeMember, isActive)
-  const joined = r.get('joinDate') ? moment(r.get('joinDate') as string, 'M/D/YYYY').year() : null
+  const joined = r.get('joinDate') ? dayjs(r.get('joinDate') as string, 'M/D/YYYY').year() : null
   const yearsActive = lastPaidDues && joined ? lastPaidDues - joined : null
 
-  return {
+  const member = {
     id: r.get('id'),
     email: r.get('email'),
     entity: r.get('entity') ? r.get('entity').split(',') : [],
     firstName: r.get('firstName'),
-    image: r.get('image') || '',
+    image: r.get('image') ? r.get('image') : undefined,
     isActive,
     isLifeTimeMember,
     isPastPresident: r.get('pastPresident') === 'TRUE',
@@ -93,15 +95,23 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
       r.get('suffix') ? ` ${r.get('suffix')}` : ''
     }`,
     nickName: r.get('nickname') ?? '',
+    milesToPost: r.get('milesToPost') ? parseFloat(r.get('milesToPost') as string) : 0,
     office: r.get('office') ?? '',
     phoneNumber: r.get('phone') ?? '',
-    rides: r.get('rides') ? parseInt(r.get('rides') as string) : r.get('rides'),
+    rides: r.get('rides') ? parseInt(r.get('rides') as string) : undefined,
     role: r.get('role'),
     suffix: r.get('suffix') ?? '',
     username: r.get('username'),
     yearsActive,
     emergencyContacts: getEmergencyContacts(r),
   }
+
+  Object.keys(member).forEach(
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    (key) => member[key as keyof Member] === undefined && delete member[key as keyof Member],
+  )
+
+  return member
 }
 function memberToRow(m: Member): MemberGoogleRow {
   const data = {
@@ -190,7 +200,7 @@ export async function createMember(m: Member): Promise<Member> {
   const data = memberToRow(m)
   data.id = randomUUID()
 
-  const newMember = await worksheet.addRow(data)
+  const newMember = await worksheet.addRow(data as unknown as RawRowData)
 
   return rowToMember(newMember)
 }

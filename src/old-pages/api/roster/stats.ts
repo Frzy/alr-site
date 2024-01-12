@@ -1,4 +1,4 @@
-import { getMembersBy, memberToUnAuthMember } from '@/lib/roster'
+import { getMembersBy, memberToUnAuthMember } from '@/lib/member'
 import { NextApiRequest, NextApiResponse } from 'next'
 import type { MembershipStats } from '@/types/common'
 import HttpError from '@/lib/http-error'

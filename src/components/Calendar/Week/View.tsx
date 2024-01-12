@@ -35,7 +35,6 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useSession } from 'next-auth/react'
-import { isMemberAdmin } from '@/utils/member'
 
 const HOUR_HEIGHT = 48
 const PX_RATIO = HOUR_HEIGHT / 60
@@ -70,7 +69,7 @@ export default function WeekView({
 }): JSX.Element {
   const { date, eventId, setEventId } = useCalendar()
   const { data: session } = useSession()
-  const isAdmin = isMemberAdmin(session?.user)
+  const isAdmin = session?.user.isAdmin
   const firstDate = React.useMemo(() => {
     return date.startOf('week').startOf('day')
   }, [date])

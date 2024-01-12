@@ -16,8 +16,10 @@ import {
 import { DatePicker } from '@mui/x-date-pickers'
 import DayPicker, { type DAY } from './DayPicker'
 import type { Recurrence } from '@/types/common'
-import dayjs, { type ManipulateType, type Dayjs } from 'dayjs'
 import { getRecurrenceStringFromParts, getRecurrenceStringParts } from '@/utils/calendar'
+import dayjs, { type ManipulateType, type Dayjs } from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
 interface CustomRecurrence {

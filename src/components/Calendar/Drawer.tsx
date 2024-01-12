@@ -26,9 +26,9 @@ import { useCalendar } from '@/hooks/useCalendar'
 import AddIcon from '@mui/icons-material/Add'
 
 export default function CalendarDrawer(): React.ReactNode {
-  const { data, status } = useSession()
+  const { data: session, status } = useSession()
   const { date, setDate } = useCalendar()
-  const user = data?.user
+  const user = session?.user
 
   function handleDateChange(value: Dayjs | null): void {
     if (value) {
@@ -96,7 +96,7 @@ export default function CalendarDrawer(): React.ReactNode {
           </List>
         </React.Fragment>
       )}
-      {status === 'authenticated' && user && (
+      {user && (
         <React.Fragment>
           <Divider />
           <List disablePadding>

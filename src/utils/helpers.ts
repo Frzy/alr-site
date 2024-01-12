@@ -67,7 +67,7 @@ export function formatMoney(number: string | number): string {
 
   return toFormat.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }
-export function roundNumber(num: number, decimail = 1): number {
+export function formatNumber(num: number, decimail = 1): number {
   const dec = decimail * 10
 
   if (dec) return Math.floor(num) + Math.round((num % 1) * dec) / dec
