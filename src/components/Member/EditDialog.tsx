@@ -289,6 +289,7 @@ export default function MemberEditDialog({
               member={member}
               name='image'
               value={member.image}
+              label='Avatar Image'
               disabled={loading}
               placeholder='Add Image Link'
               onChange={handleTextChange}
