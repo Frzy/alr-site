@@ -205,8 +205,8 @@ export default function ActivityLogForm({
             <Grid xs={12}>
               <Typography>
                 Thank you for attending the ALR function {state.activityName}. We have tried to fill
-                out the activity form below as best we could based on the calendar event. Please
-                review the information below before submission.
+                out the activity form below as best we could based on the event. Please review the
+                information below before submission.
               </Typography>
               {!!session?.user && !session.user.milesToPost && (
                 <Alert severity='info'>
