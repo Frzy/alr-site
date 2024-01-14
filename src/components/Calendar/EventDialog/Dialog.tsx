@@ -2,11 +2,11 @@ import * as React from 'react'
 import {
   Box,
   Dialog,
-  useTheme,
   type DialogProps,
   useMediaQuery,
   CircularProgress,
   Alert,
+  type Theme,
 } from '@mui/material'
 import { mapServerToClient } from '@/utils/calendar'
 
@@ -44,8 +44,7 @@ export default function CalendarEventDialog({
   onUpdate,
   ...other
 }: CalendarEventDialogProps): JSX.Element | null {
-  const theme = useTheme()
-  const fullScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const fullScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const [view, setView] = React.useState<EventDialogView>(
     typeof initEvent !== 'string' && initEvent?.isNew ? 'create' : 'view',
   )

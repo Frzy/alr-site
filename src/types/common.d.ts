@@ -12,6 +12,11 @@ import type { AlertColor } from '@mui/material'
 import type { Dayjs } from 'dayjs'
 import type { calendar_v3 } from 'googleapis'
 
+export interface EmergencyContact {
+  name: string
+  phone: string
+}
+
 export interface Member {
   id: string
   email?: string
@@ -35,10 +40,7 @@ export interface Member {
   lastPaidDues?: number
   username: string
   milesToPost: number
-  emergencyContacts: {
-    name: string
-    phone: string
-  }[]
+  emergencyContacts: EmergencyContact[]
 }
 
 export interface SessionUser {

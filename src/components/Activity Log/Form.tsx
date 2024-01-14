@@ -29,6 +29,7 @@ import { type ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
 import { LoadingButton } from '@mui/lab'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { SendNotification } from '@/utils/helpers'
+import { SAVED_ACITIVY_LOG_MEMBERS } from '@/utils/options'
 
 interface ActivityLogFormProps {
   activityName?: string
@@ -145,7 +146,7 @@ export default function ActivityLogForm({
 
       if (saveMembers) {
         store.set(
-          '_savedLogMembers',
+          SAVED_ACITIVY_LOG_MEMBERS,
           selectedMembers.map((m) => m.id),
         )
         setHasLocalStoreage(true)
@@ -172,13 +173,13 @@ export default function ActivityLogForm({
     }
   }
   function handleClearRemembered(): void {
-    store.remove('_savedLogMembers')
+    store.remove(SAVED_ACITIVY_LOG_MEMBERS)
     setHasLocalStoreage(false)
   }
 
   React.useEffect(() => {
-    if (store.has('_savedLogMembers')) {
-      const ids: string[] = store.get('_savedLogMembers')
+    if (store.has(SAVED_ACITIVY_LOG_MEMBERS)) {
+      const ids: string[] = store.get(SAVED_ACITIVY_LOG_MEMBERS)
       const foundMembers: Member[] = []
 
       ids.forEach((id) => {

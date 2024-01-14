@@ -15,7 +15,7 @@ import {
   Toolbar,
   Typography,
   useMediaQuery,
-  useTheme,
+  type Theme,
 } from '@mui/material'
 
 const HEADER_PADDING = 16
@@ -28,8 +28,7 @@ export default function DesktopHeader({
   disableAnimation?: boolean
 }): React.ReactNode {
   const { status } = useSession()
-  const theme = useTheme()
-  const isSmall = useMediaQuery(theme.breakpoints.down('md'))
+  const isSmall = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const [shrink, setShrink] = React.useState(disableAnimation)
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [isClosing, setIsClosing] = React.useState(false)

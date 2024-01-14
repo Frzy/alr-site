@@ -1,4 +1,4 @@
-import { Box, styled } from '@mui/material'
+import { Box, Typography, type TypographyProps, styled } from '@mui/material'
 
 const StyledGridOverlay = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -24,7 +24,13 @@ const StyledGridOverlay = styled('div')(({ theme }) => ({
   },
 }))
 
-export default function NoRowsOverlay(): JSX.Element {
+export default function NoRowsOverlay({
+  text = 'No Entries Found',
+  textProps,
+}: {
+  text?: string
+  textProps?: TypographyProps
+}): JSX.Element {
   return (
     <StyledGridOverlay>
       <Box>
@@ -62,7 +68,7 @@ export default function NoRowsOverlay(): JSX.Element {
           </g>
         </svg>
       </Box>
-      <Box sx={{ mt: 1 }}>No Entries Found</Box>
+      <Typography {...textProps}>{text}</Typography>
     </StyledGridOverlay>
   )
 }

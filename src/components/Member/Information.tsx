@@ -1,7 +1,16 @@
 'use client'
 
 import type { Member } from '@/types/common'
-import { Alert, Box, Button, Chip, Paper, Typography, useMediaQuery, useTheme } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Paper,
+  type Theme,
+  Typography,
+  useMediaQuery,
+} from '@mui/material'
 import Grid from '@mui/material/Unstable_Grid2/Grid2'
 import TextDisplay from '../TextDisplay'
 import { type ENTITY, ENTITY_OBJECT, ROLE } from '@/utils/constants'
@@ -22,8 +31,7 @@ export default function MemberInformation({
   isLoggedIn,
   onEdit,
 }: MemberInformationProps): JSX.Element {
-  const theme = useTheme()
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+  const isSmall = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
   const isAdmin = permission === 'admin'
   const isMember = permission !== 'unknown'

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { type ENTITY, ENTITY_OBJECT_ARRAY, ENTITY_OBJECT } from '@/utils/constants'
-import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Chip,
@@ -10,6 +9,7 @@ import {
   Select,
   type SelectProps,
   useMediaQuery,
+  type Theme,
 } from '@mui/material'
 
 interface EntitySelectProps extends SelectProps<ENTITY | ENTITY[]> {
@@ -23,8 +23,7 @@ export default function EntitySelect({
   values = [],
   ...selectProps
 }: EntitySelectProps): JSX.Element {
-  const theme = useTheme()
-  const isSmall = useMediaQuery(theme.breakpoints.down('md'))
+  const isSmall = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
 
   return (
     <FormControl fullWidth>

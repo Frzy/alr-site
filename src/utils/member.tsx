@@ -1,6 +1,16 @@
 import type { Member, SessionUser } from '@/types/common'
-import { OFFICER_ORDER } from './constants'
+import { OFFICER_ORDER, ROLE } from './constants'
 import { stringToColor, stripAllButNumbers } from './helpers'
+
+import RiderIcon from '@mui/icons-material/TwoWheeler'
+import ProsectIcon from '@mui/icons-material/Moped'
+import SupporterCandiateIcon from '@mui/icons-material/FavoriteBorder'
+import SupporterIcon from '@mui/icons-material/Favorite'
+import RetiredIcon from '@mui/icons-material/Elderly'
+import FounderIcon from '@mui/icons-material/SelfImprovement'
+import CharterIcon from '@mui/icons-material/Star'
+import DefaultIcon from '@mui/icons-material/Person'
+import { type SvgIconProps } from '@mui/material'
 
 export function memberToSessionUser(member: Member): SessionUser {
   const { id, image, milesToPost, firstName, lastName, suffix, email } = member
@@ -46,6 +56,27 @@ export function getFormatedPhoneNumber(phoneNumber: string): string {
 
 export function isMemberAdmin(member?: Member): boolean {
   return member ? !!member.office : false
+}
+
+export function getMemberIcon(member: Member, iconProps?: SvgIconProps): JSX.Element {
+  switch (member.role) {
+    case ROLE.CHARTER:
+      return <CharterIcon {...iconProps} />
+    case ROLE.MEMBER:
+      return <RiderIcon {...iconProps} />
+    case ROLE.PROSPECT:
+      return <ProsectIcon {...iconProps} />
+    case ROLE.SUPPORTER:
+      return <SupporterIcon {...iconProps} />
+    case ROLE.CANIDATE_SUPPORTER:
+      return <SupporterCandiateIcon {...iconProps} />
+    case ROLE.RETIRED:
+      return <RetiredIcon {...iconProps} />
+    case ROLE.FOUNDER:
+      return <FounderIcon {...iconProps} />
+    default:
+      return <DefaultIcon {...iconProps} />
+  }
 }
 
 export const MEMBER_JOINED_FORMAT = 'MM-DD-YYYY'

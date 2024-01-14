@@ -43,9 +43,10 @@ export default function SearchField({
           ? {
               '& .MuiInputBase-input': {
                 transition: (theme) => theme.transitions.create('width'),
-                width: !value ? 55 : 185,
+                minWidth: 55,
+                width: !value ? 55 : 200,
                 '&:focus': {
-                  width: 185,
+                  width: 200,
                 },
               },
             }

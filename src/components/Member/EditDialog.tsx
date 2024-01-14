@@ -1,26 +1,26 @@
 'use client'
 
 import {
-  Dialog,
-  DialogTitle,
-  type DialogProps,
-  DialogContent,
-  DialogActions,
-  Button,
-  useTheme,
-  useMediaQuery,
   Alert,
-  TextField,
-  type SelectChangeEvent,
-  Typography,
   Box,
-  Divider,
-  InputAdornment,
-  CircularProgress,
-  Tooltip,
-  IconButton,
-  FormControlLabel,
+  Button,
   Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  FormControlLabel,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  type DialogProps,
+  type SelectChangeEvent,
+  type Theme,
+  Typography,
+  useMediaQuery,
 } from '@mui/material'
 import type { Member } from '@/types/common'
 import { LoadingButton } from '@mui/lab'
@@ -61,8 +61,7 @@ export default function MemberEditDialog({
   title,
   ...props
 }: MemberEditDialogProps): JSX.Element {
-  const theme = useTheme()
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+  const isSmall = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
   const [member, setMember] = React.useState(initMember)
   const { showNameWarning, showUsernameWarning } = React.useMemo(() => {
     const memberName = `${member.firstName} ${member.lastName}${

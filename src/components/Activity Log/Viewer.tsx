@@ -21,7 +21,7 @@ import {
 import Logs, { type TotalStats } from '@/utils/Logs'
 import type { ActivityLog } from '@/types/common'
 import { formatMoney, formatNumber } from '@/utils/helpers'
-import NoRowsOverlay from '../NoRowsFound'
+import NoRowsOverlay from '../NoRowsOverlay'
 import dayjs, { type Dayjs } from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
 import SearchField from '../SearchField'

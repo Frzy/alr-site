@@ -16,6 +16,8 @@ import LoginIcon from '@mui/icons-material/Login'
 import LogoutIcon from '@mui/icons-material/Logout'
 import PersonIcon from '@mui/icons-material/Person'
 import CalendarIcon from '@mui/icons-material/CalendarToday'
+import RosterIcon from '@mui/icons-material/Groups'
+import LogIcon from '@mui/icons-material/ListAlt'
 
 export default function HeaderDrawer(): React.ReactNode {
   const { data: session, status } = useSession()
@@ -28,16 +30,26 @@ export default function HeaderDrawer(): React.ReactNode {
         <React.Fragment>
           <Divider />
           <List disablePadding>
-            <ListItemButton
-              onClick={() => {
-                void signIn()
-              }}
-            >
-              <ListItemIcon>
-                <LoginIcon />
-              </ListItemIcon>
-              <ListItemText primary='Login' />
-            </ListItemButton>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  void signIn()
+                }}
+              >
+                <ListItemIcon>
+                  <LoginIcon />
+                </ListItemIcon>
+                <ListItemText primary='Login' />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton href='/activity-log/form'>
+                <ListItemIcon>
+                  <LogIcon />
+                </ListItemIcon>
+                <ListItemText primary={'Add Log Entry'} />
+              </ListItemButton>
+            </ListItem>
           </List>
         </React.Fragment>
       )}
@@ -51,22 +63,34 @@ export default function HeaderDrawer(): React.ReactNode {
               </ListItemIcon>
               <ListItemText primary={user.name} />
             </ListItem>
-            <ListItemButton href='/profile'>
-              <ListItemIcon>
-                <PersonIcon />
-              </ListItemIcon>
-              <ListItemText primary='Profile' />
-            </ListItemButton>
-            <ListItemButton
-              onClick={() => {
-                void signOut()
-              }}
-            >
-              <ListItemIcon>
-                <LogoutIcon />
-              </ListItemIcon>
-              <ListItemText primary='Logout' />
-            </ListItemButton>
+            <ListItem disablePadding>
+              <ListItemButton href='/profile'>
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText primary='Profile' />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton href='/activity-log/form'>
+                <ListItemIcon>
+                  <LogIcon />
+                </ListItemIcon>
+                <ListItemText primary={'Add Log Entry'} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  void signOut()
+                }}
+              >
+                <ListItemIcon>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary='Logout' />
+              </ListItemButton>
+            </ListItem>
           </List>
         </React.Fragment>
       )}
@@ -81,11 +105,11 @@ export default function HeaderDrawer(): React.ReactNode {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton href='/calendar/month'>
+          <ListItemButton href='/roster'>
             <ListItemIcon>
-              <CalendarIcon />
+              <RosterIcon />
             </ListItemIcon>
-            <ListItemText primary={'Add Log Entry'} />
+            <ListItemText primary={'Roster'} />
           </ListItemButton>
         </ListItem>
       </List>
