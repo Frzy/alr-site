@@ -18,6 +18,9 @@ import PersonIcon from '@mui/icons-material/Person'
 import CalendarIcon from '@mui/icons-material/CalendarToday'
 import RosterIcon from '@mui/icons-material/Groups'
 import LogIcon from '@mui/icons-material/ListAlt'
+import ClubStatIcon from '@mui/icons-material/BarChart'
+import DocumentIcon from '@mui/icons-material/Article'
+import MemberStatIcon from '@mui/icons-material/AssignmentInd'
 
 export default function HeaderDrawer(): React.ReactNode {
   const { data: session, status } = useSession()
@@ -105,6 +108,14 @@ export default function HeaderDrawer(): React.ReactNode {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
+          <ListItemButton href='/documents'>
+            <ListItemIcon>
+              <DocumentIcon />
+            </ListItemIcon>
+            <ListItemText primary={'Documents'} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
           <ListItemButton href='/roster'>
             <ListItemIcon>
               <RosterIcon />
@@ -114,6 +125,22 @@ export default function HeaderDrawer(): React.ReactNode {
         </ListItem>
       </List>
       <Divider />
+      <ListItem disablePadding>
+        <ListItemButton href='/activity-log/club'>
+          <ListItemIcon>
+            <ClubStatIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Club Stats'} />
+        </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ListItemButton href='/activity-log/members'>
+          <ListItemIcon>
+            <MemberStatIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Member Stats'} />
+        </ListItemButton>
+      </ListItem>
     </div>
   )
 }

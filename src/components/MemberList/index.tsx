@@ -8,6 +8,7 @@ import MemberList from './List'
 import MemberGridList from './Grid'
 import { CANIDATE_ROLES, MEMBER_ROLES } from '@/utils/constants'
 import FuzzySearch from 'fuzzy-search'
+import { debounce } from '@mui/material'
 
 interface MemeberViewerProps {
   members: Member[]
@@ -32,7 +33,7 @@ export default function MemberViewer({ members: initMembers }: MemeberViewerProp
     })
 
     if (filters.query) {
-      const searcher = new FuzzySearch(filteredMembers, ['name', 'nickname'])
+      const searcher = new FuzzySearch(filteredMembers, ['name', 'nickName'])
 
       filteredMembers = searcher.search(filters.query)
     }
@@ -65,11 +66,13 @@ export default function MemberViewer({ members: initMembers }: MemeberViewerProp
     return [FILTER.ENTITY, FILTER.LIFETIME, FILTER.PAST_DIRECTOR, FILTER.ROLE, FILTER.GROUP]
   }, [listMode])
 
+  const updateFilters = debounce(setFilters, 150)
+
   function handleModeChange(newMode: ListMode): void {
     setListMode(newMode)
   }
   function handleFilterChange(newFilters: ListFilter): void {
-    setFilters(newFilters)
+    updateFilters(newFilters)
   }
 
   return (

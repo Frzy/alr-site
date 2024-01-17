@@ -1,10 +1,9 @@
 import { ACTIVE_ROLES, type ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
 import { getMembersBy } from '@/lib/member'
 import * as React from 'react'
-import BaseLayout from '@/components/BaseLayout'
-import type { Metadata } from 'next'
-import ActivityLogForm from '@/components/Activity Log/Form'
+import ActivityLogFormView from '@/components/Views/ActivityLogFormView'
 import dayjs from 'dayjs'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'ALR 91: Activity Log Entry',
@@ -36,16 +35,14 @@ export default async function ActivityLogEntryPage({
   const miles = mileStr ? parseFloat(mileStr) : undefined
 
   return (
-    <BaseLayout>
-      <ActivityLogForm
-        members={members}
-        activityName={name}
-        date={date.isValid() ? date.format() : undefined}
-        activityType={ACTIVITY_TYPES.includes(type) ? type : undefined}
-        hours={hours ? (!isNaN(hours) && hours >= 0 ? hours : undefined) : undefined}
-        miles={miles ? (!isNaN(miles) && miles >= 0 ? miles : undefined) : undefined}
-        fromCalendar={calendar === 'true'}
-      />
-    </BaseLayout>
+    <ActivityLogFormView
+      serverMembers={members}
+      activityName={name}
+      date={date.isValid() ? date.format() : undefined}
+      activityType={ACTIVITY_TYPES.includes(type) ? type : undefined}
+      hours={hours ? (!isNaN(hours) && hours >= 0 ? hours : undefined) : undefined}
+      miles={miles ? (!isNaN(miles) && miles >= 0 ? miles : undefined) : undefined}
+      fromCalendar={calendar === 'true'}
+    />
   )
 }

@@ -74,7 +74,6 @@ const columns: GridColDef[] = [
       )
     },
   },
-  { field: 'role', headerName: 'Role', editable: false, disableColumnMenu: true },
   {
     field: 'office',
     headerName: 'Office',
@@ -82,6 +81,7 @@ const columns: GridColDef[] = [
     editable: false,
     disableColumnMenu: true,
   },
+  { field: 'role', headerName: 'Role', editable: false, disableColumnMenu: true, minWidth: 150 },
   {
     field: 'joined',
     headerName: 'Joined',

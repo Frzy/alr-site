@@ -1,7 +1,6 @@
 import { ACTIVE_ROLES } from '@/utils/constants'
 import { getMembersBy, memberToUnAuthMember } from '@/lib/member'
 import { getServerAuthSession } from '@/lib/auth'
-import BaseLayout from '@/components/BaseLayout'
 import RosterView from '@/components/Views/RosterView'
 import type { Metadata } from 'next'
 
@@ -18,9 +17,5 @@ export default async function RosterPage(): Promise<JSX.Element> {
 
   const members = serverMembers.toSorted((a, b) => a.name.localeCompare(b.name))
 
-  return (
-    <BaseLayout title='ALR 91 Roster'>
-      <RosterView serverMembers={members} />
-    </BaseLayout>
-  )
+  return <RosterView serverMembers={members} />
 }

@@ -5,8 +5,8 @@ import type {
   GroupLogs,
   LogStats,
   LogsByMember,
-  Member,
   RawRowData,
+  ServerMember,
 } from '@/types/common'
 import { type ACTIVITY_TYPE, ACTIVITY_TYPES } from '@/utils/constants'
 import { formatNumber } from '@/utils/helpers'
@@ -68,7 +68,7 @@ function groupLogsByMemberObject(logs: ActivityLog[]): GroupLogs {
 
 export async function groupLogsByMember(
   logs: ActivityLog[],
-  memberFilter?: (member: Member) => boolean,
+  memberFilter?: (member: ServerMember) => boolean,
 ): Promise<LogsByMember[]> {
   const groups = groupLogsByMemberObject(logs)
   const members = await getMembersBy(memberFilter)
@@ -172,7 +172,7 @@ export async function udpateActivityLogName(oldName: string, newName: string): P
 
 export async function getActivityLogStats(
   filter?: (log: ActivityLog) => boolean,
-  memberFilter?: (member: Member) => boolean,
+  memberFilter?: (member: ServerMember) => boolean,
 ): Promise<ActivityLogStats> {
   const logs = await getActivityLogEntries(filter)
   const groups = await groupLogsByMember(logs, memberFilter)

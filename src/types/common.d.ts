@@ -106,7 +106,7 @@ export type GroupLogs = Record<string, LogStats>
 
 export type LogsByMember = {
   name: string
-  member: Member
+  member: ServerMember
 } & LogStats
 
 export type LogStats = {

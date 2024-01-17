@@ -11,18 +11,17 @@ import {
   Divider,
   Drawer,
   IconButton,
-  Menu,
-  MenuItem,
-  Link as MuiLink,
+  Link,
   List,
   ListItem,
   ListSubheader,
+  Menu,
+  MenuItem,
+  ToggleButton,
+  ToggleButtonGroup,
   Toolbar,
   Typography,
-  ToggleButtonGroup,
-  ToggleButton,
 } from '@mui/material'
-import Link from '@/component/link'
 import MenuIcon from '@mui/icons-material/Menu'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -416,9 +415,9 @@ export default function Header() {
                   </Link>
                 </ListItem>
                 <ListItem sx={{ pl: 3 }} onClick={handleDrawerToggle}>
-                  <MuiLink underline='none' component='button' onClick={() => signOut()}>
+                  <Link component='button' onClick={() => signOut()}>
                     Sign Out
-                  </MuiLink>
+                  </Link>
                 </ListItem>
                 <ListItem
                   sx={{ pl: 3, gap: 2 }}

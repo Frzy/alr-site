@@ -153,23 +153,23 @@ export default function ActivityLogForm({
         setSaveMember(false)
       }
 
-      try {
-        await fetch('/api/activity-log', {
-          method: 'post',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        })
+      const response = await fetch('/api/activity-log', {
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
 
+      if (response.ok) {
         resetForm()
         SendNotification('Log entry created', 'success')
-      } catch (error) {
+      } else {
         SendNotification('Failed to creat log entry', 'error')
-      } finally {
-        setLoading(false)
       }
+
+      setLoading(false)
     }
   }
   function handleClearRemembered(): void {
