@@ -1,4 +1,4 @@
-import type { Member, SessionUser } from '@/types/common'
+import type { Member, ServerMember, SessionUser } from '@/types/common'
 import { OFFICER_ORDER, ROLE } from './constants'
 import { stringToColor, stripAllButNumbers } from './helpers'
 
@@ -11,6 +11,7 @@ import FounderIcon from '@mui/icons-material/SelfImprovement'
 import CharterIcon from '@mui/icons-material/Star'
 import DefaultIcon from '@mui/icons-material/Person'
 import { type SvgIconProps } from '@mui/material'
+import dayjs from 'dayjs'
 
 export function memberToSessionUser(member: Member): SessionUser {
   const { id, image, milesToPost, firstName, lastName, suffix, email } = member
@@ -80,3 +81,10 @@ export function getMemberIcon(member: Member, iconProps?: SvgIconProps): JSX.Ele
 }
 
 export const MEMBER_JOINED_FORMAT = 'MM-DD-YYYY'
+
+export function mapToClientMember(m: ServerMember): Member {
+  return {
+    ...m,
+    joined: m.joined ? dayjs(m.joined) : undefined,
+  }
+}

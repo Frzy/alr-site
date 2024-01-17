@@ -26,22 +26,19 @@ import type { Member } from '@/types/common'
 import { LoadingButton } from '@mui/lab'
 import React from 'react'
 import Grid from '@mui/material/Unstable_Grid2/Grid2'
-import { MEMBER_JOINED_FORMAT, isMemberAdmin } from '@/utils/member'
+import { isMemberAdmin } from '@/utils/member'
 import { useHotkeys } from 'react-hotkeys-hook'
 import PhoneField from '../PhoneField'
 import NumbersIcon from '@mui/icons-material/Numbers'
 import { SendNotification } from '@/utils/helpers'
 import RoleSelect from '../RoleSelect'
 import OfficeSelect from '../OfficerSelect'
-import dayjs, { type Dayjs } from 'dayjs'
-import {
-  DatePicker,
-  type DateValidationError,
-  type PickerChangeHandlerContext,
-} from '@mui/x-date-pickers'
+import { type Dayjs } from 'dayjs'
+import { DatePicker } from '@mui/x-date-pickers'
 import { CANIDATE_ROLES, type ENTITY, ROLE } from '@/utils/constants'
 import AvatarField from '../AvatarField'
 import EntitySelect from '../EntitySelect'
+import HelpIcon from '@mui/icons-material/Help'
 
 interface MemberEditDialogProps extends DialogProps {
   member: Member
@@ -105,12 +102,8 @@ export default function MemberEditDialog({
 
     updateMember({ [name]: value })
   }
-  function handleDateChange(
-    name: 'joined',
-    newValue: Dayjs | null,
-    context: PickerChangeHandlerContext<DateValidationError>,
-  ): void {
-    if (newValue) updateMember({ [name]: newValue.format(MEMBER_JOINED_FORMAT) })
+  function handleDateChange(name: 'joined', newValue: Dayjs | null): void {
+    if (newValue) updateMember({ [name]: newValue })
   }
   function handleCheckboxChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const { name, checked } = event.target
@@ -248,6 +241,15 @@ export default function MemberEditDialog({
               type='number'
               inputProps={{
                 min: 0,
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment sx={{ cursor: 'default' }} position='end'>
+                    <Tooltip title='This will help calculate distance when estimating miles traveled when submitting log entries.'>
+                      <HelpIcon />
+                    </Tooltip>
+                  </InputAdornment>
+                ),
               }}
               disabled={loading}
               fullWidth
@@ -452,9 +454,9 @@ export default function MemberEditDialog({
             <Grid xs={12} md={4} lg={3}>
               <DatePicker
                 label='Joined'
-                value={member.joined ? dayjs(member.joined) : null}
+                value={member.joined ? member.joined : null}
                 onChange={(value, context) => {
-                  handleDateChange('joined', value, context)
+                  handleDateChange('joined', value)
                 }}
                 disableFuture
                 disabled={loading}

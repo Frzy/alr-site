@@ -1,4 +1,4 @@
-import { Box, type BoxProps, InputLabel, Chip } from '@mui/material'
+import { Box, type BoxProps, InputLabel, Chip, Link } from '@mui/material'
 import dayjs, { type Dayjs } from 'dayjs'
 import React from 'react'
 
@@ -10,6 +10,8 @@ interface TextDisplayProps extends BoxProps {
   label?: string
   value?: string | number | Dayjs | (string | number | Dayjs)[]
   multiple?: boolean
+  link?: boolean
+  href?: string
   variant?: 'filled' | 'standard'
 }
 export default function TextDisplay({
@@ -20,10 +22,15 @@ export default function TextDisplay({
   renderValue,
   fullWidth,
   multiple,
+  link,
+  href,
   emptyText = 'Not Available',
   ...other
 }: TextDisplayProps): JSX.Element {
   const displayValue = React.useMemo(() => {
+    function getWrapper(value: React.ReactNode): React.ReactNode {
+      return link ? <Link href={href}>{value}</Link> : value
+    }
     function getFormattedValue(
       val: string | number | Dayjs | undefined,
     ): React.ReactNode | undefined {
@@ -68,8 +75,10 @@ export default function TextDisplay({
         : value.map(getFormattedValue).filter(Boolean).join(', ')
     }
 
-    return renderValue ? renderValue(getFormattedValue(value)) : getFormattedValue(value)
-  }, [value, multiple, renderValue, formatValue])
+    return renderValue
+      ? renderValue(getFormattedValue(value))
+      : getWrapper(getFormattedValue(value))
+  }, [value, multiple, renderValue, formatValue, link, href])
 
   return (
     <Box

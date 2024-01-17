@@ -58,16 +58,19 @@ export default function EventTracker({
   const isSupporter = member.role === ROLE.SUPPORTER
   const [year, setYear] = React.useState(initYear)
   const allYears = React.useMemo(() => {
-    return logs
-      .reduce<number[]>((prev, next) => {
-        const y = dayjs(next.date).year()
-        if (!prev.includes(y)) {
-          prev.push(y)
-        }
+    const currentYear = dayjs().year()
+    const years = logs.reduce<number[]>((prev, next) => {
+      const y = dayjs(next.date).year()
+      if (!prev.includes(y)) {
+        prev.push(y)
+      }
 
-        return prev
-      }, [])
-      .toSorted((a, b) => b - a)
+      return prev
+    }, [])
+
+    if (!years.includes(currentYear)) years.push(currentYear)
+
+    return years.toSorted((a, b) => b - a)
   }, [logs])
   const counts = React.useMemo(() => {
     const startDate = dayjs(year.toString(), 'YYYY').startOf('year')

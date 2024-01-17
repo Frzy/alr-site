@@ -60,31 +60,35 @@ export default function MemberInformation({
         <Grid xs={6} md={4} lg={3}>
           <TextDisplay label='Name' value={member.name} fullWidth />
         </Grid>
+        <Grid xs={6} md={4} lg={3}>
+          <TextDisplay label='Nickname' value={member.nickName} fullWidth />
+        </Grid>
         {(isAdmin || isLoggedIn) && (
           <Grid xs={6} md={4} lg={3}>
             <TextDisplay label='Membership Id' value={member.membershipId} fullWidth />
           </Grid>
         )}
-        <Grid xs={6} md={4} lg={3}>
-          <TextDisplay label='Nickname' value={member.nickName} fullWidth />
-        </Grid>
         {member.role === ROLE.PROSPECT ? (
           <Grid xs={6} md={4} lg={3}>
             <TextDisplay label='Rides' value={`${member.rides ? member.rides : 0} / 3`} fullWidth />
           </Grid>
         ) : (
           <Grid xs={6} md={4} lg={3}>
-            <TextDisplay label='Joined On' value={member.joined} fullWidth />
+            <TextDisplay
+              label='Joined'
+              value={member.joined ? member.joined.format('MMMM YYYY') : ''}
+              fullWidth
+            />
           </Grid>
         )}
-        <Grid xs={6} md={4} lg={3}>
-          <TextDisplay label='Status' value={member.role} fullWidth />
-        </Grid>
         {!!member.yearsActive && (
           <Grid xs={6} md={4} lg={3}>
             <TextDisplay label='Years Active' value={member.yearsActive} fullWidth />
           </Grid>
         )}
+        <Grid xs={6} md={4} lg={3}>
+          <TextDisplay label='Status' value={member.role} fullWidth />
+        </Grid>
         {!!member.office && (
           <Grid xs={6} md={4} lg={3}>
             <TextDisplay label='Office' value={member.office} fullWidth />
@@ -92,20 +96,28 @@ export default function MemberInformation({
         )}
         {isMember && (
           <Grid xs={12} sm={6} lg={3}>
-            <TextDisplay label='Email' value={member.email} fullWidth />
+            <TextDisplay
+              label='Email'
+              value={member.email}
+              href={`mailto:${member.email}`}
+              link
+              fullWidth
+            />
           </Grid>
         )}
         {isMember && (
           <Grid xs={12} sm={6} lg={3}>
             <TextDisplay
               label='Phone Number'
+              link
+              href={`tel:${member.phoneNumber}`}
               value={member.phoneNumber}
               formatValue={getFormatedPhoneNumber}
               fullWidth
             />
           </Grid>
         )}
-        {isMember && (
+        {(isAdmin || isLoggedIn) && !!member.milesToPost && (
           <Grid xs={12} sm={6} lg={3}>
             <TextDisplay
               label='Home to Post Mileage'

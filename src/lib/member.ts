@@ -2,7 +2,7 @@ import { GoogleSpreadsheet, type GoogleSpreadsheetRow } from 'google-spreadsheet
 import { JWT } from 'google-auth-library'
 import { MEMBER_ROLES, type ROLE } from '@/utils/constants'
 import dayjs from 'dayjs'
-import type { Member, MemberGoogleRow, RawRowData } from '@/types/common'
+import type { ServerMember, MemberGoogleRow, RawRowData } from '@/types/common'
 import { randomUUID } from 'crypto'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
@@ -71,11 +71,11 @@ function getLastPaidDues(
 
   return dueYear
 }
-function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
+function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): ServerMember {
   const isLifeTimeMember = r.get('lifttimeMember') === 'TRUE'
   const isActive = MEMBER_ROLES.includes(r.get('role') as ROLE)
   const lastPaidDues = getLastPaidDues(r.get('lastPaidDues') as string, isLifeTimeMember, isActive)
-  const joined = r.get('joinDate') ? dayjs(r.get('joinDate') as string, 'M/D/YYYY').year() : null
+  const joined = r.get('joinDate') ? dayjs(r.get('joinDate') as string).year() : null
   const yearsActive = lastPaidDues && joined ? lastPaidDues - joined : null
 
   const member = {
@@ -97,7 +97,7 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
     nickName: r.get('nickname') ?? '',
     milesToPost: r.get('milesToPost') ? parseFloat(r.get('milesToPost') as string) : 0,
     office: r.get('office') ?? '',
-    phoneNumber: r.get('phone') ?? '',
+    phoneNumber: r.get('phone') ? r.get('phone').replace(/\D/g, '') : '',
     rides: r.get('rides') ? parseInt(r.get('rides') as string) : undefined,
     role: r.get('role'),
     suffix: r.get('suffix') ?? '',
@@ -107,13 +107,15 @@ function rowToMember(r: GoogleSpreadsheetRow<MemberGoogleRow>): Member {
   }
 
   Object.keys(member).forEach(
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    (key) => member[key as keyof Member] === undefined && delete member[key as keyof Member],
+    (key) =>
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      member[key as keyof ServerMember] === undefined && delete member[key as keyof ServerMember],
   )
 
   return member
 }
-function memberToRow(m: Member): MemberGoogleRow {
+
+function memberToRow(m: ServerMember): MemberGoogleRow {
   const data = {
     firstName: m.firstName ? m.firstName : '',
     lastName: m.lastName ? m.lastName : '',
@@ -160,15 +162,17 @@ function memberToRow(m: Member): MemberGoogleRow {
 
   return data
 }
-export function memberToUnAuthMember(member: Member): Member {
+export function memberToUnAuthMember(member: ServerMember): ServerMember {
   const { phoneNumber, email, ...unAuthMember } = member
 
   return unAuthMember
 }
-export async function getAllMembers(): Promise<Member[]> {
+export async function getAllMembers(): Promise<ServerMember[]> {
   return await getMembersBy()
 }
-export async function getMembersBy(filter?: (member: Member) => boolean): Promise<Member[]> {
+export async function getMembersBy(
+  filter?: (member: ServerMember) => boolean,
+): Promise<ServerMember[]> {
   const rows = await getRosterRows()
   const members = rows.map(rowToMember)
 
@@ -176,13 +180,15 @@ export async function getMembersBy(filter?: (member: Member) => boolean): Promis
 
   return members
 }
-export async function findMember(filter: (row: Member) => boolean): Promise<Member | undefined> {
+export async function findMember(
+  filter: (row: ServerMember) => boolean,
+): Promise<ServerMember | undefined> {
   const rows = await getRosterRows()
-  const members: Member[] = rows.map(rowToMember)
+  const members: ServerMember[] = rows.map(rowToMember)
 
   return members.find(filter)
 }
-export async function updateMember(m: Member): Promise<Member | undefined> {
+export async function updateMember(m: ServerMember): Promise<ServerMember | undefined> {
   const rows = await getRosterRows()
   const r = rows.find((r) => r.get('id') === m.id)
   const data = memberToRow(m)
@@ -195,7 +201,7 @@ export async function updateMember(m: Member): Promise<Member | undefined> {
     return rowToMember(r)
   }
 }
-export async function createMember(m: Member): Promise<Member> {
+export async function createMember(m: ServerMember): Promise<ServerMember> {
   const doc = await getRosterDoc()
   const worksheet = doc.sheetsById[process.env.ROSTER_SHEET_KEY]
   const data = memberToRow(m)

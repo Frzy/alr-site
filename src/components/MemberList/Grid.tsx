@@ -13,6 +13,8 @@ import {
   Typography,
 } from '@mui/material'
 import Grid from '@mui/material/Unstable_Grid2/Grid2'
+import PhoneIcon from '@mui/icons-material/Phone'
+import EmailIcon from '@mui/icons-material/Email'
 
 interface MemberGridProps {
   members: Member[]
@@ -34,9 +36,9 @@ interface MemberGridItemProps {
 
 function MemberGridItem({ member }: MemberGridItemProps): JSX.Element {
   return (
-    <Grid xs={12} md={4} lg={3}>
+    <Grid xs={12} sm={6} lg={3}>
       <Card variant='outlined'>
-        <CardActionArea>
+        <CardActionArea sx={{ pb: 1 }} href={`/member/${member.id}`}>
           <CardContent sx={{ p: 1, minHeight: 60 }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Box>
@@ -66,9 +68,18 @@ function MemberGridItem({ member }: MemberGridItemProps): JSX.Element {
             </Box>
           </CardContent>
         </CardActionArea>
-        <CardActions disableSpacing sx={{ justifyContent: 'space-between', p: 0, px: 1, pb: 1 }}>
-          <Button>Call</Button>
-          {member.office && (
+        <CardActions
+          disableSpacing
+          sx={{ justifyContent: 'space-between', p: 0, px: 1, pb: 1, minHeight: 44.5 }}
+        >
+          {member.phoneNumber ? (
+            <Button color='secondary' startIcon={<PhoneIcon />} href={`tel:${member.phoneNumber}`}>
+              Call
+            </Button>
+          ) : (
+            <Box />
+          )}
+          {member.office ? (
             <Typography
               component='span'
               variant='body2'
@@ -76,8 +87,16 @@ function MemberGridItem({ member }: MemberGridItemProps): JSX.Element {
             >
               {member.office}
             </Typography>
+          ) : (
+            <Box />
           )}
-          <Button>Email</Button>
+          {member.email ? (
+            <Button color='secondary' startIcon={<EmailIcon />} href={`mailto:${member.email}`}>
+              Email
+            </Button>
+          ) : (
+            <Box />
+          )}
         </CardActions>
       </Card>
     </Grid>

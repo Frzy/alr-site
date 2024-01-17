@@ -17,7 +17,7 @@ export interface EmergencyContact {
   phone: string
 }
 
-export interface Member {
+export interface ServerMember {
   id: string
   email?: string
   entity?: ENTITY[]
@@ -41,6 +41,10 @@ export interface Member {
   username: string
   milesToPost: number
   emergencyContacts: EmergencyContact[]
+}
+
+export interface Member extends ServerMember {
+  joined?: Dayjs
 }
 
 export interface SessionUser {
@@ -237,3 +241,4 @@ export interface PageProps {
 
 export type RowCellData = string | number | boolean | Date
 export type RawRowData = RowCellData[] | Record<string, RowCellData>
+export type GROUP_FILTER = 'all' | 'officers' | 'members' | 'candidates'

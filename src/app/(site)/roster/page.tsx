@@ -12,13 +12,15 @@ export const metadata: Metadata = {
 
 export default async function RosterPage(): Promise<JSX.Element> {
   const session = await getServerAuthSession()
-  const members = await getMembersBy((m) => ACTIVE_ROLES.includes(m.role))
+  let serverMembers = await getMembersBy((m) => ACTIVE_ROLES.includes(m.role))
 
-  members.sort((a, b) => a.name.localeCompare(b.name))
+  if (!session) serverMembers = serverMembers.map(memberToUnAuthMember)
+
+  const members = serverMembers.toSorted((a, b) => a.name.localeCompare(b.name))
 
   return (
     <BaseLayout title='ALR 91 Roster'>
-      <RosterView members={session ? members : members.map(memberToUnAuthMember)} />
+      <RosterView serverMembers={members} />
     </BaseLayout>
   )
 }

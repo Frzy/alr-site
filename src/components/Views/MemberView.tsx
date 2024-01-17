@@ -4,7 +4,7 @@ import type { ActivityLog, Member, ServerMember } from '@/types/common'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import MemberInformation from '../Member/Information'
-import { isMemberAdmin, mapToClientMember, memberToSessionUser } from '@/utils/member'
+import { mapToClientMember, memberToSessionUser } from '@/utils/member'
 import EventTracker from '../Member/EventTracker'
 import { Stack } from '@mui/material'
 import ActivityLogViewer from '../Activity Log/Viewer'
@@ -14,21 +14,32 @@ import { useQueryState } from 'next-usequerystate'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useSession } from 'next-auth/react'
 
-export default function ProfileView({
-  severMember,
-  logs,
-}: {
+interface MemberViewProps {
   severMember: ServerMember
   logs: ActivityLog[]
   title?: React.ReactNode
-}): JSX.Element {
+  isMember?: boolean
+  isViewingOwnProfile?: boolean
+  isAdmin?: boolean
+}
+
+export default function MemberView({
+  severMember,
+  isViewingOwnProfile,
+  isMember,
+  isAdmin,
+  logs,
+}: MemberViewProps): JSX.Element {
   const { update } = useSession()
   const [member, setMember] = React.useState(mapToClientMember(severMember))
   const [open, setOpen] = useQueryState('edit', {
     history: 'push',
   })
-  const isAdmin = isMemberAdmin(member)
-  useHotkeys('e', async () => await setOpen('true'))
+  useHotkeys('e', openEditDialog)
+
+  async function openEditDialog(): Promise<void> {
+    if (!!isAdmin || !!isViewingOwnProfile) await setOpen('true')
+  }
 
   async function handleProfileUpdate(data: Member): Promise<void> {
     setMember(data)
@@ -40,14 +51,12 @@ export default function ProfileView({
       <Stack spacing={1}>
         <MemberInformation
           member={member}
-          permission={isAdmin ? 'admin' : 'member'}
-          onEdit={async () => {
-            await setOpen('true')
-          }}
-          isLoggedIn
+          permission={isAdmin ? 'admin' : isMember ? 'member' : 'unknown'}
+          onEdit={openEditDialog}
+          isLoggedIn={isViewingOwnProfile}
         />
-        <EventTracker member={member} logs={logs} />
-        <ActivityLogViewer logs={logs} isPrivate />
+        {(!!isAdmin || !!isViewingOwnProfile) && <EventTracker member={member} logs={logs} />}
+        <ActivityLogViewer logs={logs} isPrivate={isViewingOwnProfile} />
       </Stack>
       <MemberEditDialog
         member={member}

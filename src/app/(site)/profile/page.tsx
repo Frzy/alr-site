@@ -32,10 +32,14 @@ export default async function ProfilePage(): Promise<JSX.Element> {
 
     return (
       <BaseLayout title={`ALR 91 Profile${user ? `: ${user.name}` : ''}`}>
-        <ProfileView member={user} logs={logs} title={`${user.name}'s Profile`} />
+        <ProfileView severMember={user} logs={logs} title={`${user.name}'s Profile`} />
       </BaseLayout>
     )
   }
 
-  return <NotLoggedInView />
+  return (
+    <BaseLayout title='Unauthenticated'>
+      <NotLoggedInView />
+    </BaseLayout>
+  )
 }

@@ -18,59 +18,76 @@ import {
   type ToolbarProps,
   type TypographyProps,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material'
+import { type ENTITY, ROLES, type ROLE, ENTITIES } from '@/utils/constants'
+import DotsIcon from '@mui/icons-material/MoreVert'
 import FilterAltIcon from '@mui/icons-material/FilterAlt'
+import Grid from '@mui/material/Unstable_Grid2/Grid2'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ListIcon from '@mui/icons-material/List'
-import DotsIcon from '@mui/icons-material/MoreVert'
-import { type ENTITY, ROLES, type ROLE, ENTITIES } from '@/utils/constants'
-import Grid from '@mui/material/Unstable_Grid2/Grid2'
 import SearchField from '../SearchField'
-import type { ListMode } from '@/types/common'
+import type { GROUP_FILTER, ListMode } from '@/types/common'
+
 export interface ListFilter {
   query: string
   entity: ENTITY[]
   role: ROLE[]
   pastPresident: boolean
   lifetimeMember: boolean
+  group: GROUP_FILTER
+  sortBy: string
 }
 export enum FILTER {
   ENTITY = 'entity',
   LIFETIME = 'lifetime',
   PAST_DIRECTOR = 'pastDirector',
   ROLE = 'role',
+  GROUP = 'group',
+  SORTBY = 'sortBy',
 }
 
 export type ListHeaderProps = {
-  title?: string
-  titleProps?: TypographyProps
-  listMode?: ListMode
-  disableSearch?: boolean
+  availableRoles?: ROLE[]
   disableFilters?: boolean
   disableOptions?: boolean
+  disableSearch?: boolean
+  filteredTotal?: number
   filters?: FILTER[]
-  onListModeChange?: (mode: ListMode) => void
+  listMode?: ListMode
   onFilterChange?: (filters: ListFilter) => void
+  onListModeChange?: (mode: ListMode) => void
+  title?: string
+  titleProps?: TypographyProps
+  total?: number
 } & ToolbarProps
 
-const BASE_FILTERS = {
+export const BASE_FILTERS: ListFilter = {
   entity: [],
   role: [],
   pastPresident: false,
   lifetimeMember: false,
   query: '',
+  group: 'all',
+  sortBy: 'name',
 }
 
 export default function MemberListHeader({
+  availableRoles = [],
   disableFilters,
   disableOptions,
   disableSearch,
+  filteredTotal,
   filters: filtersToShow = Object.values(FILTER),
   listMode = 'grid',
   onFilterChange,
   onListModeChange,
   title,
   titleProps,
+  total,
   ...toolbarProps
 }: ListHeaderProps): JSX.Element {
   const [showFilter, setShowFilter] = React.useState(false)
@@ -81,9 +98,10 @@ export default function MemberListHeader({
     return (
       filters.entity.length ||
       filters.role.length ||
-      filters.query ||
+      !!filters.query ||
       filters.lifetimeMember ||
-      filters.pastPresident
+      filters.pastPresident ||
+      filters.group !== 'all'
     )
   }, [filters])
 
@@ -196,7 +214,6 @@ export default function MemberListHeader({
           sx={{
             transition: (theme) =>
               theme.transitions.create('all', { duration: theme.transitions.duration.short }),
-            bgcolor: (theme) => theme.palette.memberList.header,
             px: showFilter ? 0.5 : 0,
             pb: showFilter ? 0.5 : 0,
           }}
@@ -204,12 +221,66 @@ export default function MemberListHeader({
           <Collapse in={showFilter} mountOnEnter unmountOnExit>
             <Paper
               variant='outlined'
-              sx={{ p: 1, bgcolor: (theme) => theme.palette.memberList.filterBackground }}
+              sx={{ p: 1, pt: 2, bgcolor: (theme) => theme.palette.memberList.filterBackground }}
             >
               <Grid container spacing={2}>
+                {filtersToShow.includes(FILTER.GROUP) && (
+                  <Grid xs={12} md={5}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', md: 'row' },
+                        alignItems: { xs: 'flex-start', md: 'center' },
+                        gap: 1,
+                      }}
+                    >
+                      <Typography component='span'>Group</Typography>
+                      <ToggleButtonGroup
+                        value={filters.group}
+                        onChange={(event, value) => {
+                          updateFilters({ group: value })
+                        }}
+                        size='small'
+                        exclusive
+                      >
+                        <ToggleButton
+                          sx={{ fontSize: '0.75rem', minWidth: { xs: 60, md: 80 } }}
+                          value={'all'}
+                        >
+                          All
+                        </ToggleButton>
+                        <ToggleButton
+                          sx={{ fontSize: '0.75rem', minWidth: { xs: 60, md: 80 } }}
+                          value={'officers'}
+                        >
+                          EBoard
+                        </ToggleButton>
+                        <ToggleButton
+                          sx={{ fontSize: '0.75rem', minWidth: { xs: 60, md: 80 } }}
+                          value={'members'}
+                        >
+                          Members
+                        </ToggleButton>
+                        <ToggleButton
+                          sx={{ fontSize: '0.75rem', minWidth: { xs: 60, md: 80 } }}
+                          value={'candidates'}
+                        >
+                          Candidates
+                        </ToggleButton>
+                      </ToggleButtonGroup>
+                    </Box>
+                  </Grid>
+                )}
                 {filtersToShow.includes(FILTER.ENTITY) && (
-                  <Grid xs={12}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Grid xs={12} md={4}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', md: 'row' },
+                        alignItems: { xs: 'flex-start', md: 'center' },
+                        gap: 1,
+                      }}
+                    >
                       <Typography component='span'>Entity</Typography>
                       <ToggleButtonGroup
                         value={filters.entity}
@@ -219,7 +290,11 @@ export default function MemberListHeader({
                         size='small'
                       >
                         {ENTITIES.map((e, i) => (
-                          <ToggleButton sx={{ minWidth: '75px' }} value={e} key={i}>
+                          <ToggleButton
+                            sx={{ fontSize: '0.75rem', minWidth: 50 }}
+                            value={e}
+                            key={i}
+                          >
                             {e}
                           </ToggleButton>
                         ))}
@@ -227,12 +302,35 @@ export default function MemberListHeader({
                     </Box>
                   </Grid>
                 )}
+                {filtersToShow.includes(FILTER.SORTBY) && (
+                  <Grid xs={12} md={3}>
+                    <FormControl size='small' sx={{ minWidth: { xs: '100%', md: 50 } }}>
+                      <InputLabel id='sortyby-select-label'>Sort By</InputLabel>
+                      <Select
+                        labelId='sortyby-select-label'
+                        id='sortyby-select'
+                        value={filters.sortBy}
+                        label='Sort By'
+                        onChange={(event) => {
+                          updateFilters({ sortBy: event.target.value })
+                        }}
+                      >
+                        <MenuItem value={'name'}>Name (Asc)</MenuItem>
+                        <MenuItem value={'-name'}>Name (Desc)</MenuItem>
+                        <MenuItem value={'lastName'}>Last Name (Asc)</MenuItem>
+                        <MenuItem value={'-lastName'}>Last Name (Desc)</MenuItem>
+                        <MenuItem value={'role'}>Role (Asc)</MenuItem>
+                        <MenuItem value={'-role'}>Role (Desc)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
                 {filtersToShow.includes(FILTER.ROLE) && (
                   <Grid xs={12}>
                     <Autocomplete
                       multiple
                       size='small'
-                      options={ROLES}
+                      options={availableRoles?.length ? availableRoles : ROLES}
                       value={filters.role}
                       onChange={(event, value) => {
                         updateFilters({ role: value })
@@ -242,7 +340,6 @@ export default function MemberListHeader({
                       )}
                       renderTags={(tagValue, getTagProps) =>
                         tagValue.map((option, index) => (
-                          // eslint-disable-next-line react/jsx-key
                           <Chip label={option} {...getTagProps({ index })} key={index} />
                         ))
                       }
@@ -279,17 +376,27 @@ export default function MemberListHeader({
                     />
                   </Grid>
                 )}
-                {hasFilters && (
-                  <Grid xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                      onClick={() => {
-                        updateFilters(BASE_FILTERS)
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </Grid>
-                )}
+
+                <Grid xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Typography component='span'>{`Viewing ${filteredTotal} of ${total} members`}</Typography>
+                  </Box>
+                  <Button
+                    sx={{
+                      transition: (theme) =>
+                        theme.transitions.create('all', {
+                          duration: theme.transitions.duration.short,
+                        }),
+                      opacity: hasFilters ? 1 : 0,
+                      transform: hasFilters ? 'scaleX(1)' : 'scaleX(0)',
+                    }}
+                    onClick={() => {
+                      updateFilters(BASE_FILTERS)
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </Grid>
               </Grid>
             </Paper>
           </Collapse>
