@@ -107,13 +107,6 @@ export default function MemberPage({ member: initMember, activityLogs }: MemberP
                 onChange={handleMemberChange}
                 onReset={handleMemberReset}
               />
-              {(isCurrentlySignedIn || isOfficer) && (
-                <MemberYearlyRequirments
-                  logs={activityLogs}
-                  year={moment().year()}
-                  member={member}
-                />
-              )}
               <ActivityLogViewer logs={activityLogs} isPublic={!isCurrentlySignedIn} />
             </Stack>
           ) : (
